@@ -5305,15 +5305,15 @@ void Cstl_network_ip_4_ip_6_udp_engineDialog::PrepareVideo(CString parameter_str
 					((thread_retranslate_parameters_structure_type*)local_retranslate_thread_parameters_structure)->parameter_data_source = command_video;
 					((thread_retranslate_parameters_structure_type*)local_retranslate_thread_parameters_structure)->parameter_thread_data_to_retranslate_size = parameter_data_length;
 
-					CWinThread *local_thread = AfxBeginThread(datagram_retranslate_thread, local_retranslate_thread_parameters_structure);
+					//CWinThread *local_thread = AfxBeginThread(datagram_retranslate_thread, local_retranslate_thread_parameters_structure);
 
-					THREADS_INFORMATION local_thread_information;
-					local_thread_information.thread_name = CString(L"datagram_retranslate_thread");
-					local_thread_information.WinThread = local_thread;
+					//THREADS_INFORMATION local_thread_information;
+					//local_thread_information.thread_name = CString(L"datagram_retranslate_thread");
+					//local_thread_information.WinThread = local_thread;
 
-					threads_list.push_back(local_thread_information);
+					//threads_list.push_back(local_thread_information);
 
-					//datagram_retranslate_thread(local_retranslate_thread_parameters_structure);
+					datagram_retranslate_thread(local_retranslate_thread_parameters_structure);
 				}
 			}
 		}
@@ -5435,15 +5435,15 @@ void Cstl_network_ip_4_ip_6_udp_engineDialog::DrawVideo(CString parameter_string
 						((thread_retranslate_parameters_structure_type*)local_retranslate_thread_parameters_structure)->parameter_data_source = command_video_end;
 						((thread_retranslate_parameters_structure_type*)local_retranslate_thread_parameters_structure)->parameter_thread_data_to_retranslate_size = parameter_data_length;
 
-						CWinThread *local_thread = AfxBeginThread(datagram_retranslate_thread, local_retranslate_thread_parameters_structure);
+						//CWinThread *local_thread = AfxBeginThread(datagram_retranslate_thread, local_retranslate_thread_parameters_structure);
 
-						THREADS_INFORMATION local_thread_information;
-						local_thread_information.thread_name = CString(L"datagram_retranslate_thread");
-						local_thread_information.WinThread = local_thread;
+						//THREADS_INFORMATION local_thread_information;
+						//local_thread_information.thread_name = CString(L"datagram_retranslate_thread");
+						//local_thread_information.WinThread = local_thread;
 
-						threads_list.push_back(local_thread_information);
+						//threads_list.push_back(local_thread_information);
 
-						//datagram_retranslate_thread(local_retranslate_thread_parameters_structure);
+						datagram_retranslate_thread(local_retranslate_thread_parameters_structure);
 					}
 				}
 			}
@@ -12345,8 +12345,6 @@ UINT __cdecl datagram_retranslate_connection_thread_ip_4(LPVOID parameter)
 
 				wsprintf((wchar_t*)local_error_message, L"Сетевая ошибка -- %s -- %s\r\n", local_system_error_message, local_time_string.GetBuffer());
 
-				//delete local_retranslate_thread_parameters_structure;
-
 				//			galaxy::MessageBox(local_error_message,CString(L"Ошибка"));
 
 				//{
@@ -12402,8 +12400,6 @@ UINT __cdecl datagram_retranslate_connection_thread_ip_4(LPVOID parameter)
 					CString local_time_string = CTime::GetCurrentTime().FormatGmt("%d/%m/%y %H:%M:%S GMT");
 
 					wsprintf((wchar_t*)local_error_message, L"Сетевая ошибка -- %s -- %s\r\n", local_system_error_message, local_time_string.GetBuffer());
-
-					//delete local_retranslate_thread_parameters_structure;
 
 					//			galaxy::MessageBox(local_error_message,CString(L"Ошибка"));
 
@@ -12462,8 +12458,6 @@ UINT __cdecl datagram_retranslate_connection_thread_ip_4(LPVOID parameter)
 					wsprintf((wchar_t*)local_error_message, L"Сетевая ошибка -- %s -- %s\r\n", local_system_error_message, local_time_string.GetBuffer());
 
 					local_blocking_socket_exception->Delete();
-
-					delete local_retranslate_thread_parameters_structure;
 
 					//			galaxy::MessageBox(local_error_message,CString(L"Ошибка"));
 
@@ -12793,6 +12787,8 @@ UINT __cdecl datagram_retranslate_connection_thread_ip_4(LPVOID parameter)
 		{
 			Sleep(1);
 		}
+
+		break;	//	Передаём данные один раз
 	}
 
 	{
@@ -13078,8 +13074,6 @@ UINT __cdecl datagram_retranslate_connection_thread_ip_6(LPVOID parameter)
 
 				wsprintf((wchar_t*)local_error_message, L"Сетевая ошибка -- %s -- %s\r\n", local_system_error_message, local_time_string.GetBuffer());
 
-				//delete local_retranslate_thread_parameters_structure;
-
 				//			galaxy::MessageBox(local_error_message,CString(L"Ошибка"));
 
 				//{
@@ -13141,8 +13135,6 @@ UINT __cdecl datagram_retranslate_connection_thread_ip_6(LPVOID parameter)
 
 					wsprintf((wchar_t*)local_error_message, L"Сетевая ошибка -- %s -- %s\r\n", local_system_error_message, local_time_string.GetBuffer());
 
-					//delete local_retranslate_thread_parameters_structure;
-
 					//			galaxy::MessageBox(local_error_message,CString(L"Ошибка"));
 
 					//{
@@ -13200,8 +13192,6 @@ UINT __cdecl datagram_retranslate_connection_thread_ip_6(LPVOID parameter)
 					wsprintf((wchar_t*)local_error_message, L"Сетевая ошибка -- %s -- %s\r\n", local_system_error_message, local_time_string.GetBuffer());
 
 					local_blocking_socket_exception->Delete();
-
-					delete local_retranslate_thread_parameters_structure;
 
 					//			galaxy::MessageBox(local_error_message,CString(L"Ошибка"));
 
@@ -13530,6 +13520,8 @@ UINT __cdecl datagram_retranslate_connection_thread_ip_6(LPVOID parameter)
 		{
 			Sleep(1);
 		}
+
+		break;	//	Передаём данные один раз
 	}
 
 	{

@@ -31,6 +31,9 @@
 #endif
 
 
+#define DEBUG_DrawVideo
+#undef DEBUG_DrawVideo
+
 static ApplicationManager am;
 
 boost::thread_group tg;
@@ -131,10 +134,25 @@ UINT __cdecl datagram_play_audio_connection_thread(LPVOID parameter);
 UINT __cdecl datagram_enable_save_video_connection_thread(LPVOID parameter);
 
 
-UINT __cdecl datagram_retranslate_thread(LPVOID parameter);
+//UINT __cdecl datagram_retranslate_thread(LPVOID parameter);
 
-UINT __cdecl datagram_retranslate_connection_thread_ip_4(LPVOID parameter);
-UINT __cdecl datagram_retranslate_connection_thread_ip_6(LPVOID parameter);
+//UINT __cdecl datagram_retranslate_connection_thread_ip_4(LPVOID parameter);
+//UINT __cdecl datagram_retranslate_connection_thread_ip_6(LPVOID parameter);
+
+UINT __cdecl datagram_retranslate_video_connection_thread(LPVOID parameter);
+
+UINT __cdecl datagram_retranslate_video_connection_thread_ip_4(LPVOID parameter);
+UINT __cdecl datagram_retranslate_video_connection_thread_ip_6(LPVOID parameter);
+
+UINT __cdecl datagram_retranslate_web_camera_video_connection_thread(LPVOID parameter);
+
+UINT __cdecl datagram_retranslate_web_camera_video_connection_thread_ip_4(LPVOID parameter);
+UINT __cdecl datagram_retranslate_web_camera_video_connection_thread_ip_6(LPVOID parameter);
+
+UINT __cdecl datagram_retranslate_audio_connection_thread(LPVOID parameter);
+
+UINT __cdecl datagram_retranslate_audio_connection_thread_ip_4(LPVOID parameter);
+UINT __cdecl datagram_retranslate_audio_connection_thread_ip_6(LPVOID parameter);
 
 
 const BYTE CONST_XOR_KEY = 42;
@@ -444,7 +462,9 @@ BOOL Cstl_network_ip_4_ip_6_udp_engineDialog::OnInitDialog()
 
 	command_threads_enable_save_video_stop = true;
 
-	command_threads_retranslate_stop = true;
+	command_threads_retranslate_video_stop = true;
+	command_threads_retranslate_audio_stop = true;
+	command_threads_retranslate_web_camera_video_stop = true;
 
 
 	CRect rcClient;
@@ -2858,6 +2878,7 @@ UINT __cdecl stop_waiting_thread(LPVOID parameter)
 		{
 			if(local_main_dialog->threads_list.size()==0)
 			{
+				Sleep(10);
 				break;
 			}
 
@@ -4521,6 +4542,10 @@ void Cstl_network_ip_4_ip_6_udp_engineDialog::OnClose()
 
 	set_command_terminate_application(true);
 
+	set_command_threads_retranslate_video_stop(true);
+	set_command_threads_retranslate_web_camera_video_stop(true);
+	set_command_threads_retranslate_audio_stop(true);
+
 	set_command_threads_video_stop(true);
 	set_command_threads_web_camera_video_stop(true);
 	set_command_threads_audio_stop(true);
@@ -5294,6 +5319,8 @@ void Cstl_network_ip_4_ip_6_udp_engineDialog::PrepareVideo(CString parameter_str
 		{
 			if(GUI_CONTROLS_STATE_data.IDC_CHECK_RETRANSLATE_VIDEO_state!=0)
 			{
+				/*/
+
 				BYTE *thread_data_to_retranslate = new BYTE[parameter_data_length];
 				memcpy(thread_data_to_retranslate, parameter_data, parameter_data_length);	//	Здесь кроме данных есть ещё идентификатор последовательности: DWORD received_sequence = *(DWORD*)(parameter_data);
 
@@ -5315,6 +5342,8 @@ void Cstl_network_ip_4_ip_6_udp_engineDialog::PrepareVideo(CString parameter_str
 
 					datagram_retranslate_thread(local_retranslate_thread_parameters_structure);
 				}
+
+				///*/
 			}
 		}
 	}
@@ -5424,6 +5453,8 @@ void Cstl_network_ip_4_ip_6_udp_engineDialog::DrawVideo(CString parameter_string
 
 				if(local_IDC_CHECK_RETRANSLATE_VIDEO_state!=0)
 				{
+					/*/
+
 					BYTE *thread_data_to_retranslate = new BYTE[parameter_data_length];
 					memcpy(thread_data_to_retranslate, parameter_data, parameter_data_length);	//	Здесь кроме данных есть ещё идентификатор последовательности: DWORD received_sequence = *(DWORD*)(parameter_data);
 
@@ -5445,8 +5476,98 @@ void Cstl_network_ip_4_ip_6_udp_engineDialog::DrawVideo(CString parameter_string
 
 						datagram_retranslate_thread(local_retranslate_thread_parameters_structure);
 					}
+					///*/
+
+					{
+						STREAM_INFORMATION local_retranslate_stream_information_ip_4;
+
+						LARGE_INTEGER liBeggining = { 0 };
+
+						current_received_video_stream->stream->Seek(liBeggining, STREAM_SEEK_SET, NULL);
+
+						ULONG local_read = 0;
+						HRESULT local_clone_IStream_result = current_received_video_stream->stream->Clone(&local_retranslate_stream_information_ip_4.stream);
+						local_retranslate_stream_information_ip_4.sequence_number = current_received_video_stream->sequence_number;
+
+						retranslate_video_frames_ip_4.push_back(local_retranslate_stream_information_ip_4);
+					}
+
+					{
+						STREAM_INFORMATION local_retranslate_stream_information_ip_6;
+
+						LARGE_INTEGER liBeggining = { 0 };
+
+						current_received_video_stream->stream->Seek(liBeggining, STREAM_SEEK_SET, NULL);
+
+						ULONG local_read = 0;
+						HRESULT local_clone_IStream_result = current_received_video_stream->stream->Clone(&local_retranslate_stream_information_ip_6.stream);
+						local_retranslate_stream_information_ip_6.sequence_number = current_received_video_stream->sequence_number;
+
+						retranslate_video_frames_ip_6.push_back(local_retranslate_stream_information_ip_6);
+					}
+				
 				}
 			}
+#ifdef DEBUG_DrawVideo
+			else
+			{
+				/*/
+				//	Добавить здесь код сохранения из current_received_video_stream->stream
+				//
+				/*/
+
+				LARGE_INTEGER liBeggining = { 0 };
+
+				current_received_video_stream->stream->Seek(liBeggining, STREAM_SEEK_SET, NULL);
+
+				STATSTG local_istream_statstg;
+				HRESULT local_stat_result = current_received_video_stream->stream->Stat(&local_istream_statstg,STATFLAG::STATFLAG_DEFAULT);
+
+
+				CString new_picture_file_name;
+
+				SYSTEMTIME local_system_time;
+
+				GetLocalTime(&local_system_time);
+
+				new_picture_file_name.Format
+					(
+					L"%04d-%02d-%02d %02d-%02d-%02d.%03d.bin", 
+					local_system_time.wYear,
+					local_system_time.wMonth, 
+					local_system_time.wDay,                      
+					local_system_time.wHour, 
+					local_system_time.wMinute, 
+					local_system_time.wSecond,
+					local_system_time.wMilliseconds
+					);
+
+				//*/
+				//			Тест отображения из IStream
+				{
+					std::fstream local_file;
+					local_file.open(new_picture_file_name.GetBuffer(),std::ios_base::out | std::ios_base::binary | std::ios_base::trunc);
+
+					char *local_file_data = new char[CONST_MESSAGE_LENGTH_IMAGE];
+
+					ULONG local_read_bytes = 0;
+
+					LARGE_INTEGER liBeggining = { 0 };
+
+					current_received_video_stream->stream->Seek(liBeggining, STREAM_SEEK_SET, NULL);
+
+					current_received_video_stream->stream->Read(local_file_data,CONST_MESSAGE_LENGTH_IMAGE,&local_read_bytes);
+
+					local_file.write(local_file_data, local_read_bytes);
+
+					delete [] local_file_data;
+
+					local_file.flush();
+
+					local_file.close();
+				}
+			}
+#endif
 
 			CRect local_window_rectangle;
 
@@ -5560,6 +5681,8 @@ void Cstl_network_ip_4_ip_6_udp_engineDialog::PrepareAudio(CString parameter_str
 
 			if(local_IDC_CHECK_RETRANSLATE_MICROPHONE_state!=0)
 			{
+				/*/
+
 				BYTE *thread_data_to_retranslate = new BYTE[parameter_data_length];
 				memcpy(thread_data_to_retranslate, parameter_data, parameter_data_length);	//	Здесь кроме данных есть ещё идентификатор последовательности: DWORD received_sequence = *(DWORD*)(parameter_data);
 
@@ -5581,6 +5704,8 @@ void Cstl_network_ip_4_ip_6_udp_engineDialog::PrepareAudio(CString parameter_str
 
 					datagram_retranslate_thread(local_retranslate_thread_parameters_structure);
 				}
+
+				///*/
 			}
 		}
 	}
@@ -5696,6 +5821,8 @@ void Cstl_network_ip_4_ip_6_udp_engineDialog::PlayAudio(CString parameter_string
 
 				if(local_IDC_CHECK_RETRANSLATE_MICROPHONE_state!=0)
 				{
+					/*/
+
 					BYTE *thread_data_to_retranslate = new BYTE[parameter_data_length];
 					memcpy(thread_data_to_retranslate, parameter_data, parameter_data_length);	//	Здесь кроме данных есть ещё идентификатор последовательности: DWORD received_sequence = *(DWORD*)(parameter_data);
 
@@ -5716,6 +5843,36 @@ void Cstl_network_ip_4_ip_6_udp_engineDialog::PlayAudio(CString parameter_string
 						//threads_list.push_back(local_thread_information);
 
 						datagram_retranslate_thread(local_retranslate_thread_parameters_structure);
+					}
+
+					///*/
+
+					{
+						STREAM_INFORMATION local_retranslate_stream_information_ip_4;
+
+						LARGE_INTEGER liBeggining = { 0 };
+
+						current_received_microphone_stream->stream->Seek(liBeggining, STREAM_SEEK_SET, NULL);
+
+						ULONG local_read = 0;
+						HRESULT local_clone_IStream_result = current_received_microphone_stream->stream->Clone(&local_retranslate_stream_information_ip_4.stream);
+						local_retranslate_stream_information_ip_4.sequence_number = current_received_microphone_stream->sequence_number;
+
+						retranslate_microphone_frames_ip_4.push_back(local_retranslate_stream_information_ip_4);
+					}
+
+					{
+						STREAM_INFORMATION local_retranslate_stream_information_ip_6;
+
+						LARGE_INTEGER liBeggining = { 0 };
+
+						current_received_microphone_stream->stream->Seek(liBeggining, STREAM_SEEK_SET, NULL);
+
+						ULONG local_read = 0;
+						HRESULT local_clone_IStream_result = current_received_microphone_stream->stream->Clone(&local_retranslate_stream_information_ip_6.stream);
+						local_retranslate_stream_information_ip_6.sequence_number = current_received_microphone_stream->sequence_number;
+
+						retranslate_microphone_frames_ip_6.push_back(local_retranslate_stream_information_ip_6);
 					}
 				}
 			}
@@ -9200,6 +9357,8 @@ void Cstl_network_ip_4_ip_6_udp_engineDialog::PrepareWebCameraVideo(CString para
 
 			if(local_IDC_CHECK_RETRANSLATE_WEB_CAMERA_state!=0)
 			{
+				/*/
+
 				BYTE *thread_data_to_retranslate = new BYTE[parameter_data_length];
 				memcpy(thread_data_to_retranslate, parameter_data, parameter_data_length);	//	Здесь кроме данных есть ещё идентификатор последовательности: DWORD received_sequence = *(DWORD*)(parameter_data);
 
@@ -9221,6 +9380,8 @@ void Cstl_network_ip_4_ip_6_udp_engineDialog::PrepareWebCameraVideo(CString para
 
 					datagram_retranslate_thread(local_retranslate_thread_parameters_structure);
 				}
+
+				///*/
 			}
 		}
 	}
@@ -9372,6 +9533,8 @@ void Cstl_network_ip_4_ip_6_udp_engineDialog::DrawWebCameraVideo(CString paramet
 
 					if(local_IDC_CHECK_RETRANSLATE_WEB_CAMERA_state!=0)
 					{
+						/*/
+
 						BYTE *thread_data_to_retranslate = new BYTE[parameter_data_length];
 						memcpy(thread_data_to_retranslate, parameter_data, parameter_data_length);	//	Здесь кроме данных есть ещё идентификатор последовательности: DWORD received_sequence = *(DWORD*)(parameter_data);
 
@@ -9393,6 +9556,36 @@ void Cstl_network_ip_4_ip_6_udp_engineDialog::DrawWebCameraVideo(CString paramet
 
 							datagram_retranslate_thread(local_retranslate_thread_parameters_structure);
 						}
+
+						///*/
+
+						{
+							STREAM_INFORMATION local_retranslate_stream_information_ip_4;
+
+							LARGE_INTEGER liBeggining = { 0 };
+
+							current_received_web_camera_stream->stream->Seek(liBeggining, STREAM_SEEK_SET, NULL);
+
+							ULONG local_read = 0;
+							HRESULT local_clone_IStream_result = current_received_web_camera_stream->stream->Clone(&local_retranslate_stream_information_ip_4.stream);
+							local_retranslate_stream_information_ip_4.sequence_number = current_received_web_camera_stream->sequence_number;
+
+							retranslate_web_camera_video_frames_ip_4.push_back(local_retranslate_stream_information_ip_4);
+						}
+
+						{
+							STREAM_INFORMATION local_retranslate_stream_information_ip_6;
+
+							LARGE_INTEGER liBeggining = { 0 };
+
+							current_received_web_camera_stream->stream->Seek(liBeggining, STREAM_SEEK_SET, NULL);
+
+							ULONG local_read = 0;
+							HRESULT local_clone_IStream_result = current_received_web_camera_stream->stream->Clone(&local_retranslate_stream_information_ip_6.stream);
+							local_retranslate_stream_information_ip_6.sequence_number = current_received_web_camera_stream->sequence_number;
+
+							retranslate_web_camera_video_frames_ip_6.push_back(local_retranslate_stream_information_ip_6);
+						}
 					}
 				}
 
@@ -9403,12 +9596,12 @@ void Cstl_network_ip_4_ip_6_udp_engineDialog::DrawWebCameraVideo(CString paramet
 				}
 				catch(...)
 				{
-					//return;
+					return;
 				}
 
 				if(get_command_terminate_application())
 				{
-					//return;
+					return;
 				}
 				received_video_dialog->SetWindowTextW(CString(L"Видео с веб камеры от ")+parameter_string);
 			}
@@ -11960,7 +12153,25 @@ void Cstl_network_ip_4_ip_6_udp_engineDialog::OnBnClickedCheckRetranslateVideo()
 		button_send_video.SetCheck(0);
 		GUI_CONTROLS_STATE_data.IDC_CHECK_SEND_VIDEO_state = 0;
 
-		set_command_threads_retranslate_stop(false);
+		set_command_threads_retranslate_video_stop(false);
+
+		{
+			void *local_send_video_thread_parameters_structure = new thread_send_video_parameters_structure_type;
+
+			((thread_send_video_parameters_structure_type*)local_send_video_thread_parameters_structure)->parameter_main_dialog = this;
+
+			CWinThread *local_thread = AfxBeginThread(datagram_retranslate_video_connection_thread,local_send_video_thread_parameters_structure);
+
+			THREADS_INFORMATION local_thread_information;
+			local_thread_information.thread_name = CString(L"datagram_retranslate_video_connection_thread");
+			local_thread_information.WinThread = local_thread;
+
+			threads_list.push_back(local_thread_information);
+		}
+	}
+	else
+	{
+		set_command_threads_retranslate_video_stop(true);
 	}
 }
 
@@ -11976,7 +12187,25 @@ void Cstl_network_ip_4_ip_6_udp_engineDialog::OnBnClickedCheckRetranslateWebCame
 		button_send_web_camera_video.SetCheck(0);
 		GUI_CONTROLS_STATE_data.IDC_CHECK_SEND_WEB_CAMERA_VIDEO_state = 0;
 
-		set_command_threads_retranslate_stop(false);
+		set_command_threads_retranslate_web_camera_video_stop(false);
+
+		{
+			void *local_send_video_thread_parameters_structure = new thread_send_video_parameters_structure_type;
+
+			((thread_send_video_parameters_structure_type*)local_send_video_thread_parameters_structure)->parameter_main_dialog = this;
+
+			CWinThread *local_thread = AfxBeginThread(datagram_retranslate_web_camera_video_connection_thread,local_send_video_thread_parameters_structure);
+
+			THREADS_INFORMATION local_thread_information;
+			local_thread_information.thread_name = CString(L"datagram_retranslate_web_camera_video_connection_thread");
+			local_thread_information.WinThread = local_thread;
+
+			threads_list.push_back(local_thread_information);
+		}
+	}
+	else
+	{
+		set_command_threads_retranslate_web_camera_video_stop(true);
 	}
 }
 
@@ -11991,11 +12220,31 @@ void Cstl_network_ip_4_ip_6_udp_engineDialog::OnBnClickedCheckRetranslateMicroph
 		button_send_audio.SetCheck(0);
 		GUI_CONTROLS_STATE_data.IDC_CHECK_SEND_MICROPHONE_AUDIO_state = 0;
 
-		set_command_threads_retranslate_stop(false);
+		set_command_threads_retranslate_audio_stop(false);
+
+		{
+			void *local_send_audio_thread_parameters_structure = new thread_send_audio_parameters_structure_type;
+
+			((thread_send_audio_parameters_structure_type*)local_send_audio_thread_parameters_structure)->parameter_main_dialog = this;
+
+			CWinThread *local_thread = AfxBeginThread(datagram_retranslate_audio_connection_thread,local_send_audio_thread_parameters_structure);
+
+			THREADS_INFORMATION local_thread_information;
+			local_thread_information.thread_name = CString(L"datagram_retranslate_audio_connection_thread");
+			local_thread_information.WinThread = local_thread;
+
+			threads_list.push_back(local_thread_information);
+		}
+	}
+	else
+	{
+		set_command_threads_retranslate_audio_stop(true);
 	}
 }
 
 //	retranslate
+
+/*/
 
 UINT __cdecl datagram_retranslate_thread(LPVOID parameter)
 {
@@ -13557,3 +13806,5076 @@ UINT __cdecl datagram_retranslate_connection_thread_ip_6(LPVOID parameter)
 		return 1;
 	}
 }
+
+///*/
+
+//	retranslate
+
+UINT __cdecl datagram_retranslate_video_connection_thread(LPVOID parameter)
+{
+	thread_send_video_parameters_structure_type *local_send_video_thread_parameters_structure_source = (thread_send_video_parameters_structure_type *)parameter;
+
+	if(local_send_video_thread_parameters_structure_source==NULL)
+	{
+		return 0;
+	}
+
+	Cstl_network_ip_4_ip_6_udp_engineDialog *local_main_dialog = local_send_video_thread_parameters_structure_source->parameter_main_dialog;
+
+	if(local_main_dialog==NULL)
+	{
+		delete parameter;
+
+		return 0;
+	}
+
+	{
+		void *local_send_video_thread_parameters_structure = new thread_send_video_parameters_structure_type;
+
+		((thread_send_video_parameters_structure_type*)local_send_video_thread_parameters_structure)->parameter_main_dialog = ((thread_send_video_parameters_structure_type*)local_send_video_thread_parameters_structure_source)->parameter_main_dialog;
+
+		CWinThread *local_thread = AfxBeginThread(datagram_retranslate_video_connection_thread_ip_4,local_send_video_thread_parameters_structure);
+
+		THREADS_INFORMATION local_thread_information;
+		local_thread_information.thread_name = CString(L"datagram_retranslate_video_connection_thread_ip_4");
+		local_thread_information.WinThread = local_thread;
+
+		local_main_dialog->threads_list.push_back(local_thread_information);
+	}
+
+	{
+		void *local_send_video_thread_parameters_structure = new thread_send_video_parameters_structure_type;
+
+		((thread_send_video_parameters_structure_type*)local_send_video_thread_parameters_structure)->parameter_main_dialog = ((thread_send_video_parameters_structure_type*)local_send_video_thread_parameters_structure_source)->parameter_main_dialog;
+
+		CWinThread *local_thread = AfxBeginThread(datagram_retranslate_video_connection_thread_ip_6,local_send_video_thread_parameters_structure);
+
+		THREADS_INFORMATION local_thread_information;
+		local_thread_information.thread_name = CString(L"datagram_retranslate_video_connection_thread_ip_6");
+		local_thread_information.WinThread = local_thread;
+
+		local_main_dialog->threads_list.push_back(local_thread_information);
+	}
+
+	{
+		CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
+
+		local_lock.Lock();
+
+		CWinThread *local_current_thread = AfxGetThread();
+
+		for
+			(
+			std::list<THREADS_INFORMATION>::iterator local_threads_iterator=local_main_dialog->threads_list.begin();
+		local_threads_iterator!=local_main_dialog->threads_list.end();
+		local_threads_iterator++
+			)
+		{		
+			CWinThread *local_thread = local_threads_iterator->WinThread;
+
+			if(local_thread->m_hThread==local_current_thread->m_hThread)
+			{
+				local_main_dialog->threads_list.erase(local_threads_iterator);
+				break;
+			}
+		}
+	}
+
+	delete parameter;
+
+	return 1;
+}
+
+
+//	retranslate video
+
+UINT __cdecl datagram_retranslate_video_connection_thread_ip_4(LPVOID parameter)
+{
+	DWORD sequence_number = DWORD(rand());
+
+	thread_send_video_parameters_structure_type *local_send_video_thread_parameters_structure = (thread_send_video_parameters_structure_type *)parameter;
+
+	if(local_send_video_thread_parameters_structure==NULL)
+	{
+		return 0;
+	}
+
+	Cstl_network_ip_4_ip_6_udp_engineDialog *local_main_dialog = (local_send_video_thread_parameters_structure)->parameter_main_dialog;
+
+	if(local_main_dialog==NULL)
+	{
+		delete local_send_video_thread_parameters_structure;
+		return 0;
+	}
+
+	char *send_buffer = new char[CONST_MESSAGE_LENGTH_IMAGE];
+
+	if(send_buffer==NULL)
+	{
+		{
+			CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
+
+			local_lock.Lock();
+
+			CWinThread *local_current_thread = AfxGetThread();
+
+			for
+				(
+				std::list<THREADS_INFORMATION>::iterator local_threads_iterator=local_main_dialog->threads_list.begin();
+			local_threads_iterator!=local_main_dialog->threads_list.end();
+			local_threads_iterator++
+				)
+			{		
+				CWinThread *local_thread = local_threads_iterator->WinThread;
+
+				if(local_thread->m_hThread==local_current_thread->m_hThread)
+				{
+					local_main_dialog->threads_list.erase(local_threads_iterator);
+					break;
+				}
+			}
+		}
+
+		delete local_send_video_thread_parameters_structure;
+		return 0;
+	}
+
+	char *send_buffer_this_time = new char[CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME];
+
+	if(send_buffer_this_time==NULL)
+	{
+		{
+			CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
+
+			local_lock.Lock();
+
+			CWinThread *local_current_thread = AfxGetThread();
+
+			for
+				(
+				std::list<THREADS_INFORMATION>::iterator local_threads_iterator=local_main_dialog->threads_list.begin();
+			local_threads_iterator!=local_main_dialog->threads_list.end();
+			local_threads_iterator++
+				)
+			{		
+				CWinThread *local_thread = local_threads_iterator->WinThread;
+
+				if(local_thread->m_hThread==local_current_thread->m_hThread)
+				{
+					local_main_dialog->threads_list.erase(local_threads_iterator);
+					break;
+				}
+			}
+		}
+
+		delete[] send_buffer;
+		delete local_send_video_thread_parameters_structure;
+		return 0;
+	}
+
+	for(;;)
+	{
+		if(local_main_dialog->get_command_threads_retranslate_video_stop())
+		{
+			break;
+		}
+
+		CString local_address(localhost_definition);
+
+		CStringA local_address_internet_address;
+
+		if(local_main_dialog->get_command_terminate_application())
+		{
+			break;
+		}
+
+		int peers_to_send_count = 0;
+		{
+			DWORD dwWaitResult;
+
+			dwWaitResult = WaitForSingleObject( 
+				local_main_dialog->do_not_terminate_application_event, // event handle
+				0);    // zero wait
+
+			if(dwWaitResult==WAIT_OBJECT_0)
+			{
+				// Event object was signaled		
+
+				if(local_main_dialog->get_command_terminate_application())
+				{
+					{
+						CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
+
+						local_lock.Lock();
+
+						CWinThread *local_current_thread = AfxGetThread();
+
+						for
+							(
+							std::list<THREADS_INFORMATION>::iterator local_threads_iterator=local_main_dialog->threads_list.begin();
+						local_threads_iterator!=local_main_dialog->threads_list.end();
+						local_threads_iterator++
+							)
+						{		
+							CWinThread *local_thread = local_threads_iterator->WinThread;
+
+							if(local_thread->m_hThread==local_current_thread->m_hThread)
+							{
+								local_main_dialog->threads_list.erase(local_threads_iterator);
+								break;
+							}
+						}
+					}
+
+					delete[] send_buffer;
+					delete local_send_video_thread_parameters_structure;
+					return 0;
+				}
+
+				for(
+					std::list<GUI_LIST_CONTROL>::iterator current_item_iterator=local_main_dialog->GUI_CONTROLS_STATE_data.IDC_LIST_NODES_state.begin();
+					current_item_iterator!=local_main_dialog->GUI_CONTROLS_STATE_data.IDC_LIST_NODES_state.end();
+				current_item_iterator++
+					)
+				{
+					if(current_item_iterator->is_checked>0)
+					{
+						peers_to_send_count++;
+					}
+				}
+			}
+			else
+			{
+				if(local_main_dialog->get_command_terminate_application())
+				{
+					delete[] send_buffer;
+					delete local_send_video_thread_parameters_structure;
+					return 0;
+				}
+			}
+		}
+
+		CComPtr<IStream> local_stream;
+
+		if(local_main_dialog->retranslate_video_frames_ip_4.size()==0)
+		{
+			Sleep(10);
+			continue;
+		}
+		else
+		{
+			std::list<STREAM_INFORMATION>::iterator local_frames_iterator = local_main_dialog->retranslate_video_frames_ip_4.begin();
+
+			local_frames_iterator->stream->Clone(&local_stream);
+
+			local_main_dialog->retranslate_video_frames_ip_4.pop_front();
+		}
+
+		for(int peers_to_send_count_counter=0;peers_to_send_count_counter<peers_to_send_count;peers_to_send_count_counter++)
+		{
+			double local_data_size_send = 0.0;
+
+			if(local_main_dialog->get_command_terminate_application())
+			{
+				break;
+			}
+
+#ifdef use_istream_DEFINITION
+			//CImage local_image;
+#endif
+
+			CString peer_to_send;
+
+			int loop_counter=0;
+			for(
+				std::list<GUI_LIST_CONTROL>::iterator current_item_iterator=local_main_dialog->GUI_CONTROLS_STATE_data.IDC_LIST_NODES_state.begin();
+				current_item_iterator!=local_main_dialog->GUI_CONTROLS_STATE_data.IDC_LIST_NODES_state.end();
+			current_item_iterator++
+				)
+			{
+				Sleep(1);
+				if(local_main_dialog->get_command_terminate_application())
+				{
+					break;
+				}
+				if(current_item_iterator->is_checked>0)
+				{
+					if(peers_to_send_count_counter==loop_counter)
+					{
+						peer_to_send = current_item_iterator->label;
+						break;
+					}
+					loop_counter++;
+				}
+
+				if(local_main_dialog->get_command_terminate_application())
+				{
+					break;
+				}
+			}
+
+			if(local_main_dialog->get_command_terminate_application())
+			{
+				break;
+			}
+
+			local_address = peer_to_send;
+
+
+			//	Здесь делаем снимок экрана
+
+			//CSingleLock local_image_lock(&local_main_dialog->draw_video_image_critical_section);
+
+			//local_image_lock.Lock();
+#ifdef use_istream_DEFINITION
+			//if(!local_image.IsNull())
+			//{
+			//	local_image.Destroy();
+			//}
+#endif
+
+			if(network::ip_4::domain_name_to_internet_4_name(local_address,local_address_internet_address)==false)
+			{
+				const int local_error_message_size = 10000;
+				wchar_t local_error_message[local_error_message_size];
+
+				const int local_system_error_message_size = local_error_message_size-1000;
+				wchar_t local_system_error_message[local_system_error_message_size];
+
+				wcscpy_s(local_system_error_message,local_system_error_message_size,L"domain_name_to_internet_6_name завершилась неудачей");
+
+				CString local_time_string = CTime::GetCurrentTime().FormatGmt("%d/%m/%y %H:%M:%S GMT");
+
+				wsprintf((wchar_t*)local_error_message, L"Сетевая ошибка -- %s -- %s\r\n", local_system_error_message, local_time_string.GetBuffer());
+
+				//delete local_send_video_thread_parameters_structure;
+
+				//			galaxy::MessageBox(local_error_message,CString(L"Ошибка"));
+
+				//{
+
+				//	CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
+
+				//	local_lock.Lock();
+
+				//	CWinThread *local_current_thread = AfxGetThread();
+
+				//	for
+				//		(
+				//		std::list<THREADS_INFORMATION>::iterator local_threads_iterator=local_main_dialog->threads_list.begin();
+				//	local_threads_iterator!=local_main_dialog->threads_list.end();
+				//	local_threads_iterator++
+				//		)
+				//	{		
+				//		CWinThread *local_thread = local_threads_iterator->WinThread;
+
+				//		if(local_thread->m_hThread==local_current_thread->m_hThread)
+				//		{
+				//			local_main_dialog->threads_list.erase(local_threads_iterator);
+				//			break;
+				//		}
+				//	}
+				//}
+
+				//delete[] send_buffer;
+				//delete[] send_buffer_this_time;
+
+				//return 0;
+				continue;
+			}
+#ifdef use_istream_DEFINITION
+			//CaptureScreenShot(&local_image);
+
+			//CComPtr<IStream> local_stream;
+
+			//HRESULT local_create_IStream_result = CreateStreamOnHGlobal ( 0 , TRUE , &local_stream );
+
+			//try
+			//{
+			//	HRESULT local_save_result = local_image.Save(local_stream, Gdiplus::ImageFormatPNG);
+			//}
+			//catch(...)
+			//{
+			//	continue;
+			//}
+
+#endif
+			//local_image_lock.Unlock();
+
+			ULONGLONG local_start_time = GetTickCount64();
+
+			STATSTG local_istream_statstg;
+			HRESULT local_stat_result = local_stream->Stat(&local_istream_statstg,STATFLAG::STATFLAG_DEFAULT);
+
+			/*/
+			//			Тест отображения из IStream
+			{
+				CString new_picture_file_name;
+
+				SYSTEMTIME local_system_time;
+
+				GetLocalTime(&local_system_time);
+
+				new_picture_file_name.Format
+					(
+					L"%04d-%02d-%02d %02d-%02d-%02d.%03d.png", 
+					local_system_time.wYear,
+					local_system_time.wMonth, 
+					local_system_time.wDay,                      
+					local_system_time.wHour, 
+					local_system_time.wMinute, 
+					local_system_time.wSecond,
+					local_system_time.wMilliseconds
+					);
+
+			std::fstream local_file;
+			local_file.open(new_picture_file_name.GetBuffer(),std::ios_base::out | std::ios_base::binary | std::ios_base::trunc);
+
+			char *local_file_data = new char[CONST_MESSAGE_LENGTH_IMAGE];
+
+			ULONG local_read_bytes = 0;
+
+			LARGE_INTEGER liBeggining = { 0 };
+
+			local_stream->Seek(liBeggining, STREAM_SEEK_SET, NULL);
+
+			local_stream->Read(local_file_data,CONST_MESSAGE_LENGTH_IMAGE,&local_read_bytes);
+
+			local_file.write(local_file_data, local_read_bytes);
+
+			delete [] local_file_data;
+
+			local_file.flush();
+
+			local_file.close();
+			}
+			//*/
+
+
+
+			for(UINT local_parameter_port_number=port_number_start_const;local_parameter_port_number<=port_number_end_const;local_parameter_port_number++)
+			{
+				network::ip_4::CBlockingSocket_ip_4 local_blocking_socket;
+
+				if(network::ip_4::domain_name_to_internet_4_name(local_address,local_address_internet_address)==false)
+				{
+					const int local_error_message_size = 10000;
+					wchar_t local_error_message[local_error_message_size];
+
+					const int local_system_error_message_size = local_error_message_size-1000;
+					wchar_t local_system_error_message[local_system_error_message_size];
+
+					wcscpy_s(local_system_error_message,local_system_error_message_size,L"domain_name_to_internet_6_name завершилась неудачей");
+
+					CString local_time_string = CTime::GetCurrentTime().FormatGmt("%d/%m/%y %H:%M:%S GMT");
+
+					wsprintf((wchar_t*)local_error_message, L"Сетевая ошибка -- %s -- %s\r\n", local_system_error_message, local_time_string.GetBuffer());
+
+					//delete local_send_video_thread_parameters_structure;
+
+					//			galaxy::MessageBox(local_error_message,CString(L"Ошибка"));
+
+					//{
+
+					//	CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
+
+					//	local_lock.Lock();
+
+					//	CWinThread *local_current_thread = AfxGetThread();
+
+					//	for
+					//		(
+					//		std::list<THREADS_INFORMATION>::iterator local_threads_iterator=local_main_dialog->threads_list.begin();
+					//	local_threads_iterator!=local_main_dialog->threads_list.end();
+					//	local_threads_iterator++
+					//		)
+					//	{		
+					//		CWinThread *local_thread = local_threads_iterator->WinThread;
+
+					//		if(local_thread->m_hThread==local_current_thread->m_hThread)
+					//		{
+					//			local_main_dialog->threads_list.erase(local_threads_iterator);
+					//			break;
+					//		}
+					//	}
+					//}
+
+					//delete[] send_buffer;
+					//delete[] send_buffer_this_time;
+
+					//return 0;
+					break;
+				}
+
+				network::ip_4::CSockAddr_ip_4 local_socket_address(local_address_internet_address,local_parameter_port_number);
+
+				try
+				{
+					local_blocking_socket.Create(SOCK_DGRAM);
+				}
+				catch(network::ip_4::CBlockingSocketException_ip_4 *local_blocking_socket_exception)
+				{
+					const int local_error_message_size = 10000;
+					wchar_t local_error_message[local_error_message_size];
+
+					const int local_system_error_message_size = local_error_message_size-1000;
+					wchar_t local_system_error_message[local_system_error_message_size];
+
+					CString local_time_string = CTime::GetCurrentTime().FormatGmt("%d/%m/%y %H:%M:%S GMT");
+
+					local_blocking_socket_exception->GetErrorMessage(local_system_error_message,local_system_error_message_size);
+
+					wsprintf((wchar_t*)local_error_message, L"Сетевая ошибка -- %s -- %s\r\n", local_system_error_message, local_time_string.GetBuffer());
+
+					local_blocking_socket_exception->Delete();
+
+					delete local_send_video_thread_parameters_structure;
+
+					//			galaxy::MessageBox(local_error_message,CString(L"Ошибка"));
+
+					{
+						CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
+
+						local_lock.Lock();
+
+						CWinThread *local_current_thread = AfxGetThread();
+
+						for
+							(
+							std::list<THREADS_INFORMATION>::iterator local_threads_iterator=local_main_dialog->threads_list.begin();
+						local_threads_iterator!=local_main_dialog->threads_list.end();
+						local_threads_iterator++
+							)
+						{		
+							CWinThread *local_thread = local_threads_iterator->WinThread;
+
+							if(local_thread->m_hThread==local_current_thread->m_hThread)
+							{
+								local_main_dialog->threads_list.erase(local_threads_iterator);
+								break;
+							}
+						}
+					}
+
+					delete[] send_buffer;
+					delete[] send_buffer_this_time;
+
+					return 0;
+				}
+
+				int local_bytes_sent = 0;
+				int local_error_number = 0;
+
+
+				int send_buffer_data_length = service_signature_definition_length;
+
+				ZeroMemory(send_buffer,CONST_MESSAGE_LENGTH_IMAGE);
+
+				memcpy(send_buffer,service_signature,service_signature_definition_length);
+
+
+
+				CString send_data_string = command_video;
+
+				int send_data_string_length = send_data_string.GetLength();
+
+				memcpy(send_buffer+send_buffer_data_length,send_data_string.GetBuffer(),send_data_string_length*sizeof(wchar_t));
+
+				send_buffer_data_length += send_data_string_length*sizeof(wchar_t);
+
+				wchar_t zero_word = L'\0';
+				memcpy(send_buffer+send_buffer_data_length,&zero_word,sizeof(wchar_t));
+				send_buffer_data_length += sizeof(wchar_t);
+				send_data_string_length++;
+
+
+				memcpy(send_buffer+send_buffer_data_length,&sequence_number,sizeof(DWORD));
+				send_buffer_data_length += sizeof(DWORD);
+				send_data_string_length += sizeof(DWORD)/sizeof(wchar_t);
+
+
+				LARGE_INTEGER liBeggining = { 0 };
+#ifdef use_istream_DEFINITION
+				local_stream->Seek(liBeggining, STREAM_SEEK_SET, NULL);
+#endif
+
+
+				ULONG local_read = 0;
+#ifdef use_istream_DEFINITION
+				local_stream->Read(send_buffer+send_buffer_data_length, CONST_MESSAGE_LENGTH_IMAGE - send_buffer_data_length, &local_read);
+#else
+				local_read = 100000;
+#endif
+				send_buffer_data_length += local_read;
+
+
+
+
+				CString xor_code_string;
+
+				if(local_main_dialog->get_command_terminate_application())
+				{
+					break;
+				}
+				{
+					xor_code_string = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_XOR_CODE_state;
+				}
+
+				char xor_code = _wtoi(xor_code_string);
+
+				encrypt::encrypt_xor(send_buffer+service_signature_definition_length,send_buffer_data_length-service_signature_definition_length,xor_code);
+
+				int local_header_length = service_signature_definition_length+send_data_string_length*sizeof(wchar_t);
+
+				int local_part_counter = 0;
+				int local_parts_count = local_read/(CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t));
+				int local_last_part_size = local_read % (CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t));
+
+				if(local_last_part_size!=0)
+				{
+					local_parts_count++;
+				}
+
+				for(;local_part_counter<local_parts_count;local_part_counter++)
+				{
+					int send_buffer_this_time_data_length = CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME;
+
+					if(local_part_counter==local_parts_count-1)
+					{
+						if(local_last_part_size!=0)
+						{
+							send_buffer_this_time_data_length = local_last_part_size+service_signature_definition_length+send_data_string_length*sizeof(wchar_t);
+						}
+					}
+
+					ZeroMemory(send_buffer_this_time,CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME);
+
+					memcpy(send_buffer_this_time,send_buffer,service_signature_definition_length+send_data_string_length*sizeof(wchar_t));
+
+					int local_this_time_data_offset = local_part_counter*(CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t));
+
+					memcpy
+						(
+						send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t),
+						send_buffer+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+local_this_time_data_offset,
+						send_buffer_this_time_data_length-(service_signature_definition_length+send_data_string_length*sizeof(wchar_t))
+						);
+
+					try
+					{
+						local_bytes_sent = local_blocking_socket.SendDatagram(send_buffer_this_time,send_buffer_this_time_data_length,local_socket_address,CONST_WAIT_TIME_SEND);
+
+						local_data_size_send += local_bytes_sent;
+					}
+					catch(network::ip_4::CBlockingSocketException_ip_4 *local_blocking_socket_exception)
+					{
+						const int local_error_message_size = 10000;
+						wchar_t local_error_message[local_error_message_size];
+
+						const int local_system_error_message_size = local_error_message_size;
+						wchar_t local_system_error_message[local_system_error_message_size];
+
+						CString local_time_string = CTime::GetCurrentTime().FormatGmt("%d/%m/%y %H:%M:%S GMT");
+
+						local_blocking_socket_exception->GetErrorMessage(local_system_error_message,local_system_error_message_size);
+
+						wsprintf((wchar_t*)local_error_message, L"Сетевая ошибка -- %s -- %s\r\n", local_system_error_message, local_time_string.GetBuffer());
+
+						local_error_number = local_blocking_socket_exception->GetErrorNumber();
+
+						local_blocking_socket_exception->Delete();
+
+						if(local_error_number!=0)
+						{
+							//				galaxy::MessageBox(local_error_message,CString(L"Ошибка"));
+						}
+						break;
+					}
+
+					if(local_main_dialog->get_command_threads_retranslate_video_stop())
+					{
+						break;
+					}
+					else
+					{
+						Sleep(10);
+					}
+
+				}
+
+				{
+					int local_bytes_sent = 0;
+					int local_error_number = 0;
+
+					char send_buffer[CONST_MESSAGE_LENGTH];
+
+					int send_buffer_data_length = service_signature_definition_length;
+
+					ZeroMemory(send_buffer,CONST_MESSAGE_LENGTH);
+
+					memcpy(send_buffer,service_signature,service_signature_definition_length);
+
+					CString send_data_string;
+
+					int send_data_string_length = 0;
+
+					send_data_string = command_video_end;
+
+					send_data_string_length = send_data_string.GetLength();
+
+					memcpy(send_buffer+send_buffer_data_length,send_data_string.GetBuffer(),send_data_string_length*sizeof(wchar_t));
+
+					send_buffer_data_length += send_data_string_length*sizeof(wchar_t);
+
+
+					wchar_t zero_word = L'\0';
+					memcpy(send_buffer+send_buffer_data_length,&zero_word,sizeof(wchar_t));
+					send_buffer_data_length += sizeof(wchar_t);
+					send_data_string_length++;
+
+
+					memcpy(send_buffer+send_buffer_data_length,&sequence_number,sizeof(DWORD));
+					send_buffer_data_length += sizeof(DWORD);
+					send_data_string_length += sizeof(DWORD)/sizeof(wchar_t);
+
+
+					CString xor_code_string;
+
+					if(local_main_dialog->get_command_terminate_application())
+					{
+						break;
+					}
+					{
+						xor_code_string = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_XOR_CODE_state;
+					}
+
+					char xor_code = _wtoi(xor_code_string);
+
+					encrypt::encrypt_xor(send_buffer+service_signature_definition_length,send_buffer_data_length-service_signature_definition_length,xor_code);
+
+					try
+					{
+						local_bytes_sent = local_blocking_socket.SendDatagram(send_buffer,send_buffer_data_length,local_socket_address,CONST_WAIT_TIME_SEND);
+
+						local_data_size_send += local_bytes_sent;
+					}
+					catch(network::ip_4::CBlockingSocketException_ip_4 *local_blocking_socket_exception)
+					{
+						const int local_error_message_size = 10000;
+						wchar_t local_error_message[local_error_message_size];
+
+						const int local_system_error_message_size = local_error_message_size;
+						wchar_t local_system_error_message[local_system_error_message_size];
+
+						CString local_time_string = CTime::GetCurrentTime().FormatGmt("%d/%m/%y %H:%M:%S GMT");
+
+						local_blocking_socket_exception->GetErrorMessage(local_system_error_message,local_system_error_message_size);
+
+						wsprintf((wchar_t*)local_error_message, L"Сетевая ошибка -- %s -- %s\r\n", local_system_error_message, local_time_string.GetBuffer());
+
+						local_error_number = local_blocking_socket_exception->GetErrorNumber();
+
+						local_blocking_socket_exception->Delete();
+
+						if(local_error_number!=0)
+						{
+							//				galaxy::MessageBox(local_error_message,CString(L"Ошибка"));
+						}
+					}
+				}
+
+
+
+				local_blocking_socket.Close();
+
+				if(local_bytes_sent<=0 && local_error_number==0)
+				{
+					//			galaxy::MessageBox(CString(L"local_bytes_sent<=0"),CString(L"Ошибка"));
+				}
+
+				if(local_main_dialog->get_command_threads_retranslate_video_stop())
+				{
+					break;
+				}
+				else
+				{
+					Sleep(1);
+				}
+			}
+
+			ULONGLONG local_end_time = GetTickCount64();
+
+			ULONGLONG local_work_time = local_end_time - local_start_time;
+
+			if(local_main_dialog->get_command_threads_retranslate_video_stop())
+			{
+				break;
+			}
+			else
+			{
+				CString local_string_speed;
+
+				if(local_main_dialog->get_command_terminate_application())
+				{
+					break;
+				}
+				{
+					local_string_speed = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_SPEED_state;
+				}
+				double local_double_speed = _wtof(local_string_speed);
+				if(local_data_size_send!=0.0)
+				{
+					DWORD time_to_work = 1000;
+					double local_current_time_in_seconds = double(local_work_time)/1000.0;
+					double local_current_bits_send = (local_data_size_send*8.0);
+					double local_current_speed = local_current_bits_send/local_current_time_in_seconds;
+					double local_current_frame_rate = 1.0/local_current_time_in_seconds;
+					double local_speed_factor = local_double_speed/local_current_speed;
+					double local_common_factor = min(local_speed_factor,local_current_frame_rate);
+
+					time_to_work = DWORD(local_common_factor*local_work_time);
+
+					DWORD time_to_sleep = 1000 - time_to_work;
+
+					Sleep(time_to_sleep);
+				}
+			}
+		}
+
+		if(local_main_dialog->get_command_threads_retranslate_video_stop())
+		{
+			break;
+		}
+		else
+		{
+			Sleep(1);
+		}
+	}
+
+	{
+		{
+			CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
+
+			local_lock.Lock();
+
+			CWinThread *local_current_thread = AfxGetThread();
+
+			for
+				(
+				std::list<THREADS_INFORMATION>::iterator local_threads_iterator=local_main_dialog->threads_list.begin();
+			local_threads_iterator!=local_main_dialog->threads_list.end();
+			local_threads_iterator++
+				)
+			{		
+				CWinThread *local_thread = local_threads_iterator->WinThread;
+
+				if(local_thread->m_hThread==local_current_thread->m_hThread)
+				{
+					local_main_dialog->threads_list.erase(local_threads_iterator);
+					break;
+				}
+			}
+		}
+
+		delete[] send_buffer;
+		delete[] send_buffer_this_time;
+
+		delete local_send_video_thread_parameters_structure;
+		return 1;
+	}
+}
+
+UINT __cdecl datagram_retranslate_video_connection_thread_ip_6(LPVOID parameter)
+{
+	DWORD sequence_number = DWORD(rand());
+
+	thread_send_video_parameters_structure_type *local_send_video_thread_parameters_structure = (thread_send_video_parameters_structure_type *)parameter;
+
+	if(local_send_video_thread_parameters_structure==NULL)
+	{
+		return 0;
+	}
+
+	Cstl_network_ip_4_ip_6_udp_engineDialog *local_main_dialog = (local_send_video_thread_parameters_structure)->parameter_main_dialog;
+
+	if(local_main_dialog==NULL)
+	{
+		delete local_send_video_thread_parameters_structure;
+		return 0;
+	}
+
+	char *send_buffer = new char[CONST_MESSAGE_LENGTH_IMAGE];
+
+	if(send_buffer==NULL)
+	{
+		{
+			CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
+
+			local_lock.Lock();
+
+			CWinThread *local_current_thread = AfxGetThread();
+
+			for
+				(
+				std::list<THREADS_INFORMATION>::iterator local_threads_iterator=local_main_dialog->threads_list.begin();
+			local_threads_iterator!=local_main_dialog->threads_list.end();
+			local_threads_iterator++
+				)
+			{		
+				CWinThread *local_thread = local_threads_iterator->WinThread;
+
+				if(local_thread->m_hThread==local_current_thread->m_hThread)
+				{
+					local_main_dialog->threads_list.erase(local_threads_iterator);
+					break;
+				}
+			}
+		}
+
+		delete local_send_video_thread_parameters_structure;
+		return 0;
+	}
+
+	char *send_buffer_this_time = new char[CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME];
+
+	if(send_buffer_this_time==NULL)
+	{
+		{
+			CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
+
+			local_lock.Lock();
+
+			CWinThread *local_current_thread = AfxGetThread();
+
+			for
+				(
+				std::list<THREADS_INFORMATION>::iterator local_threads_iterator=local_main_dialog->threads_list.begin();
+			local_threads_iterator!=local_main_dialog->threads_list.end();
+			local_threads_iterator++
+				)
+			{		
+				CWinThread *local_thread = local_threads_iterator->WinThread;
+
+				if(local_thread->m_hThread==local_current_thread->m_hThread)
+				{
+					local_main_dialog->threads_list.erase(local_threads_iterator);
+					break;
+				}
+			}
+		}
+
+		delete[] send_buffer;
+		delete local_send_video_thread_parameters_structure;
+		return 0;
+	}
+
+	for(;;)
+	{
+		if(local_main_dialog->get_command_threads_retranslate_video_stop())
+		{
+			break;
+		}
+
+		CString local_address(localhost_definition);
+
+		CStringA local_address_internet_address;
+
+		if(local_main_dialog->get_command_terminate_application())
+		{
+			break;
+		}
+
+		int peers_to_send_count = 0;
+		{
+			DWORD dwWaitResult;
+
+			dwWaitResult = WaitForSingleObject( 
+				local_main_dialog->do_not_terminate_application_event, // event handle
+				0);    // zero wait
+
+			if(dwWaitResult==WAIT_OBJECT_0)
+			{
+				// Event object was signaled		
+
+				if(local_main_dialog->get_command_terminate_application())
+				{
+					{
+						CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
+
+						local_lock.Lock();
+
+						CWinThread *local_current_thread = AfxGetThread();
+
+						for
+							(
+							std::list<THREADS_INFORMATION>::iterator local_threads_iterator=local_main_dialog->threads_list.begin();
+						local_threads_iterator!=local_main_dialog->threads_list.end();
+						local_threads_iterator++
+							)
+						{		
+							CWinThread *local_thread = local_threads_iterator->WinThread;
+
+							if(local_thread->m_hThread==local_current_thread->m_hThread)
+							{
+								local_main_dialog->threads_list.erase(local_threads_iterator);
+								break;
+							}
+						}
+					}
+
+					delete[] send_buffer;
+					delete local_send_video_thread_parameters_structure;
+					return 0;
+				}
+
+				for(
+					std::list<GUI_LIST_CONTROL>::iterator current_item_iterator=local_main_dialog->GUI_CONTROLS_STATE_data.IDC_LIST_NODES_state.begin();
+					current_item_iterator!=local_main_dialog->GUI_CONTROLS_STATE_data.IDC_LIST_NODES_state.end();
+				current_item_iterator++
+					)
+				{
+					if(current_item_iterator->is_checked>0)
+					{
+						peers_to_send_count++;
+					}
+				}
+			}
+			else
+			{
+				if(local_main_dialog->get_command_terminate_application())
+				{
+					delete[] send_buffer;
+					delete local_send_video_thread_parameters_structure;
+					return 0;
+				}
+			}
+
+		}
+
+		CComPtr<IStream> local_stream;
+
+		if(local_main_dialog->retranslate_video_frames_ip_6.size()==0)
+		{
+			Sleep(10);
+			continue;
+		}
+		else
+		{
+			std::list<STREAM_INFORMATION>::iterator local_frames_iterator = local_main_dialog->retranslate_video_frames_ip_6.begin();
+
+			local_frames_iterator->stream->Clone(&local_stream);
+
+			local_main_dialog->retranslate_video_frames_ip_6.pop_front();
+		}
+
+		for(int peers_to_send_count_counter=0;peers_to_send_count_counter<peers_to_send_count;peers_to_send_count_counter++)
+		{
+			double local_data_size_send = 0.0;
+
+			if(local_main_dialog->get_command_terminate_application())
+			{
+				break;
+			}
+
+#ifdef use_istream_DEFINITION
+			//CImage local_image;
+#endif
+
+			CString peer_to_send;
+
+			int loop_counter=0;
+			for(
+				std::list<GUI_LIST_CONTROL>::iterator current_item_iterator=local_main_dialog->GUI_CONTROLS_STATE_data.IDC_LIST_NODES_state.begin();
+				current_item_iterator!=local_main_dialog->GUI_CONTROLS_STATE_data.IDC_LIST_NODES_state.end();
+			current_item_iterator++
+				)
+			{
+				Sleep(1);
+				if(local_main_dialog->get_command_terminate_application())
+				{
+					break;
+				}
+				if(current_item_iterator->is_checked>0)
+				{
+					if(peers_to_send_count_counter==loop_counter)
+					{
+						peer_to_send = current_item_iterator->label;
+						break;
+					}
+					loop_counter++;
+				}
+
+				if(local_main_dialog->get_command_terminate_application())
+				{
+					break;
+				}
+			}
+
+			if(local_main_dialog->get_command_terminate_application())
+			{
+				break;
+			}
+
+			local_address = peer_to_send;
+
+
+			//	Здесь делаем снимок экрана
+
+			//CSingleLock local_image_lock(&local_main_dialog->draw_video_image_critical_section);
+
+			//local_image_lock.Lock();
+#ifdef use_istream_DEFINITION
+			//if(!local_image.IsNull())
+			//{
+			//	local_image.Destroy();
+			//}
+#endif
+
+			if(network::ip_6::domain_name_to_internet_6_name(local_address,local_address_internet_address)==false)
+			{
+				const int local_error_message_size = 10000;
+				wchar_t local_error_message[local_error_message_size];
+
+				const int local_system_error_message_size = local_error_message_size-1000;
+				wchar_t local_system_error_message[local_system_error_message_size];
+
+				wcscpy_s(local_system_error_message,local_system_error_message_size,L"domain_name_to_internet_6_name завершилась неудачей");
+
+				CString local_time_string = CTime::GetCurrentTime().FormatGmt("%d/%m/%y %H:%M:%S GMT");
+
+				wsprintf((wchar_t*)local_error_message, L"Сетевая ошибка -- %s -- %s\r\n", local_system_error_message, local_time_string.GetBuffer());
+
+				//delete local_send_video_thread_parameters_structure;
+
+				//			galaxy::MessageBox(local_error_message,CString(L"Ошибка"));
+
+				//{
+
+				//	CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
+
+				//	local_lock.Lock();
+
+				//	CWinThread *local_current_thread = AfxGetThread();
+
+				//	for
+				//		(
+				//		std::list<THREADS_INFORMATION>::iterator local_threads_iterator=local_main_dialog->threads_list.begin();
+				//	local_threads_iterator!=local_main_dialog->threads_list.end();
+				//	local_threads_iterator++
+				//		)
+				//	{		
+				//		CWinThread *local_thread = local_threads_iterator->WinThread;
+
+				//		if(local_thread->m_hThread==local_current_thread->m_hThread)
+				//		{
+				//			local_main_dialog->threads_list.erase(local_threads_iterator);
+				//			break;
+				//		}
+				//	}
+				//}
+
+				//delete[] send_buffer;
+				//delete[] send_buffer_this_time;
+
+				//return 0;
+				continue;
+			}
+#ifdef use_istream_DEFINITION
+			//CaptureScreenShot(&local_image);
+
+			//CComPtr<IStream> local_stream;
+
+			//HRESULT local_create_IStream_result = CreateStreamOnHGlobal ( 0 , TRUE , &local_stream );
+
+			//try
+			//{
+			//	HRESULT local_save_result = local_image.Save(local_stream, Gdiplus::ImageFormatPNG);
+			//}
+			//catch(...)
+			//{
+			//	continue;
+			//}
+#endif
+			//local_image_lock.Unlock();
+
+			ULONGLONG local_start_time = GetTickCount64();
+
+			STATSTG local_istream_statstg;
+			HRESULT local_stat_result = local_stream->Stat(&local_istream_statstg,STATFLAG::STATFLAG_DEFAULT);
+
+			/*/
+			//			Тест отображения из IStream
+			{
+			std::fstream local_file;
+			local_file.open("c:\\temp\\file_source.png",std::ios_base::out | std::ios_base::binary | std::ios_base::trunc);
+
+			char *local_file_data = new char[CONST_MESSAGE_LENGTH_IMAGE];
+
+			ULONG local_read_bytes = 0;
+
+			LARGE_INTEGER liBeggining = { 0 };
+
+			local_stream->Seek(liBeggining, STREAM_SEEK_SET, NULL);
+
+			local_stream->Read(local_file_data,CONST_MESSAGE_LENGTH_IMAGE,&local_read_bytes);
+
+			local_file.write(local_file_data, local_read_bytes);
+
+			delete [] local_file_data;
+
+			local_file.flush();
+
+			local_file.close();
+			}
+			//*/
+
+
+
+			for(UINT local_parameter_port_number=port_number_start_const;local_parameter_port_number<=port_number_end_const;local_parameter_port_number++)
+			{
+				network::ip_6::CBlockingSocket_ip_6 local_blocking_socket;
+
+				if(network::ip_6::domain_name_to_internet_6_name(local_address,local_address_internet_address)==false)
+				{
+					const int local_error_message_size = 10000;
+					wchar_t local_error_message[local_error_message_size];
+
+					const int local_system_error_message_size = local_error_message_size-1000;
+					wchar_t local_system_error_message[local_system_error_message_size];
+
+					wcscpy_s(local_system_error_message,local_system_error_message_size,L"domain_name_to_internet_6_name завершилась неудачей");
+
+					CString local_time_string = CTime::GetCurrentTime().FormatGmt("%d/%m/%y %H:%M:%S GMT");
+
+					wsprintf((wchar_t*)local_error_message, L"Сетевая ошибка -- %s -- %s\r\n", local_system_error_message, local_time_string.GetBuffer());
+
+					//delete local_send_video_thread_parameters_structure;
+
+					//			galaxy::MessageBox(local_error_message,CString(L"Ошибка"));
+
+					//{
+
+					//	CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
+
+					//	local_lock.Lock();
+
+					//	CWinThread *local_current_thread = AfxGetThread();
+
+					//	for
+					//		(
+					//		std::list<THREADS_INFORMATION>::iterator local_threads_iterator=local_main_dialog->threads_list.begin();
+					//	local_threads_iterator!=local_main_dialog->threads_list.end();
+					//	local_threads_iterator++
+					//		)
+					//	{		
+					//		CWinThread *local_thread = local_threads_iterator->WinThread;
+
+					//		if(local_thread->m_hThread==local_current_thread->m_hThread)
+					//		{
+					//			local_main_dialog->threads_list.erase(local_threads_iterator);
+					//			break;
+					//		}
+					//	}
+					//}
+
+					//delete[] send_buffer;
+					//delete[] send_buffer_this_time;
+
+					//return 0;
+					break;
+				}
+
+				network::ip_6::CSockAddr_ip_6 local_socket_address(local_address_internet_address,local_parameter_port_number);
+
+				try
+				{
+					local_blocking_socket.Create(SOCK_DGRAM);
+				}
+				catch(network::ip_6::CBlockingSocketException_ip_6 *local_blocking_socket_exception)
+				{
+					const int local_error_message_size = 10000;
+					wchar_t local_error_message[local_error_message_size];
+
+					const int local_system_error_message_size = local_error_message_size-1000;
+					wchar_t local_system_error_message[local_system_error_message_size];
+
+					CString local_time_string = CTime::GetCurrentTime().FormatGmt("%d/%m/%y %H:%M:%S GMT");
+
+					local_blocking_socket_exception->GetErrorMessage(local_system_error_message,local_system_error_message_size);
+
+					wsprintf((wchar_t*)local_error_message, L"Сетевая ошибка -- %s -- %s\r\n", local_system_error_message, local_time_string.GetBuffer());
+
+					local_blocking_socket_exception->Delete();
+
+					delete local_send_video_thread_parameters_structure;
+
+					//			galaxy::MessageBox(local_error_message,CString(L"Ошибка"));
+
+					{
+						CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
+
+						local_lock.Lock();
+
+						CWinThread *local_current_thread = AfxGetThread();
+
+						for
+							(
+							std::list<THREADS_INFORMATION>::iterator local_threads_iterator=local_main_dialog->threads_list.begin();
+						local_threads_iterator!=local_main_dialog->threads_list.end();
+						local_threads_iterator++
+							)
+						{		
+							CWinThread *local_thread = local_threads_iterator->WinThread;
+
+							if(local_thread->m_hThread==local_current_thread->m_hThread)
+							{
+								local_main_dialog->threads_list.erase(local_threads_iterator);
+								break;
+							}
+						}
+					}
+
+					delete[] send_buffer;
+					delete[] send_buffer_this_time;
+
+					return 0;
+				}
+
+				int local_bytes_sent = 0;
+				int local_error_number = 0;
+
+
+				int send_buffer_data_length = service_signature_definition_length;
+
+				ZeroMemory(send_buffer,CONST_MESSAGE_LENGTH_IMAGE);
+
+				memcpy(send_buffer,service_signature,service_signature_definition_length);
+
+
+
+				CString send_data_string = command_video;
+
+				int send_data_string_length = send_data_string.GetLength();
+
+				memcpy(send_buffer+send_buffer_data_length,send_data_string.GetBuffer(),send_data_string_length*sizeof(wchar_t));
+
+				send_buffer_data_length += send_data_string_length*sizeof(wchar_t);
+
+				wchar_t zero_word = L'\0';
+				memcpy(send_buffer+send_buffer_data_length,&zero_word,sizeof(wchar_t));
+				send_buffer_data_length += sizeof(wchar_t);
+				send_data_string_length++;
+
+
+				memcpy(send_buffer+send_buffer_data_length,&sequence_number,sizeof(DWORD));
+				send_buffer_data_length += sizeof(DWORD);
+				send_data_string_length += sizeof(DWORD)/sizeof(wchar_t);
+
+
+
+				LARGE_INTEGER liBeggining = { 0 };
+#ifdef use_istream_DEFINITION
+				local_stream->Seek(liBeggining, STREAM_SEEK_SET, NULL);
+#endif
+
+
+				ULONG local_read = 0;
+#ifdef use_istream_DEFINITION
+				local_stream->Read(send_buffer+send_buffer_data_length, CONST_MESSAGE_LENGTH_IMAGE - send_buffer_data_length, &local_read);
+#else
+				local_read = 100000;
+#endif
+				send_buffer_data_length += local_read;
+
+
+
+
+				CString xor_code_string;
+
+				if(local_main_dialog->get_command_terminate_application())
+				{
+					break;
+				}
+				{
+					xor_code_string = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_XOR_CODE_state;					
+				}
+
+				char xor_code = _wtoi(xor_code_string);
+
+				encrypt::encrypt_xor(send_buffer+service_signature_definition_length,send_buffer_data_length-service_signature_definition_length,xor_code);
+
+				int local_header_length = service_signature_definition_length+send_data_string_length*sizeof(wchar_t);
+
+				int local_part_counter = 0;
+				int local_parts_count = local_read/(CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t));
+				int local_last_part_size = local_read % (CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t));
+
+				if(local_last_part_size!=0)
+				{
+					local_parts_count++;
+				}
+
+				for(;local_part_counter<local_parts_count;local_part_counter++)
+				{
+					int send_buffer_this_time_data_length = CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME;
+
+					if(local_part_counter==local_parts_count-1)
+					{
+						if(local_last_part_size!=0)
+						{
+							send_buffer_this_time_data_length = local_last_part_size+service_signature_definition_length+send_data_string_length*sizeof(wchar_t);
+						}
+					}
+
+					ZeroMemory(send_buffer_this_time,CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME);
+
+					memcpy(send_buffer_this_time,send_buffer,service_signature_definition_length+send_data_string_length*sizeof(wchar_t));
+
+					int local_this_time_data_offset = local_part_counter*(CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t));
+
+					memcpy
+						(
+						send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t),
+						send_buffer+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+local_this_time_data_offset,
+						send_buffer_this_time_data_length-(service_signature_definition_length+send_data_string_length*sizeof(wchar_t))
+						);
+
+					try
+					{
+						local_bytes_sent = local_blocking_socket.SendDatagram(send_buffer_this_time,send_buffer_this_time_data_length,local_socket_address,CONST_WAIT_TIME_SEND);
+
+						local_data_size_send += local_bytes_sent;
+					}
+					catch(network::ip_6::CBlockingSocketException_ip_6 *local_blocking_socket_exception)
+					{
+						const int local_error_message_size = 10000;
+						wchar_t local_error_message[local_error_message_size];
+
+						const int local_system_error_message_size = local_error_message_size;
+						wchar_t local_system_error_message[local_system_error_message_size];
+
+						CString local_time_string = CTime::GetCurrentTime().FormatGmt("%d/%m/%y %H:%M:%S GMT");
+
+						local_blocking_socket_exception->GetErrorMessage(local_system_error_message,local_system_error_message_size);
+
+						wsprintf((wchar_t*)local_error_message, L"Сетевая ошибка -- %s -- %s\r\n", local_system_error_message, local_time_string.GetBuffer());
+
+						local_error_number = local_blocking_socket_exception->GetErrorNumber();
+
+						local_blocking_socket_exception->Delete();
+
+						if(local_error_number!=0)
+						{
+							//				galaxy::MessageBox(local_error_message,CString(L"Ошибка"));
+						}
+						break;
+					}
+
+					if(local_main_dialog->get_command_threads_retranslate_video_stop())
+					{
+						break;
+					}
+					else
+					{
+						Sleep(10);
+					}
+
+				}
+
+				{
+					int local_bytes_sent = 0;
+					int local_error_number = 0;
+
+					char send_buffer[CONST_MESSAGE_LENGTH];
+
+					int send_buffer_data_length = service_signature_definition_length;
+
+					ZeroMemory(send_buffer,CONST_MESSAGE_LENGTH);
+
+					memcpy(send_buffer,service_signature,service_signature_definition_length);
+
+					CString send_data_string;
+
+					int send_data_string_length = 0;
+
+					send_data_string = command_video_end;
+
+					send_data_string_length = send_data_string.GetLength();
+
+					memcpy(send_buffer+send_buffer_data_length,send_data_string.GetBuffer(),send_data_string_length*sizeof(wchar_t));
+
+					send_buffer_data_length += send_data_string_length*sizeof(wchar_t);
+
+
+					wchar_t zero_word = L'\0';
+					memcpy(send_buffer+send_buffer_data_length,&zero_word,sizeof(wchar_t));
+					send_buffer_data_length += sizeof(wchar_t);
+					send_data_string_length++;
+
+
+					memcpy(send_buffer+send_buffer_data_length,&sequence_number,sizeof(DWORD));
+					send_buffer_data_length += sizeof(DWORD);
+					send_data_string_length += sizeof(DWORD)/sizeof(wchar_t);
+
+					CString xor_code_string;
+
+					if(local_main_dialog->get_command_terminate_application())
+					{
+						break;
+					}
+					{
+						xor_code_string = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_XOR_CODE_state;						
+					}
+
+					char xor_code = _wtoi(xor_code_string);
+
+					encrypt::encrypt_xor(send_buffer+service_signature_definition_length,send_buffer_data_length-service_signature_definition_length,xor_code);
+
+					try
+					{
+						local_bytes_sent = local_blocking_socket.SendDatagram(send_buffer,send_buffer_data_length,local_socket_address,CONST_WAIT_TIME_SEND);
+
+						local_data_size_send += local_bytes_sent;
+					}
+					catch(network::ip_6::CBlockingSocketException_ip_6 *local_blocking_socket_exception)
+					{
+						const int local_error_message_size = 10000;
+						wchar_t local_error_message[local_error_message_size];
+
+						const int local_system_error_message_size = local_error_message_size;
+						wchar_t local_system_error_message[local_system_error_message_size];
+
+						CString local_time_string = CTime::GetCurrentTime().FormatGmt("%d/%m/%y %H:%M:%S GMT");
+
+						local_blocking_socket_exception->GetErrorMessage(local_system_error_message,local_system_error_message_size);
+
+						wsprintf((wchar_t*)local_error_message, L"Сетевая ошибка -- %s -- %s\r\n", local_system_error_message, local_time_string.GetBuffer());
+
+						local_error_number = local_blocking_socket_exception->GetErrorNumber();
+
+						local_blocking_socket_exception->Delete();
+
+						if(local_error_number!=0)
+						{
+							//				galaxy::MessageBox(local_error_message,CString(L"Ошибка"));
+						}
+					}
+				}
+
+
+
+				local_blocking_socket.Close();
+
+				if(local_bytes_sent<=0 && local_error_number==0)
+				{
+					//			galaxy::MessageBox(CString(L"local_bytes_sent<=0"),CString(L"Ошибка"));
+				}
+
+				if(local_main_dialog->get_command_threads_retranslate_video_stop())
+				{
+					break;
+				}
+				else
+				{
+					Sleep(1);
+				}
+			}
+
+			ULONGLONG local_end_time = GetTickCount64();
+
+			ULONGLONG local_work_time = local_end_time - local_start_time;
+
+			if(local_main_dialog->get_command_threads_retranslate_video_stop())
+			{
+				break;
+			}
+			else
+			{
+				CString local_string_speed;
+
+				if(local_main_dialog->get_command_terminate_application())
+				{
+					break;
+				}
+				{
+					local_string_speed = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_SPEED_state;					
+				}
+				double local_double_speed = _wtof(local_string_speed);
+				if(local_data_size_send!=0.0)
+				{
+					DWORD time_to_work = 1000;
+					double local_current_time_in_seconds = double(local_work_time)/1000.0;
+					double local_current_bits_send = (local_data_size_send*8.0);
+					double local_current_speed = local_current_bits_send/local_current_time_in_seconds;
+					double local_current_frame_rate = 1.0/local_current_time_in_seconds;
+					double local_speed_factor = local_double_speed/local_current_speed;
+					double local_common_factor = min(local_speed_factor,local_current_frame_rate);
+
+					time_to_work = DWORD(local_common_factor*local_work_time);
+
+					DWORD time_to_sleep = 1000 - time_to_work;
+
+					Sleep(time_to_sleep);
+				}
+			}
+		}
+
+		if(local_main_dialog->get_command_threads_retranslate_video_stop())
+		{
+			break;
+		}
+		else
+		{
+			Sleep(1);
+		}
+	}
+
+	{
+		{
+			CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
+
+			local_lock.Lock();
+
+			CWinThread *local_current_thread = AfxGetThread();
+
+			for
+				(
+				std::list<THREADS_INFORMATION>::iterator local_threads_iterator=local_main_dialog->threads_list.begin();
+			local_threads_iterator!=local_main_dialog->threads_list.end();
+			local_threads_iterator++
+				)
+			{		
+				CWinThread *local_thread = local_threads_iterator->WinThread;
+
+				if(local_thread->m_hThread==local_current_thread->m_hThread)
+				{
+					local_main_dialog->threads_list.erase(local_threads_iterator);
+					break;
+				}
+			}
+		}
+
+		delete[] send_buffer;
+		delete[] send_buffer_this_time;
+
+		delete local_send_video_thread_parameters_structure;
+		return 1;
+	}
+}
+
+
+
+
+
+UINT __cdecl datagram_retranslate_web_camera_video_connection_thread(LPVOID parameter)
+{
+	thread_send_web_camera_video_parameters_structure_type *local_send_web_camera_video_thread_parameters_structure_source = (thread_send_web_camera_video_parameters_structure_type *)parameter;
+
+	if(local_send_web_camera_video_thread_parameters_structure_source==NULL)
+	{
+		return 0;
+	}
+
+	Cstl_network_ip_4_ip_6_udp_engineDialog *local_main_dialog = local_send_web_camera_video_thread_parameters_structure_source->parameter_main_dialog;
+
+	if(local_main_dialog==NULL)
+	{
+		delete parameter;
+
+		return 0;
+	}
+
+	{
+		void *local_send_web_camera_video_thread_parameters_structure = new thread_send_web_camera_video_parameters_structure_type;
+
+		((thread_send_web_camera_video_parameters_structure_type*)local_send_web_camera_video_thread_parameters_structure)->parameter_main_dialog = ((thread_send_web_camera_video_parameters_structure_type*)local_send_web_camera_video_thread_parameters_structure_source)->parameter_main_dialog;
+
+		CWinThread *local_thread = AfxBeginThread(datagram_retranslate_web_camera_video_connection_thread_ip_4,local_send_web_camera_video_thread_parameters_structure);
+
+		THREADS_INFORMATION local_thread_information;
+		local_thread_information.thread_name = CString(L"datagram_retranslate_web_camera_video_connection_thread_ip_4");
+		local_thread_information.WinThread = local_thread;
+
+		local_main_dialog->threads_list.push_back(local_thread_information);
+	}
+
+	{
+		void *local_send_web_camera_video_thread_parameters_structure = new thread_send_web_camera_video_parameters_structure_type;
+
+		((thread_send_web_camera_video_parameters_structure_type*)local_send_web_camera_video_thread_parameters_structure)->parameter_main_dialog = ((thread_send_web_camera_video_parameters_structure_type*)local_send_web_camera_video_thread_parameters_structure_source)->parameter_main_dialog;
+
+		CWinThread *local_thread = AfxBeginThread(datagram_retranslate_web_camera_video_connection_thread_ip_6,local_send_web_camera_video_thread_parameters_structure);
+
+		THREADS_INFORMATION local_thread_information;
+		local_thread_information.thread_name = CString(L"datagram_retranslate_web_camera_video_connection_thread_ip_6");
+		local_thread_information.WinThread = local_thread;
+
+		local_main_dialog->threads_list.push_back(local_thread_information);
+	}
+
+	{
+		CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
+
+		local_lock.Lock();
+
+		CWinThread *local_current_thread = AfxGetThread();
+
+		for
+			(
+			std::list<THREADS_INFORMATION>::iterator local_threads_iterator=local_main_dialog->threads_list.begin();
+		local_threads_iterator!=local_main_dialog->threads_list.end();
+		local_threads_iterator++
+			)
+		{		
+			CWinThread *local_thread = local_threads_iterator->WinThread;
+
+			if(local_thread->m_hThread==local_current_thread->m_hThread)
+			{
+				local_main_dialog->threads_list.erase(local_threads_iterator);
+				break;
+			}
+		}
+	}
+
+	delete parameter;
+
+	return 1;
+}
+
+//	retranslate web camera video
+
+UINT __cdecl datagram_retranslate_web_camera_video_connection_thread_ip_4(LPVOID parameter)
+{
+	DWORD sequence_number = DWORD(rand());
+
+	thread_send_web_camera_video_parameters_structure_type *local_send_web_camera_video_thread_parameters_structure = (thread_send_web_camera_video_parameters_structure_type *)parameter;
+
+	if(local_send_web_camera_video_thread_parameters_structure==NULL)
+	{
+		return 0;
+	}
+
+	Cstl_network_ip_4_ip_6_udp_engineDialog *local_main_dialog = (local_send_web_camera_video_thread_parameters_structure)->parameter_main_dialog;
+
+	if(local_main_dialog==NULL)
+	{
+		delete local_send_web_camera_video_thread_parameters_structure;
+		return 0;
+	}
+
+	char *send_buffer = new char[CONST_MESSAGE_LENGTH_IMAGE];
+
+	if(send_buffer==NULL)
+	{
+		{
+			CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
+
+			local_lock.Lock();
+
+			CWinThread *local_current_thread = AfxGetThread();
+
+			for
+				(
+				std::list<THREADS_INFORMATION>::iterator local_threads_iterator=local_main_dialog->threads_list.begin();
+			local_threads_iterator!=local_main_dialog->threads_list.end();
+			local_threads_iterator++
+				)
+			{		
+				CWinThread *local_thread = local_threads_iterator->WinThread;
+
+				if(local_thread->m_hThread==local_current_thread->m_hThread)
+				{
+					local_main_dialog->threads_list.erase(local_threads_iterator);
+					break;
+				}
+			}
+		}
+
+		delete local_send_web_camera_video_thread_parameters_structure;
+		return 0;
+	}
+
+	char *send_buffer_this_time = new char[CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME];
+
+	if(send_buffer_this_time==NULL)
+	{
+		{
+			CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
+
+			local_lock.Lock();
+
+			CWinThread *local_current_thread = AfxGetThread();
+
+			for
+				(
+				std::list<THREADS_INFORMATION>::iterator local_threads_iterator=local_main_dialog->threads_list.begin();
+			local_threads_iterator!=local_main_dialog->threads_list.end();
+			local_threads_iterator++
+				)
+			{		
+				CWinThread *local_thread = local_threads_iterator->WinThread;
+
+				if(local_thread->m_hThread==local_current_thread->m_hThread)
+				{
+					local_main_dialog->threads_list.erase(local_threads_iterator);
+					break;
+				}
+			}
+		}
+
+		delete[] send_buffer;
+		delete local_send_web_camera_video_thread_parameters_structure;
+		return 0;
+	}
+
+	for(;;)
+	{
+		if(local_main_dialog->get_command_threads_retranslate_web_camera_video_stop())
+		{
+			break;
+		}
+
+		CString local_address(localhost_definition);
+
+		CStringA local_address_internet_address;
+
+		if(local_main_dialog->get_command_terminate_application())
+		{
+			break;
+		}
+
+		int peers_to_send_count = 0;
+		{
+			DWORD dwWaitResult;
+
+			dwWaitResult = WaitForSingleObject( 
+				local_main_dialog->do_not_terminate_application_event, // event handle
+				0);    // zero wait
+
+			if(dwWaitResult==WAIT_OBJECT_0)
+			{
+				// Event object was signaled		
+
+				if(local_main_dialog->get_command_terminate_application())
+				{
+					{
+						CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
+
+						local_lock.Lock();
+
+						CWinThread *local_current_thread = AfxGetThread();
+
+						for
+							(
+							std::list<THREADS_INFORMATION>::iterator local_threads_iterator=local_main_dialog->threads_list.begin();
+						local_threads_iterator!=local_main_dialog->threads_list.end();
+						local_threads_iterator++
+							)
+						{		
+							CWinThread *local_thread = local_threads_iterator->WinThread;
+
+							if(local_thread->m_hThread==local_current_thread->m_hThread)
+							{
+								local_main_dialog->threads_list.erase(local_threads_iterator);
+								break;
+							}
+						}
+					}
+
+					delete[] send_buffer;
+					delete local_send_web_camera_video_thread_parameters_structure;
+					return 0;
+				}
+
+				for(
+					std::list<GUI_LIST_CONTROL>::iterator current_item_iterator=local_main_dialog->GUI_CONTROLS_STATE_data.IDC_LIST_NODES_state.begin();
+					current_item_iterator!=local_main_dialog->GUI_CONTROLS_STATE_data.IDC_LIST_NODES_state.end();
+				current_item_iterator++
+					)
+				{
+					if(current_item_iterator->is_checked>0)
+					{
+						peers_to_send_count++;
+					}
+				}
+			}
+			else
+			{
+				if(local_main_dialog->get_command_terminate_application())
+				{
+					delete[] send_buffer;
+					delete local_send_web_camera_video_thread_parameters_structure;
+					return 0;
+				}
+			}
+
+		}
+
+		CComPtr<IStream> local_stream;
+			
+		if(local_main_dialog->retranslate_web_camera_video_frames_ip_4.size()==0)
+		{
+			Sleep(10);
+			continue;
+		}
+		else
+		{
+			std::list<STREAM_INFORMATION>::iterator local_frames_iterator = local_main_dialog->retranslate_web_camera_video_frames_ip_4.begin();
+
+			local_frames_iterator->stream->Clone(&local_stream);
+
+			local_main_dialog->retranslate_web_camera_video_frames_ip_4.pop_front();
+		}
+
+		for(int peers_to_send_count_counter=0;peers_to_send_count_counter<peers_to_send_count;peers_to_send_count_counter++)
+		{
+			double local_data_size_send = 0.0;
+
+			if(local_main_dialog->get_command_terminate_application())
+			{
+				break;
+			}
+
+#ifdef use_istream_DEFINITION
+			//CImage local_image;
+#endif
+
+			CString peer_to_send;
+
+			int loop_counter=0;
+			for(
+				std::list<GUI_LIST_CONTROL>::iterator current_item_iterator=local_main_dialog->GUI_CONTROLS_STATE_data.IDC_LIST_NODES_state.begin();
+				current_item_iterator!=local_main_dialog->GUI_CONTROLS_STATE_data.IDC_LIST_NODES_state.end();
+			current_item_iterator++
+				)
+			{
+				Sleep(1);
+				if(local_main_dialog->get_command_terminate_application())
+				{
+					break;
+				}
+				if(current_item_iterator->is_checked>0)
+				{
+					if(peers_to_send_count_counter==loop_counter)
+					{
+						peer_to_send = current_item_iterator->label;
+						break;
+					}
+					loop_counter++;
+				}
+
+				if(local_main_dialog->get_command_terminate_application())
+				{
+					break;
+				}
+			}
+
+			if(local_main_dialog->get_command_terminate_application())
+			{
+				break;
+			}
+
+			local_address = peer_to_send;
+
+
+			//	Здесь делаем снимок экрана
+
+			//CSingleLock local_image_lock(&local_main_dialog->draw_video_image_critical_section);
+
+			//local_image_lock.Lock();
+#ifdef use_istream_DEFINITION
+			//if(!local_image.IsNull())
+			//{
+			//	local_image.Destroy();
+			//}
+#endif
+
+
+			if(network::ip_4::domain_name_to_internet_4_name(local_address,local_address_internet_address)==false)
+			{
+				const int local_error_message_size = 10000;
+				wchar_t local_error_message[local_error_message_size];
+
+				const int local_system_error_message_size = local_error_message_size-1000;
+				wchar_t local_system_error_message[local_system_error_message_size];
+
+				wcscpy_s(local_system_error_message,local_system_error_message_size,L"domain_name_to_internet_6_name завершилась неудачей");
+
+				CString local_time_string = CTime::GetCurrentTime().FormatGmt("%d/%m/%y %H:%M:%S GMT");
+
+				wsprintf((wchar_t*)local_error_message, L"Сетевая ошибка -- %s -- %s\r\n", local_system_error_message, local_time_string.GetBuffer());
+
+				//delete local_send_video_thread_parameters_structure;
+
+				//			galaxy::MessageBox(local_error_message,CString(L"Ошибка"));
+
+				//{
+
+				//	CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
+
+				//	local_lock.Lock();
+
+				//	CWinThread *local_current_thread = AfxGetThread();
+
+				//	for
+				//		(
+				//		std::list<THREADS_INFORMATION>::iterator local_threads_iterator=local_main_dialog->threads_list.begin();
+				//	local_threads_iterator!=local_main_dialog->threads_list.end();
+				//	local_threads_iterator++
+				//		)
+				//	{		
+				//		CWinThread *local_thread = local_threads_iterator->WinThread;
+
+				//		if(local_thread->m_hThread==local_current_thread->m_hThread)
+				//		{
+				//			local_main_dialog->threads_list.erase(local_threads_iterator);
+				//			break;
+				//		}
+				//	}
+				//}
+
+				//delete[] send_buffer;
+				//delete[] send_buffer_this_time;
+
+				//return 0;
+				continue;
+			}
+
+#ifdef use_istream_DEFINITION
+			//if(local_main_dialog->web_camera_dialog!=NULL)
+			//{
+			//	CSingleLock lock(&local_main_dialog->delete_web_camera_dialog_critical_section);
+
+			//	lock.Lock();
+
+			//	//CaptureWndShot(local_main_dialog->web_camera_dialog->m_hWnd,&local_image,ENGINE_WINDOWS_SIZE_CX/2,ENGINE_WINDOWS_SIZE_CY/2);
+			//	CaptureVideoSampleShot(local_main_dialog->web_camera_dialog,&local_image);
+			//}
+
+			//CComPtr<IStream> local_stream;
+
+			//HRESULT local_create_IStream_result = CreateStreamOnHGlobal ( 0 , TRUE , &local_stream );
+
+			//try
+			//{
+			//	HRESULT local_save_result = local_image.Save(local_stream, Gdiplus::ImageFormatJPEG);
+			//}
+			//catch(...)
+			//{
+			//	continue;
+			//}
+#endif
+			//local_image_lock.Unlock();
+
+
+			ULONGLONG local_start_time = GetTickCount64();
+
+			STATSTG local_istream_statstg;
+			HRESULT local_stat_result = local_stream->Stat(&local_istream_statstg,STATFLAG::STATFLAG_DEFAULT);
+
+			/*/
+			//			Тест отображения из IStream
+			{
+			std::fstream local_file;
+			local_file.open("c:\\temp\\file_source.jpg",std::ios_base::out | std::ios_base::binary | std::ios_base::trunc);
+
+			char *local_file_data = new char[CONST_MESSAGE_LENGTH_IMAGE];
+
+			ULONG local_read_bytes = 0;
+
+			LARGE_INTEGER liBeggining = { 0 };
+
+			local_stream->Seek(liBeggining, STREAM_SEEK_SET, NULL);
+
+			local_stream->Read(local_file_data,CONST_MESSAGE_LENGTH_IMAGE,&local_read_bytes);
+
+			local_file.write(local_file_data, local_read_bytes);
+
+			delete [] local_file_data;
+
+			local_file.flush();
+
+			local_file.close();
+			}
+			//*/
+
+
+
+			for(UINT local_parameter_port_number=port_number_start_const;local_parameter_port_number<=port_number_end_const;local_parameter_port_number++)
+			{
+				network::ip_4::CBlockingSocket_ip_4 local_blocking_socket;
+
+				if(network::ip_4::domain_name_to_internet_4_name(local_address,local_address_internet_address)==false)
+				{
+					const int local_error_message_size = 10000;
+					wchar_t local_error_message[local_error_message_size];
+
+					const int local_system_error_message_size = local_error_message_size-1000;
+					wchar_t local_system_error_message[local_system_error_message_size];
+
+					wcscpy_s(local_system_error_message,local_system_error_message_size,L"domain_name_to_internet_6_name завершилась неудачей");
+
+					CString local_time_string = CTime::GetCurrentTime().FormatGmt("%d/%m/%y %H:%M:%S GMT");
+
+					wsprintf((wchar_t*)local_error_message, L"Сетевая ошибка -- %s -- %s\r\n", local_system_error_message, local_time_string.GetBuffer());
+
+					//delete local_send_video_thread_parameters_structure;
+
+					//			galaxy::MessageBox(local_error_message,CString(L"Ошибка"));
+
+					//{
+
+					//	CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
+
+					//	local_lock.Lock();
+
+					//	CWinThread *local_current_thread = AfxGetThread();
+
+					//	for
+					//		(
+					//		std::list<THREADS_INFORMATION>::iterator local_threads_iterator=local_main_dialog->threads_list.begin();
+					//	local_threads_iterator!=local_main_dialog->threads_list.end();
+					//	local_threads_iterator++
+					//		)
+					//	{		
+					//		CWinThread *local_thread = local_threads_iterator->WinThread;
+
+					//		if(local_thread->m_hThread==local_current_thread->m_hThread)
+					//		{
+					//			local_main_dialog->threads_list.erase(local_threads_iterator);
+					//			break;
+					//		}
+					//	}
+					//}
+
+					//delete[] send_buffer;
+					//delete[] send_buffer_this_time;
+
+					//return 0;
+					break;
+				}
+
+				network::ip_4::CSockAddr_ip_4 local_socket_address(local_address_internet_address,local_parameter_port_number);
+
+				try
+				{
+					local_blocking_socket.Create(SOCK_DGRAM);
+				}
+				catch(network::ip_4::CBlockingSocketException_ip_4 *local_blocking_socket_exception)
+				{
+					const int local_error_message_size = 10000;
+					wchar_t local_error_message[local_error_message_size];
+
+					const int local_system_error_message_size = local_error_message_size-1000;
+					wchar_t local_system_error_message[local_system_error_message_size];
+
+					CString local_time_string = CTime::GetCurrentTime().FormatGmt("%d/%m/%y %H:%M:%S GMT");
+
+					local_blocking_socket_exception->GetErrorMessage(local_system_error_message,local_system_error_message_size);
+
+					wsprintf((wchar_t*)local_error_message, L"Сетевая ошибка -- %s -- %s\r\n", local_system_error_message, local_time_string.GetBuffer());
+
+					local_blocking_socket_exception->Delete();
+
+					delete local_send_web_camera_video_thread_parameters_structure;
+
+					//			galaxy::MessageBox(local_error_message,CString(L"Ошибка"));
+
+					{
+						CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
+
+						local_lock.Lock();
+
+						CWinThread *local_current_thread = AfxGetThread();
+
+						for
+							(
+							std::list<THREADS_INFORMATION>::iterator local_threads_iterator=local_main_dialog->threads_list.begin();
+						local_threads_iterator!=local_main_dialog->threads_list.end();
+						local_threads_iterator++
+							)
+						{		
+							CWinThread *local_thread = local_threads_iterator->WinThread;
+
+							if(local_thread->m_hThread==local_current_thread->m_hThread)
+							{
+								local_main_dialog->threads_list.erase(local_threads_iterator);
+								break;
+							}
+						}
+					}
+
+					delete[] send_buffer;
+					delete[] send_buffer_this_time;
+
+					return 0;
+				}
+
+				int local_bytes_sent = 0;
+				int local_error_number = 0;
+
+
+				int send_buffer_data_length = service_signature_definition_length;
+
+				ZeroMemory(send_buffer,CONST_MESSAGE_LENGTH_IMAGE);
+
+				memcpy(send_buffer,service_signature,service_signature_definition_length);
+
+
+
+				CString send_data_string = command_web_camera_video;
+
+				int send_data_string_length = send_data_string.GetLength();
+
+				memcpy(send_buffer+send_buffer_data_length,send_data_string.GetBuffer(),send_data_string_length*sizeof(wchar_t));
+
+				send_buffer_data_length += send_data_string_length*sizeof(wchar_t);
+
+				wchar_t zero_word = L'\0';
+				memcpy(send_buffer+send_buffer_data_length,&zero_word,sizeof(wchar_t));
+				send_buffer_data_length += sizeof(wchar_t);
+				send_data_string_length++;
+
+
+				memcpy(send_buffer+send_buffer_data_length,&sequence_number,sizeof(DWORD));
+				send_buffer_data_length += sizeof(DWORD);
+				send_data_string_length += sizeof(DWORD)/sizeof(wchar_t);
+
+
+
+				LARGE_INTEGER liBeggining = { 0 };
+#ifdef use_istream_DEFINITION
+				local_stream->Seek(liBeggining, STREAM_SEEK_SET, NULL);
+#endif
+
+
+				ULONG local_read = 0;
+#ifdef use_istream_DEFINITION
+				local_stream->Read(send_buffer+send_buffer_data_length, CONST_MESSAGE_LENGTH_IMAGE - send_buffer_data_length, &local_read);
+#else
+				local_read = 100000;
+#endif
+				send_buffer_data_length += local_read;
+
+
+
+
+				CString xor_code_string;
+
+				if(local_main_dialog->get_command_terminate_application())
+				{
+					break;
+				}
+				{
+					xor_code_string = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_XOR_CODE_state;
+				}
+
+				char xor_code = _wtoi(xor_code_string);
+
+				encrypt::encrypt_xor(send_buffer+service_signature_definition_length,send_buffer_data_length-service_signature_definition_length,xor_code);
+
+				int local_header_length = service_signature_definition_length+send_data_string_length*sizeof(wchar_t);
+
+				int local_part_counter = 0;
+				int local_parts_count = local_read/(CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t));
+				int local_last_part_size = local_read % (CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t));
+
+				if(local_last_part_size!=0)
+				{
+					local_parts_count++;
+				}
+
+				for(;local_part_counter<local_parts_count;local_part_counter++)
+				{
+					int send_buffer_this_time_data_length = CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME;
+
+					if(local_part_counter==local_parts_count-1)
+					{
+						if(local_last_part_size!=0)
+						{
+							send_buffer_this_time_data_length = local_last_part_size+service_signature_definition_length+send_data_string_length*sizeof(wchar_t);
+						}
+					}
+
+					ZeroMemory(send_buffer_this_time,CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME);
+
+					memcpy(send_buffer_this_time,send_buffer,service_signature_definition_length+send_data_string_length*sizeof(wchar_t));
+
+					int local_this_time_data_offset = local_part_counter*(CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t));
+
+					memcpy
+						(
+						send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t),
+						send_buffer+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+local_this_time_data_offset,
+						send_buffer_this_time_data_length-(service_signature_definition_length+send_data_string_length*sizeof(wchar_t))
+						);
+
+					try
+					{
+						local_bytes_sent = local_blocking_socket.SendDatagram(send_buffer_this_time,send_buffer_this_time_data_length,local_socket_address,CONST_WAIT_TIME_SEND);
+
+						local_data_size_send += local_bytes_sent;
+					}
+					catch(network::ip_4::CBlockingSocketException_ip_4 *local_blocking_socket_exception)
+					{
+						const int local_error_message_size = 10000;
+						wchar_t local_error_message[local_error_message_size];
+
+						const int local_system_error_message_size = local_error_message_size;
+						wchar_t local_system_error_message[local_system_error_message_size];
+
+						CString local_time_string = CTime::GetCurrentTime().FormatGmt("%d/%m/%y %H:%M:%S GMT");
+
+						local_blocking_socket_exception->GetErrorMessage(local_system_error_message,local_system_error_message_size);
+
+						wsprintf((wchar_t*)local_error_message, L"Сетевая ошибка -- %s -- %s\r\n", local_system_error_message, local_time_string.GetBuffer());
+
+						local_error_number = local_blocking_socket_exception->GetErrorNumber();
+
+						local_blocking_socket_exception->Delete();
+
+						if(local_error_number!=0)
+						{
+							//				galaxy::MessageBox(local_error_message,CString(L"Ошибка"));
+						}
+						break;
+					}
+
+					if(local_main_dialog->get_command_threads_retranslate_web_camera_video_stop())
+					{
+						break;
+					}
+					else
+					{
+						Sleep(10);
+					}
+
+				}
+
+				{
+					int local_bytes_sent = 0;
+					int local_error_number = 0;
+
+					char send_buffer[CONST_MESSAGE_LENGTH];
+
+					int send_buffer_data_length = service_signature_definition_length;
+
+					ZeroMemory(send_buffer,CONST_MESSAGE_LENGTH);
+
+					memcpy(send_buffer,service_signature,service_signature_definition_length);
+
+					CString send_data_string;
+
+					int send_data_string_length = 0;
+
+					send_data_string = command_web_camera_video_end;
+
+					send_data_string_length = send_data_string.GetLength();
+
+					memcpy(send_buffer+send_buffer_data_length,send_data_string.GetBuffer(),send_data_string_length*sizeof(wchar_t));
+
+					send_buffer_data_length += send_data_string_length*sizeof(wchar_t);
+
+
+					wchar_t zero_word = L'\0';
+					memcpy(send_buffer+send_buffer_data_length,&zero_word,sizeof(wchar_t));
+					send_buffer_data_length += sizeof(wchar_t);
+					send_data_string_length++;
+
+
+					memcpy(send_buffer+send_buffer_data_length,&sequence_number,sizeof(DWORD));
+					send_buffer_data_length += sizeof(DWORD);
+					send_data_string_length += sizeof(DWORD)/sizeof(wchar_t);
+
+
+					CString xor_code_string;
+
+					if(local_main_dialog->get_command_terminate_application())
+					{
+						break;
+					}
+					{
+						xor_code_string = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_XOR_CODE_state;
+					}
+
+					char xor_code = _wtoi(xor_code_string);
+
+					encrypt::encrypt_xor(send_buffer+service_signature_definition_length,send_buffer_data_length-service_signature_definition_length,xor_code);
+
+					try
+					{
+						local_bytes_sent = local_blocking_socket.SendDatagram(send_buffer,send_buffer_data_length,local_socket_address,CONST_WAIT_TIME_SEND);
+
+						local_data_size_send += local_bytes_sent;
+					}
+					catch(network::ip_4::CBlockingSocketException_ip_4 *local_blocking_socket_exception)
+					{
+						const int local_error_message_size = 10000;
+						wchar_t local_error_message[local_error_message_size];
+
+						const int local_system_error_message_size = local_error_message_size;
+						wchar_t local_system_error_message[local_system_error_message_size];
+
+						CString local_time_string = CTime::GetCurrentTime().FormatGmt("%d/%m/%y %H:%M:%S GMT");
+
+						local_blocking_socket_exception->GetErrorMessage(local_system_error_message,local_system_error_message_size);
+
+						wsprintf((wchar_t*)local_error_message, L"Сетевая ошибка -- %s -- %s\r\n", local_system_error_message, local_time_string.GetBuffer());
+
+						local_error_number = local_blocking_socket_exception->GetErrorNumber();
+
+						local_blocking_socket_exception->Delete();
+
+						if(local_error_number!=0)
+						{
+							//				galaxy::MessageBox(local_error_message,CString(L"Ошибка"));
+						}
+					}
+				}
+
+
+
+				local_blocking_socket.Close();
+
+				if(local_bytes_sent<=0 && local_error_number==0)
+				{
+					//			galaxy::MessageBox(CString(L"local_bytes_sent<=0"),CString(L"Ошибка"));
+				}
+
+				if(local_main_dialog->get_command_threads_retranslate_web_camera_video_stop())
+				{
+					break;
+				}
+				else
+				{
+					Sleep(1);
+				}
+			}
+
+			ULONGLONG local_end_time = GetTickCount64();
+
+			ULONGLONG local_work_time = local_end_time - local_start_time;
+
+			if(local_main_dialog->get_command_threads_retranslate_web_camera_video_stop())
+			{
+				break;
+			}
+			else
+			{
+				CString local_string_speed;
+
+				if(local_main_dialog->get_command_terminate_application())
+				{
+					break;
+				}
+				{
+					local_string_speed = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_SPEED_state;
+				}
+				double local_double_speed = _wtof(local_string_speed);
+				if(local_data_size_send!=0.0)
+				{
+					DWORD time_to_work = 1000;
+					double local_current_time_in_seconds = double(local_work_time)/1000.0;
+					double local_current_bits_send = (local_data_size_send*8.0);
+					double local_current_speed = local_current_bits_send/local_current_time_in_seconds;
+					double local_current_frame_rate = 1.0/local_current_time_in_seconds;
+					double local_speed_factor = local_double_speed/local_current_speed;
+					double local_common_factor = min(local_speed_factor,local_current_frame_rate);
+
+					time_to_work = DWORD(local_common_factor*local_work_time);
+
+					DWORD time_to_sleep = 1000 - time_to_work;
+
+					Sleep(time_to_sleep);
+				}
+			}
+		}
+
+		if(local_main_dialog->get_command_threads_retranslate_web_camera_video_stop())
+		{
+			break;
+		}
+		else
+		{
+			Sleep(1);
+		}
+	}
+
+	{
+		{
+			CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
+
+			local_lock.Lock();
+
+			CWinThread *local_current_thread = AfxGetThread();
+
+			for
+				(
+				std::list<THREADS_INFORMATION>::iterator local_threads_iterator=local_main_dialog->threads_list.begin();
+			local_threads_iterator!=local_main_dialog->threads_list.end();
+			local_threads_iterator++
+				)
+			{		
+				CWinThread *local_thread = local_threads_iterator->WinThread;
+
+				if(local_thread->m_hThread==local_current_thread->m_hThread)
+				{
+					local_main_dialog->threads_list.erase(local_threads_iterator);
+					break;
+				}
+			}
+		}
+
+		delete[] send_buffer;
+		delete[] send_buffer_this_time;
+
+		delete local_send_web_camera_video_thread_parameters_structure;
+		return 1;
+	}
+}
+
+UINT __cdecl datagram_retranslate_web_camera_video_connection_thread_ip_6(LPVOID parameter)
+{
+	DWORD sequence_number = DWORD(rand());
+
+	thread_send_web_camera_video_parameters_structure_type *local_send_web_camera_video_thread_parameters_structure = (thread_send_web_camera_video_parameters_structure_type *)parameter;
+
+	if(local_send_web_camera_video_thread_parameters_structure==NULL)
+	{
+		return 0;
+	}
+
+	Cstl_network_ip_4_ip_6_udp_engineDialog *local_main_dialog = (local_send_web_camera_video_thread_parameters_structure)->parameter_main_dialog;
+
+	if(local_main_dialog==NULL)
+	{
+		delete local_send_web_camera_video_thread_parameters_structure;
+		return 0;
+	}
+
+	char *send_buffer = new char[CONST_MESSAGE_LENGTH_IMAGE];
+
+	if(send_buffer==NULL)
+	{
+		{
+			CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
+
+			local_lock.Lock();
+
+			CWinThread *local_current_thread = AfxGetThread();
+
+			for
+				(
+				std::list<THREADS_INFORMATION>::iterator local_threads_iterator=local_main_dialog->threads_list.begin();
+			local_threads_iterator!=local_main_dialog->threads_list.end();
+			local_threads_iterator++
+				)
+			{		
+				CWinThread *local_thread = local_threads_iterator->WinThread;
+
+				if(local_thread->m_hThread==local_current_thread->m_hThread)
+				{
+					local_main_dialog->threads_list.erase(local_threads_iterator);
+					break;
+				}
+			}
+		}
+
+		delete local_send_web_camera_video_thread_parameters_structure;
+		return 0;
+	}
+
+	char *send_buffer_this_time = new char[CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME];
+
+	if(send_buffer_this_time==NULL)
+	{
+		{
+			CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
+
+			local_lock.Lock();
+
+			CWinThread *local_current_thread = AfxGetThread();
+
+			for
+				(
+				std::list<THREADS_INFORMATION>::iterator local_threads_iterator=local_main_dialog->threads_list.begin();
+			local_threads_iterator!=local_main_dialog->threads_list.end();
+			local_threads_iterator++
+				)
+			{		
+				CWinThread *local_thread = local_threads_iterator->WinThread;
+
+				if(local_thread->m_hThread==local_current_thread->m_hThread)
+				{
+					local_main_dialog->threads_list.erase(local_threads_iterator);
+					break;
+				}
+			}
+		}
+
+		delete[] send_buffer;
+		delete local_send_web_camera_video_thread_parameters_structure;
+		return 0;
+	}
+
+	for(;;)
+	{
+		if(local_main_dialog->get_command_threads_retranslate_web_camera_video_stop())
+		{
+			break;
+		}
+
+		CString local_address(localhost_definition);
+
+		CStringA local_address_internet_address;
+
+		if(local_main_dialog->get_command_terminate_application())
+		{
+			break;
+		}
+		int peers_to_send_count = 0;
+		{
+			DWORD dwWaitResult;
+
+			dwWaitResult = WaitForSingleObject( 
+				local_main_dialog->do_not_terminate_application_event, // event handle
+				0);    // zero wait
+
+			if(dwWaitResult==WAIT_OBJECT_0)
+			{
+				// Event object was signaled		
+
+				if(local_main_dialog->get_command_terminate_application())
+				{
+					{
+						CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
+
+						local_lock.Lock();
+
+						CWinThread *local_current_thread = AfxGetThread();
+
+						for
+							(
+							std::list<THREADS_INFORMATION>::iterator local_threads_iterator=local_main_dialog->threads_list.begin();
+						local_threads_iterator!=local_main_dialog->threads_list.end();
+						local_threads_iterator++
+							)
+						{		
+							CWinThread *local_thread = local_threads_iterator->WinThread;
+
+							if(local_thread->m_hThread==local_current_thread->m_hThread)
+							{
+								local_main_dialog->threads_list.erase(local_threads_iterator);
+								break;
+							}
+						}
+					}
+
+					delete[] send_buffer;
+					delete local_send_web_camera_video_thread_parameters_structure;
+					return 0;
+				}
+
+				for(
+					std::list<GUI_LIST_CONTROL>::iterator current_item_iterator=local_main_dialog->GUI_CONTROLS_STATE_data.IDC_LIST_NODES_state.begin();
+					current_item_iterator!=local_main_dialog->GUI_CONTROLS_STATE_data.IDC_LIST_NODES_state.end();
+				current_item_iterator++
+					)
+				{
+					if(current_item_iterator->is_checked>0)
+					{
+						peers_to_send_count++;
+					}
+				}
+			}
+			else
+			{
+				if(local_main_dialog->get_command_terminate_application())
+				{
+					delete[] send_buffer;
+					delete local_send_web_camera_video_thread_parameters_structure;
+					return 0;
+				}
+			}
+
+		}
+
+		CComPtr<IStream> local_stream;
+
+		if(local_main_dialog->retranslate_web_camera_video_frames_ip_6.size()==0)
+		{
+			Sleep(10);
+			continue;
+		}
+		else
+		{
+			std::list<STREAM_INFORMATION>::iterator local_frames_iterator = local_main_dialog->retranslate_web_camera_video_frames_ip_6.begin();
+
+			local_frames_iterator->stream->Clone(&local_stream);
+
+			local_main_dialog->retranslate_web_camera_video_frames_ip_6.pop_front();
+		}
+
+		for(int peers_to_send_count_counter=0;peers_to_send_count_counter<peers_to_send_count;peers_to_send_count_counter++)
+		{
+			double local_data_size_send = 0.0;
+
+			if(local_main_dialog->get_command_terminate_application())
+			{
+				break;
+			}
+
+#ifdef use_istream_DEFINITION
+			//CImage local_image;
+#endif
+
+			CString peer_to_send;
+
+			int loop_counter=0;
+			for(
+				std::list<GUI_LIST_CONTROL>::iterator current_item_iterator=local_main_dialog->GUI_CONTROLS_STATE_data.IDC_LIST_NODES_state.begin();
+				current_item_iterator!=local_main_dialog->GUI_CONTROLS_STATE_data.IDC_LIST_NODES_state.end();
+			current_item_iterator++
+				)
+			{
+				Sleep(1);
+				if(local_main_dialog->get_command_terminate_application())
+				{
+					break;
+				}
+				if(current_item_iterator->is_checked>0)
+				{
+					if(peers_to_send_count_counter==loop_counter)
+					{
+						peer_to_send = current_item_iterator->label;
+						break;
+					}
+					loop_counter++;
+				}
+
+				if(local_main_dialog->get_command_terminate_application())
+				{
+					break;
+				}
+			}
+
+			if(local_main_dialog->get_command_terminate_application())
+			{
+				break;
+			}
+
+			local_address = peer_to_send;
+
+
+			//	Здесь делаем снимок экрана
+
+			//CSingleLock local_image_lock(&local_main_dialog->draw_video_image_critical_section);
+
+			//local_image_lock.Lock();
+#ifdef use_istream_DEFINITION
+			//if(!local_image.IsNull())
+			//{
+			//	local_image.Destroy();
+			//}
+#endif
+
+			if(network::ip_6::domain_name_to_internet_6_name(local_address,local_address_internet_address)==false)
+			{
+				const int local_error_message_size = 10000;
+				wchar_t local_error_message[local_error_message_size];
+
+				const int local_system_error_message_size = local_error_message_size-1000;
+				wchar_t local_system_error_message[local_system_error_message_size];
+
+				wcscpy_s(local_system_error_message,local_system_error_message_size,L"domain_name_to_internet_6_name завершилась неудачей");
+
+				CString local_time_string = CTime::GetCurrentTime().FormatGmt("%d/%m/%y %H:%M:%S GMT");
+
+				wsprintf((wchar_t*)local_error_message, L"Сетевая ошибка -- %s -- %s\r\n", local_system_error_message, local_time_string.GetBuffer());
+
+				//delete local_send_video_thread_parameters_structure;
+
+				//			galaxy::MessageBox(local_error_message,CString(L"Ошибка"));
+
+				//{
+
+				//	CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
+
+				//	local_lock.Lock();
+
+				//	CWinThread *local_current_thread = AfxGetThread();
+
+				//	for
+				//		(
+				//		std::list<THREADS_INFORMATION>::iterator local_threads_iterator=local_main_dialog->threads_list.begin();
+				//	local_threads_iterator!=local_main_dialog->threads_list.end();
+				//	local_threads_iterator++
+				//		)
+				//	{		
+				//		CWinThread *local_thread = local_threads_iterator->WinThread;
+
+				//		if(local_thread->m_hThread==local_current_thread->m_hThread)
+				//		{
+				//			local_main_dialog->threads_list.erase(local_threads_iterator);
+				//			break;
+				//		}
+				//	}
+				//}
+
+				//delete[] send_buffer;
+				//delete[] send_buffer_this_time;
+
+				//return 0;
+				continue;
+			}
+
+#ifdef use_istream_DEFINITION
+			//if(local_main_dialog->web_camera_dialog!=NULL)
+			//{
+			//	CSingleLock lock(&local_main_dialog->delete_web_camera_dialog_critical_section);
+			//
+			//	lock.Lock();
+			//
+			//	//CaptureWndShot(local_main_dialog->web_camera_dialog->m_hWnd,&local_image,ENGINE_WINDOWS_SIZE_CX/2,ENGINE_WINDOWS_SIZE_CY/2);
+			//	CaptureVideoSampleShot(local_main_dialog->web_camera_dialog,&local_image);
+			//}
+
+			//CComPtr<IStream> local_stream;
+
+			//HRESULT local_create_IStream_result = CreateStreamOnHGlobal ( 0 , TRUE , &local_stream );
+
+			//try
+			//{
+			//	HRESULT local_save_result = local_image.Save(local_stream, Gdiplus::ImageFormatJPEG);
+			//}
+			//catch(...)
+			//{
+			//	continue;
+			//}
+#endif
+			//local_image_lock.Unlock();
+
+
+			ULONGLONG local_start_time = GetTickCount64();
+
+			STATSTG local_istream_statstg;
+			HRESULT local_stat_result = local_stream->Stat(&local_istream_statstg,STATFLAG::STATFLAG_DEFAULT);
+
+			/*/
+			//			Тест отображения из IStream
+			{
+			std::fstream local_file;
+			local_file.open("c:\\temp\\file_source.jpg",std::ios_base::out | std::ios_base::binary | std::ios_base::trunc);
+
+			char *local_file_data = new char[CONST_MESSAGE_LENGTH_IMAGE];
+
+			ULONG local_read_bytes = 0;
+
+			LARGE_INTEGER liBeggining = { 0 };
+
+			local_stream->Seek(liBeggining, STREAM_SEEK_SET, NULL);
+
+			local_stream->Read(local_file_data,CONST_MESSAGE_LENGTH_IMAGE,&local_read_bytes);
+
+			local_file.write(local_file_data, local_read_bytes);
+
+			delete [] local_file_data;
+
+			local_file.flush();
+
+			local_file.close();
+			}
+			//*/
+
+
+
+			for(UINT local_parameter_port_number=port_number_start_const;local_parameter_port_number<=port_number_end_const;local_parameter_port_number++)
+			{
+				network::ip_6::CBlockingSocket_ip_6 local_blocking_socket;
+
+				if(network::ip_6::domain_name_to_internet_6_name(local_address,local_address_internet_address)==false)
+				{
+					const int local_error_message_size = 10000;
+					wchar_t local_error_message[local_error_message_size];
+
+					const int local_system_error_message_size = local_error_message_size-1000;
+					wchar_t local_system_error_message[local_system_error_message_size];
+
+					wcscpy_s(local_system_error_message,local_system_error_message_size,L"domain_name_to_internet_6_name завершилась неудачей");
+
+					CString local_time_string = CTime::GetCurrentTime().FormatGmt("%d/%m/%y %H:%M:%S GMT");
+
+					wsprintf((wchar_t*)local_error_message, L"Сетевая ошибка -- %s -- %s\r\n", local_system_error_message, local_time_string.GetBuffer());
+
+					//delete local_send_video_thread_parameters_structure;
+
+					//			galaxy::MessageBox(local_error_message,CString(L"Ошибка"));
+
+					//{
+
+					//	CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
+
+					//	local_lock.Lock();
+
+					//	CWinThread *local_current_thread = AfxGetThread();
+
+					//	for
+					//		(
+					//		std::list<THREADS_INFORMATION>::iterator local_threads_iterator=local_main_dialog->threads_list.begin();
+					//	local_threads_iterator!=local_main_dialog->threads_list.end();
+					//	local_threads_iterator++
+					//		)
+					//	{		
+					//		CWinThread *local_thread = local_threads_iterator->WinThread;
+
+					//		if(local_thread->m_hThread==local_current_thread->m_hThread)
+					//		{
+					//			local_main_dialog->threads_list.erase(local_threads_iterator);
+					//			break;
+					//		}
+					//	}
+					//}
+
+					//delete[] send_buffer;
+					//delete[] send_buffer_this_time;
+
+					//return 0;
+					break;
+				}
+
+				network::ip_6::CSockAddr_ip_6 local_socket_address(local_address_internet_address,local_parameter_port_number);
+
+				try
+				{
+					local_blocking_socket.Create(SOCK_DGRAM);
+				}
+				catch(network::ip_6::CBlockingSocketException_ip_6 *local_blocking_socket_exception)
+				{
+					const int local_error_message_size = 10000;
+					wchar_t local_error_message[local_error_message_size];
+
+					const int local_system_error_message_size = local_error_message_size-1000;
+					wchar_t local_system_error_message[local_system_error_message_size];
+
+					CString local_time_string = CTime::GetCurrentTime().FormatGmt("%d/%m/%y %H:%M:%S GMT");
+
+					local_blocking_socket_exception->GetErrorMessage(local_system_error_message,local_system_error_message_size);
+
+					wsprintf((wchar_t*)local_error_message, L"Сетевая ошибка -- %s -- %s\r\n", local_system_error_message, local_time_string.GetBuffer());
+
+					local_blocking_socket_exception->Delete();
+
+					delete local_send_web_camera_video_thread_parameters_structure;
+
+					//			galaxy::MessageBox(local_error_message,CString(L"Ошибка"));
+
+					{
+						CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
+
+						local_lock.Lock();
+
+						CWinThread *local_current_thread = AfxGetThread();
+
+						for
+							(
+							std::list<THREADS_INFORMATION>::iterator local_threads_iterator=local_main_dialog->threads_list.begin();
+						local_threads_iterator!=local_main_dialog->threads_list.end();
+						local_threads_iterator++
+							)
+						{		
+							CWinThread *local_thread = local_threads_iterator->WinThread;
+
+							if(local_thread->m_hThread==local_current_thread->m_hThread)
+							{
+								local_main_dialog->threads_list.erase(local_threads_iterator);
+								break;
+							}
+						}
+					}
+
+					delete[] send_buffer;
+					delete[] send_buffer_this_time;
+
+					return 0;
+				}
+
+				int local_bytes_sent = 0;
+				int local_error_number = 0;
+
+
+				int send_buffer_data_length = service_signature_definition_length;
+
+				ZeroMemory(send_buffer,CONST_MESSAGE_LENGTH_IMAGE);
+
+				memcpy(send_buffer,service_signature,service_signature_definition_length);
+
+
+
+				CString send_data_string = command_web_camera_video;
+
+				int send_data_string_length = send_data_string.GetLength();
+
+				memcpy(send_buffer+send_buffer_data_length,send_data_string.GetBuffer(),send_data_string_length*sizeof(wchar_t));
+
+				send_buffer_data_length += send_data_string_length*sizeof(wchar_t);
+
+				wchar_t zero_word = L'\0';
+				memcpy(send_buffer+send_buffer_data_length,&zero_word,sizeof(wchar_t));
+				send_buffer_data_length += sizeof(wchar_t);
+				send_data_string_length++;
+
+
+				memcpy(send_buffer+send_buffer_data_length,&sequence_number,sizeof(DWORD));
+				send_buffer_data_length += sizeof(DWORD);
+				send_data_string_length += sizeof(DWORD)/sizeof(wchar_t);
+
+
+
+				LARGE_INTEGER liBeggining = { 0 };
+#ifdef use_istream_DEFINITION
+				local_stream->Seek(liBeggining, STREAM_SEEK_SET, NULL);
+#endif
+
+
+				ULONG local_read = 0;
+#ifdef use_istream_DEFINITION
+				local_stream->Read(send_buffer+send_buffer_data_length, CONST_MESSAGE_LENGTH_IMAGE - send_buffer_data_length, &local_read);
+#else
+				local_read = 100000;
+#endif
+				send_buffer_data_length += local_read;
+
+
+
+
+				CString xor_code_string;
+
+				if(local_main_dialog->get_command_terminate_application())
+				{
+					break;
+				}
+				{
+					xor_code_string = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_XOR_CODE_state;				
+				}
+
+				char xor_code = _wtoi(xor_code_string);
+
+				encrypt::encrypt_xor(send_buffer+service_signature_definition_length,send_buffer_data_length-service_signature_definition_length,xor_code);
+
+				int local_header_length = service_signature_definition_length+send_data_string_length*sizeof(wchar_t);
+
+				int local_part_counter = 0;
+				int local_parts_count = local_read/(CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t));
+				int local_last_part_size = local_read % (CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t));
+
+				if(local_last_part_size!=0)
+				{
+					local_parts_count++;
+				}
+
+				for(;local_part_counter<local_parts_count;local_part_counter++)
+				{
+					int send_buffer_this_time_data_length = CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME;
+
+					if(local_part_counter==local_parts_count-1)
+					{
+						if(local_last_part_size!=0)
+						{
+							send_buffer_this_time_data_length = local_last_part_size+service_signature_definition_length+send_data_string_length*sizeof(wchar_t);
+						}
+					}
+
+					ZeroMemory(send_buffer_this_time,CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME);
+
+					memcpy(send_buffer_this_time,send_buffer,service_signature_definition_length+send_data_string_length*sizeof(wchar_t));
+
+					int local_this_time_data_offset = local_part_counter*(CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t));
+
+					memcpy
+						(
+						send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t),
+						send_buffer+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+local_this_time_data_offset,
+						send_buffer_this_time_data_length-(service_signature_definition_length+send_data_string_length*sizeof(wchar_t))
+						);
+
+					try
+					{
+						local_bytes_sent = local_blocking_socket.SendDatagram(send_buffer_this_time,send_buffer_this_time_data_length,local_socket_address,CONST_WAIT_TIME_SEND);
+
+						local_data_size_send += local_bytes_sent;
+					}
+					catch(network::ip_6::CBlockingSocketException_ip_6 *local_blocking_socket_exception)
+					{
+						const int local_error_message_size = 10000;
+						wchar_t local_error_message[local_error_message_size];
+
+						const int local_system_error_message_size = local_error_message_size;
+						wchar_t local_system_error_message[local_system_error_message_size];
+
+						CString local_time_string = CTime::GetCurrentTime().FormatGmt("%d/%m/%y %H:%M:%S GMT");
+
+						local_blocking_socket_exception->GetErrorMessage(local_system_error_message,local_system_error_message_size);
+
+						wsprintf((wchar_t*)local_error_message, L"Сетевая ошибка -- %s -- %s\r\n", local_system_error_message, local_time_string.GetBuffer());
+
+						local_error_number = local_blocking_socket_exception->GetErrorNumber();
+
+						local_blocking_socket_exception->Delete();
+
+						if(local_error_number!=0)
+						{
+							//				galaxy::MessageBox(local_error_message,CString(L"Ошибка"));
+						}
+						break;
+					}
+
+					if(local_main_dialog->get_command_threads_retranslate_web_camera_video_stop())
+					{
+						break;
+					}
+					else
+					{
+						Sleep(10);
+					}
+
+				}
+
+				{
+					int local_bytes_sent = 0;
+					int local_error_number = 0;
+
+					char send_buffer[CONST_MESSAGE_LENGTH];
+
+					int send_buffer_data_length = service_signature_definition_length;
+
+					ZeroMemory(send_buffer,CONST_MESSAGE_LENGTH);
+
+					memcpy(send_buffer,service_signature,service_signature_definition_length);
+
+					CString send_data_string;
+
+					int send_data_string_length = 0;
+
+					send_data_string = command_web_camera_video_end;
+
+					send_data_string_length = send_data_string.GetLength();
+
+					memcpy(send_buffer+send_buffer_data_length,send_data_string.GetBuffer(),send_data_string_length*sizeof(wchar_t));
+
+					send_buffer_data_length += send_data_string_length*sizeof(wchar_t);
+
+
+					wchar_t zero_word = L'\0';
+					memcpy(send_buffer+send_buffer_data_length,&zero_word,sizeof(wchar_t));
+					send_buffer_data_length += sizeof(wchar_t);
+					send_data_string_length++;
+
+
+					memcpy(send_buffer+send_buffer_data_length,&sequence_number,sizeof(DWORD));
+					send_buffer_data_length += sizeof(DWORD);
+					send_data_string_length += sizeof(DWORD)/sizeof(wchar_t);
+
+
+					CString xor_code_string;
+
+					if(local_main_dialog->get_command_terminate_application())
+					{
+						break;
+					}
+					{
+						xor_code_string = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_XOR_CODE_state;
+					}
+
+					char xor_code = _wtoi(xor_code_string);
+
+					encrypt::encrypt_xor(send_buffer+service_signature_definition_length,send_buffer_data_length-service_signature_definition_length,xor_code);
+
+					try
+					{
+						local_bytes_sent = local_blocking_socket.SendDatagram(send_buffer,send_buffer_data_length,local_socket_address,CONST_WAIT_TIME_SEND);
+
+						local_data_size_send += local_bytes_sent;
+					}
+					catch(network::ip_6::CBlockingSocketException_ip_6 *local_blocking_socket_exception)
+					{
+						const int local_error_message_size = 10000;
+						wchar_t local_error_message[local_error_message_size];
+
+						const int local_system_error_message_size = local_error_message_size;
+						wchar_t local_system_error_message[local_system_error_message_size];
+
+						CString local_time_string = CTime::GetCurrentTime().FormatGmt("%d/%m/%y %H:%M:%S GMT");
+
+						local_blocking_socket_exception->GetErrorMessage(local_system_error_message,local_system_error_message_size);
+
+						wsprintf((wchar_t*)local_error_message, L"Сетевая ошибка -- %s -- %s\r\n", local_system_error_message, local_time_string.GetBuffer());
+
+						local_error_number = local_blocking_socket_exception->GetErrorNumber();
+
+						local_blocking_socket_exception->Delete();
+
+						if(local_error_number!=0)
+						{
+							//				galaxy::MessageBox(local_error_message,CString(L"Ошибка"));
+						}
+					}
+				}
+
+
+
+				local_blocking_socket.Close();
+
+				if(local_bytes_sent<=0 && local_error_number==0)
+				{
+					//			galaxy::MessageBox(CString(L"local_bytes_sent<=0"),CString(L"Ошибка"));
+				}
+
+				if(local_main_dialog->get_command_threads_retranslate_web_camera_video_stop())
+				{
+					break;
+				}
+				else
+				{
+					Sleep(1);
+				}
+			}
+
+			ULONGLONG local_end_time = GetTickCount64();
+
+			ULONGLONG local_work_time = local_end_time - local_start_time;
+
+			if(local_main_dialog->get_command_threads_retranslate_web_camera_video_stop())
+			{
+				break;
+			}
+			else
+			{
+				CString local_string_speed;
+
+				if(local_main_dialog->get_command_terminate_application())
+				{
+					break;
+				}
+				{
+					local_string_speed = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_SPEED_state;				
+				}
+				double local_double_speed = _wtof(local_string_speed);
+				if(local_data_size_send!=0.0)
+				{
+					DWORD time_to_work = 1000;
+					double local_current_time_in_seconds = double(local_work_time)/1000.0;
+					double local_current_bits_send = (local_data_size_send*8.0);
+					double local_current_speed = local_current_bits_send/local_current_time_in_seconds;
+					double local_current_frame_rate = 1.0/local_current_time_in_seconds;
+					double local_speed_factor = local_double_speed/local_current_speed;
+					double local_common_factor = min(local_speed_factor,local_current_frame_rate);
+
+					time_to_work = DWORD(local_common_factor*local_work_time);
+
+					DWORD time_to_sleep = 1000 - time_to_work;
+
+					Sleep(time_to_sleep);
+				}
+			}
+		}
+
+
+		if(local_main_dialog->get_command_threads_retranslate_web_camera_video_stop())
+		{
+			break;
+		}
+		else
+		{
+			Sleep(1);
+		}
+	}
+
+	{
+		{
+			CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
+
+			local_lock.Lock();
+
+			CWinThread *local_current_thread = AfxGetThread();
+
+			for
+				(
+				std::list<THREADS_INFORMATION>::iterator local_threads_iterator=local_main_dialog->threads_list.begin();
+			local_threads_iterator!=local_main_dialog->threads_list.end();
+			local_threads_iterator++
+				)
+			{		
+				CWinThread *local_thread = local_threads_iterator->WinThread;
+
+				if(local_thread->m_hThread==local_current_thread->m_hThread)
+				{
+					local_main_dialog->threads_list.erase(local_threads_iterator);
+					break;
+				}
+			}
+		}
+
+		delete[] send_buffer;
+		delete[] send_buffer_this_time;
+
+		delete local_send_web_camera_video_thread_parameters_structure;
+		return 1;
+	}
+}
+
+
+//	retranslate audio
+
+UINT __cdecl datagram_retranslate_audio_connection_thread(LPVOID parameter)
+{
+	thread_send_audio_parameters_structure_type *local_send_audio_thread_parameters_structure_source = (thread_send_audio_parameters_structure_type *)parameter;
+
+	if(local_send_audio_thread_parameters_structure_source==NULL)
+	{
+		return 0;
+	}
+
+	Cstl_network_ip_4_ip_6_udp_engineDialog *local_main_dialog = local_send_audio_thread_parameters_structure_source->parameter_main_dialog;
+
+	if(local_main_dialog==NULL)
+	{
+		delete parameter;
+
+		return 0;
+	}
+
+	{
+		void *local_send_audio_thread_parameters_structure = new thread_send_audio_parameters_structure_type;
+
+		((thread_send_audio_parameters_structure_type*)local_send_audio_thread_parameters_structure)->parameter_main_dialog = ((thread_send_audio_parameters_structure_type*)local_send_audio_thread_parameters_structure_source)->parameter_main_dialog;
+
+		CWinThread *local_thread = AfxBeginThread(datagram_retranslate_audio_connection_thread_ip_4,local_send_audio_thread_parameters_structure);
+
+		THREADS_INFORMATION local_thread_information;
+		local_thread_information.thread_name = CString(L"datagram_retranslate_audio_connection_thread_ip_4");
+		local_thread_information.WinThread = local_thread;
+
+		local_main_dialog->threads_list.push_back(local_thread_information);
+	}
+
+	{
+		void *local_send_audio_thread_parameters_structure = new thread_send_audio_parameters_structure_type;
+
+		((thread_send_audio_parameters_structure_type*)local_send_audio_thread_parameters_structure)->parameter_main_dialog = ((thread_send_audio_parameters_structure_type*)local_send_audio_thread_parameters_structure_source)->parameter_main_dialog;
+
+		CWinThread *local_thread = AfxBeginThread(datagram_retranslate_audio_connection_thread_ip_6,local_send_audio_thread_parameters_structure);
+
+		THREADS_INFORMATION local_thread_information;
+		local_thread_information.thread_name = CString(L"datagram_retranslate_audio_connection_thread_ip_6");
+		local_thread_information.WinThread = local_thread;
+
+		local_main_dialog->threads_list.push_back(local_thread_information);
+	}
+
+	{
+		CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
+
+		local_lock.Lock();
+
+		CWinThread *local_current_thread = AfxGetThread();
+
+		for
+			(
+			std::list<THREADS_INFORMATION>::iterator local_threads_iterator=local_main_dialog->threads_list.begin();
+		local_threads_iterator!=local_main_dialog->threads_list.end();
+		local_threads_iterator++
+			)
+		{		
+			CWinThread *local_thread = local_threads_iterator->WinThread;
+
+			if(local_thread->m_hThread==local_current_thread->m_hThread)
+			{
+				local_main_dialog->threads_list.erase(local_threads_iterator);
+				break;
+			}
+		}
+	}
+
+	delete parameter;
+
+	return 1;
+}
+
+
+
+//	send audio
+
+UINT __cdecl datagram_retranslate_audio_connection_thread_ip_4(LPVOID parameter)
+{
+	DWORD sequence_number = DWORD(rand());
+
+	thread_send_audio_parameters_structure_type *local_send_audio_thread_parameters_structure = (thread_send_audio_parameters_structure_type *)parameter;
+
+	if(local_send_audio_thread_parameters_structure==NULL)
+	{
+		return 0;
+	}
+
+	Cstl_network_ip_4_ip_6_udp_engineDialog *local_main_dialog = (local_send_audio_thread_parameters_structure)->parameter_main_dialog;
+
+	if(local_main_dialog==NULL)
+	{
+		delete local_send_audio_thread_parameters_structure;
+		return 0;
+	}
+
+	char *send_buffer = new char[CONST_MESSAGE_LENGTH_IMAGE];
+
+	if(send_buffer==NULL)
+	{
+		{
+			CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
+
+			local_lock.Lock();
+
+			CWinThread *local_current_thread = AfxGetThread();
+
+			for
+				(
+				std::list<THREADS_INFORMATION>::iterator local_threads_iterator=local_main_dialog->threads_list.begin();
+			local_threads_iterator!=local_main_dialog->threads_list.end();
+			local_threads_iterator++
+				)
+			{		
+				CWinThread *local_thread = local_threads_iterator->WinThread;
+
+				if(local_thread->m_hThread==local_current_thread->m_hThread)
+				{
+					local_main_dialog->threads_list.erase(local_threads_iterator);
+					break;
+				}
+			}
+		}
+
+		delete local_send_audio_thread_parameters_structure;
+		return 0;
+	}
+
+	char *send_buffer_this_time = new char[CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME];
+
+	if(send_buffer_this_time==NULL)
+	{
+		{
+			CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
+
+			local_lock.Lock();
+
+			CWinThread *local_current_thread = AfxGetThread();
+
+			for
+				(
+				std::list<THREADS_INFORMATION>::iterator local_threads_iterator=local_main_dialog->threads_list.begin();
+			local_threads_iterator!=local_main_dialog->threads_list.end();
+			local_threads_iterator++
+				)
+			{		
+				CWinThread *local_thread = local_threads_iterator->WinThread;
+
+				if(local_thread->m_hThread==local_current_thread->m_hThread)
+				{
+					local_main_dialog->threads_list.erase(local_threads_iterator);
+					break;
+				}
+			}
+		}
+
+		delete[] send_buffer;
+		delete local_send_audio_thread_parameters_structure;
+		return 0;
+	}
+
+	for(;;)
+	{
+		if(local_main_dialog->get_command_threads_retranslate_audio_stop())
+		{
+			break;
+		}
+
+		CString local_address(localhost_definition);
+
+		CStringA local_address_internet_address;
+
+		if(local_main_dialog->get_command_terminate_application())
+		{
+			break;
+		}
+
+		int peers_to_send_count = 0;
+		{
+			DWORD dwWaitResult;
+
+			dwWaitResult = WaitForSingleObject( 
+				local_main_dialog->do_not_terminate_application_event, // event handle
+				0);    // zero wait
+
+			if(dwWaitResult==WAIT_OBJECT_0)
+			{
+				// Event object was signaled		
+
+				if(local_main_dialog->get_command_terminate_application())
+				{
+					{
+						CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
+
+						local_lock.Lock();
+
+						CWinThread *local_current_thread = AfxGetThread();
+
+						for
+							(
+							std::list<THREADS_INFORMATION>::iterator local_threads_iterator=local_main_dialog->threads_list.begin();
+						local_threads_iterator!=local_main_dialog->threads_list.end();
+						local_threads_iterator++
+							)
+						{		
+							CWinThread *local_thread = local_threads_iterator->WinThread;
+
+							if(local_thread->m_hThread==local_current_thread->m_hThread)
+							{
+								local_main_dialog->threads_list.erase(local_threads_iterator);
+								break;
+							}
+						}
+					}
+
+					delete[] send_buffer;
+					delete local_send_audio_thread_parameters_structure;
+					return 0;
+				}
+
+				for(
+					std::list<GUI_LIST_CONTROL>::iterator current_item_iterator=local_main_dialog->GUI_CONTROLS_STATE_data.IDC_LIST_NODES_state.begin();
+					current_item_iterator!=local_main_dialog->GUI_CONTROLS_STATE_data.IDC_LIST_NODES_state.end();
+				current_item_iterator++
+					)
+				{
+					if(current_item_iterator->is_checked>0)
+					{
+						peers_to_send_count++;
+					}
+				}
+			}
+			else
+			{
+				if(local_main_dialog->get_command_terminate_application())
+				{
+					delete[] send_buffer;
+					delete local_send_audio_thread_parameters_structure;
+					return 0;
+				}
+			}
+
+		}
+
+		for(int peers_to_send_count_counter=0;peers_to_send_count_counter<peers_to_send_count;peers_to_send_count_counter++)
+		{
+			double local_data_size_send = 0.0;
+
+			if(local_main_dialog->get_command_terminate_application())
+			{
+				break;
+			}
+
+#ifdef use_istream_DEFINITION
+			IStream * local_stream = NULL;
+#endif
+
+			CString peer_to_send;
+
+			int loop_counter=0;
+			for(
+				std::list<GUI_LIST_CONTROL>::iterator current_item_iterator=local_main_dialog->GUI_CONTROLS_STATE_data.IDC_LIST_NODES_state.begin();
+				current_item_iterator!=local_main_dialog->GUI_CONTROLS_STATE_data.IDC_LIST_NODES_state.end();
+			current_item_iterator++
+				)
+			{
+				Sleep(1);
+				if(local_main_dialog->get_command_terminate_application())
+				{
+					break;
+				}
+				if(current_item_iterator->is_checked>0)
+				{
+					if(peers_to_send_count_counter==loop_counter)
+					{
+						peer_to_send = current_item_iterator->label;
+						break;
+					}
+					loop_counter++;
+				}
+
+				if(local_main_dialog->get_command_terminate_application())
+				{
+					break;
+				}
+			}
+
+			if(local_main_dialog->get_command_terminate_application())
+			{
+				break;
+			}
+
+			local_address = peer_to_send;
+
+
+			//	Здесь делаем снимок экрана
+
+			CSingleLock local_image_lock(&local_main_dialog->draw_audio_image_critical_section);
+
+			local_image_lock.Lock();
+#ifdef use_istream_DEFINITION
+#endif
+
+			if(network::ip_4::domain_name_to_internet_4_name(local_address,local_address_internet_address)==false)
+			{
+				const int local_error_message_size = 10000;
+				wchar_t local_error_message[local_error_message_size];
+
+				const int local_system_error_message_size = local_error_message_size-1000;
+				wchar_t local_system_error_message[local_system_error_message_size];
+
+				wcscpy_s(local_system_error_message,local_system_error_message_size,L"domain_name_to_internet_6_name завершилась неудачей");
+
+				CString local_time_string = CTime::GetCurrentTime().FormatGmt("%d/%m/%y %H:%M:%S GMT");
+
+				wsprintf((wchar_t*)local_error_message, L"Сетевая ошибка -- %s -- %s\r\n", local_system_error_message, local_time_string.GetBuffer());
+
+				//delete local_send_video_thread_parameters_structure;
+
+				//			galaxy::MessageBox(local_error_message,CString(L"Ошибка"));
+
+				//{
+
+				//	CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
+
+				//	local_lock.Lock();
+
+				//	CWinThread *local_current_thread = AfxGetThread();
+
+				//	for
+				//		(
+				//		std::list<THREADS_INFORMATION>::iterator local_threads_iterator=local_main_dialog->threads_list.begin();
+				//	local_threads_iterator!=local_main_dialog->threads_list.end();
+				//	local_threads_iterator++
+				//		)
+				//	{		
+				//		CWinThread *local_thread = local_threads_iterator->WinThread;
+
+				//		if(local_thread->m_hThread==local_current_thread->m_hThread)
+				//		{
+				//			local_main_dialog->threads_list.erase(local_threads_iterator);
+				//			break;
+				//		}
+				//	}
+				//}
+
+				//delete[] send_buffer;
+				//delete[] send_buffer_this_time;
+
+				//return 0;
+				continue;
+			}
+#ifdef use_istream_DEFINITION
+			//if(local_main_dialog->web_camera_dialog!=NULL)
+			//{
+			//	CSingleLock lock(&local_main_dialog->delete_web_camera_dialog_critical_section);
+
+			//	lock.Lock();
+
+				local_stream = NULL;
+
+			//	//ULARGE_INTEGER zero_size = {0,0};
+
+			//	//local_stream->SetSize(zero_size);
+
+			//	//LARGE_INTEGER liBeggining = { 0 };
+
+			//	//local_stream->Seek(liBeggining, STREAM_SEEK_SET, NULL);
+
+			//	//CaptureAudioSampleShot(local_main_dialog->web_camera_dialog,local_stream);
+			//	CaptureAudioSampleGetFromTheList(local_main_dialog->web_camera_dialog,&local_stream);
+
+			//	if(local_stream==NULL)
+			//	{
+			//		continue;
+			//	}
+			//}
+
+			if(local_main_dialog->retranslate_microphone_frames_ip_4.size()==0)
+			{
+				Sleep(10);
+				continue;
+			}
+			else
+			{
+				std::list<STREAM_INFORMATION>::iterator local_frames_iterator = local_main_dialog->retranslate_microphone_frames_ip_4.begin();
+
+				local_frames_iterator->stream->Clone(&local_stream);
+
+				local_main_dialog->retranslate_microphone_frames_ip_4.pop_front();
+			}
+
+#endif
+			local_image_lock.Unlock();
+
+			if(local_stream==NULL)
+			{
+				continue;
+			}
+
+			/*/
+			//	Здесь воспроизводится аудио сампле
+			{
+			CWave *local_wave = new CWave();
+
+			if(local_wave!=NULL)
+			{
+			LARGE_INTEGER liBeggining = { 0 };
+			local_stream->Seek(liBeggining, STREAM_SEEK_SET, NULL);
+
+			local_wave->Load(local_stream);
+			}
+
+			{
+			void *local_play_audio_thread_parameters_structure = new thread_play_audio_parameters_structure_type;
+
+			((thread_play_audio_parameters_structure_type*)local_play_audio_thread_parameters_structure)->parameter_main_dialog = local_main_dialog;
+			((thread_play_audio_parameters_structure_type*)local_play_audio_thread_parameters_structure)->parameter_wave = local_wave;
+
+			CWinThread *local_thread = AfxBeginThread(datagram_play_audio_connection_thread,local_play_audio_thread_parameters_structure);
+
+			THREADS_INFORMATION local_thread_information;
+			local_thread_information.thread_name = CString(L"datagram_play_audio_connection_thread");
+			local_thread_information.WinThread = local_thread;
+
+			local_main_dialog->threads_list.push_back(local_thread_information);
+			}
+
+			}
+			Sleep(400);
+			break;
+			/*/
+
+			ULONGLONG local_start_time = GetTickCount64();
+
+			STATSTG local_istream_statstg;
+			HRESULT local_stat_result = local_stream->Stat(&local_istream_statstg,STATFLAG::STATFLAG_DEFAULT);
+
+			/*/
+			//			Тест отображения из IStream
+			{
+			std::fstream local_file;
+			local_file.open("c:\\temp\\file_source_2.wav",std::ios_base::out | std::ios_base::binary | std::ios_base::trunc);
+
+			char *local_file_data = new char[CONST_MESSAGE_LENGTH_IMAGE];
+
+			ULONG local_read_bytes = 0;
+
+			LARGE_INTEGER liBeggining = { 0 };
+
+			local_stream->Seek(liBeggining, STREAM_SEEK_SET, NULL);
+
+			local_stream->Read(local_file_data,CONST_MESSAGE_LENGTH_IMAGE,&local_read_bytes);
+
+			local_file.write(local_file_data, local_read_bytes);
+
+			delete [] local_file_data;
+
+			local_file.flush();
+
+			local_file.close();
+			}
+			//*/
+
+
+
+			for(UINT local_parameter_port_number=port_number_start_const;local_parameter_port_number<=port_number_end_const;local_parameter_port_number++)
+			{
+				network::ip_4::CBlockingSocket_ip_4 local_blocking_socket;
+
+				if(network::ip_4::domain_name_to_internet_4_name(local_address,local_address_internet_address)==false)
+				{
+					const int local_error_message_size = 10000;
+					wchar_t local_error_message[local_error_message_size];
+
+					const int local_system_error_message_size = local_error_message_size-1000;
+					wchar_t local_system_error_message[local_system_error_message_size];
+
+					wcscpy_s(local_system_error_message,local_system_error_message_size,L"domain_name_to_internet_6_name завершилась неудачей");
+
+					CString local_time_string = CTime::GetCurrentTime().FormatGmt("%d/%m/%y %H:%M:%S GMT");
+
+					wsprintf((wchar_t*)local_error_message, L"Сетевая ошибка -- %s -- %s\r\n", local_system_error_message, local_time_string.GetBuffer());
+
+					//delete local_send_video_thread_parameters_structure;
+
+					//			galaxy::MessageBox(local_error_message,CString(L"Ошибка"));
+
+					//{
+
+					//	CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
+
+					//	local_lock.Lock();
+
+					//	CWinThread *local_current_thread = AfxGetThread();
+
+					//	for
+					//		(
+					//		std::list<THREADS_INFORMATION>::iterator local_threads_iterator=local_main_dialog->threads_list.begin();
+					//	local_threads_iterator!=local_main_dialog->threads_list.end();
+					//	local_threads_iterator++
+					//		)
+					//	{		
+					//		CWinThread *local_thread = local_threads_iterator->WinThread;
+
+					//		if(local_thread->m_hThread==local_current_thread->m_hThread)
+					//		{
+					//			local_main_dialog->threads_list.erase(local_threads_iterator);
+					//			break;
+					//		}
+					//	}
+					//}
+
+					//delete[] send_buffer;
+					//delete[] send_buffer_this_time;
+
+					//return 0;
+					break;
+				}
+
+				network::ip_4::CSockAddr_ip_4 local_socket_address(local_address_internet_address,local_parameter_port_number);
+
+				try
+				{
+					local_blocking_socket.Create(SOCK_DGRAM);
+				}
+				catch(network::ip_4::CBlockingSocketException_ip_4 *local_blocking_socket_exception)
+				{
+					const int local_error_message_size = 10000;
+					wchar_t local_error_message[local_error_message_size];
+
+					const int local_system_error_message_size = local_error_message_size-1000;
+					wchar_t local_system_error_message[local_system_error_message_size];
+
+					CString local_time_string = CTime::GetCurrentTime().FormatGmt("%d/%m/%y %H:%M:%S GMT");
+
+					local_blocking_socket_exception->GetErrorMessage(local_system_error_message,local_system_error_message_size);
+
+					wsprintf((wchar_t*)local_error_message, L"Сетевая ошибка -- %s -- %s\r\n", local_system_error_message, local_time_string.GetBuffer());
+
+					local_blocking_socket_exception->Delete();
+
+					delete local_send_audio_thread_parameters_structure;
+
+					//			galaxy::MessageBox(local_error_message,CString(L"Ошибка"));
+
+					{
+						CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
+
+						local_lock.Lock();
+
+						CWinThread *local_current_thread = AfxGetThread();
+
+						for
+							(
+							std::list<THREADS_INFORMATION>::iterator local_threads_iterator=local_main_dialog->threads_list.begin();
+						local_threads_iterator!=local_main_dialog->threads_list.end();
+						local_threads_iterator++
+							)
+						{		
+							CWinThread *local_thread = local_threads_iterator->WinThread;
+
+							if(local_thread->m_hThread==local_current_thread->m_hThread)
+							{
+								local_main_dialog->threads_list.erase(local_threads_iterator);
+								break;
+							}
+						}
+					}
+
+					if(local_stream!=NULL)
+					{
+						local_stream->Release();
+					}
+
+					delete[] send_buffer;
+					delete[] send_buffer_this_time;
+
+					return 0;
+				}
+
+				int local_bytes_sent = 0;
+				int local_error_number = 0;
+
+
+				int send_buffer_data_length = service_signature_definition_length;
+
+				ZeroMemory(send_buffer,CONST_MESSAGE_LENGTH_IMAGE);
+
+				memcpy(send_buffer,service_signature,service_signature_definition_length);
+
+
+
+				CString send_data_string = command_audio;
+
+				int send_data_string_length = send_data_string.GetLength();
+
+				memcpy(send_buffer+send_buffer_data_length,send_data_string.GetBuffer(),send_data_string_length*sizeof(wchar_t));
+
+				send_buffer_data_length += send_data_string_length*sizeof(wchar_t);
+
+				wchar_t zero_word = L'\0';
+				memcpy(send_buffer+send_buffer_data_length,&zero_word,sizeof(wchar_t));
+				send_buffer_data_length += sizeof(wchar_t);
+				send_data_string_length++;
+
+
+				memcpy(send_buffer+send_buffer_data_length,&sequence_number,sizeof(DWORD));
+				send_buffer_data_length += sizeof(DWORD);
+				send_data_string_length += sizeof(DWORD)/sizeof(wchar_t);
+
+
+
+				LARGE_INTEGER liBeggining = { 0 };
+#ifdef use_istream_DEFINITION
+				local_stream->Seek(liBeggining, STREAM_SEEK_SET, NULL);
+#endif
+
+
+				ULONG local_read = 0;
+#ifdef use_istream_DEFINITION
+				local_stream->Read(send_buffer+send_buffer_data_length, CONST_MESSAGE_LENGTH_IMAGE - send_buffer_data_length, &local_read);
+#else
+				local_read = 100000;
+#endif
+				send_buffer_data_length += local_read;
+
+
+
+
+				CString xor_code_string;
+
+				if(local_main_dialog->get_command_terminate_application())
+				{
+					break;
+				}
+				{
+					xor_code_string = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_XOR_CODE_state;					
+				}
+
+				char xor_code = _wtoi(xor_code_string);
+
+				encrypt::encrypt_xor(send_buffer+service_signature_definition_length,send_buffer_data_length-service_signature_definition_length,xor_code);
+
+				int local_header_length = service_signature_definition_length+send_data_string_length*sizeof(wchar_t);
+
+				int local_part_counter = 0;
+				int local_parts_count = local_read/(CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t));
+				int local_last_part_size = local_read % (CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t));
+
+				if(local_last_part_size!=0)
+				{
+					local_parts_count++;
+				}
+
+				for(;local_part_counter<local_parts_count;local_part_counter++)
+				{
+					int send_buffer_this_time_data_length = CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME;
+
+					if(local_part_counter==local_parts_count-1)
+					{
+						if(local_last_part_size!=0)
+						{
+							send_buffer_this_time_data_length = local_last_part_size+service_signature_definition_length+send_data_string_length*sizeof(wchar_t);
+						}
+					}
+
+					ZeroMemory(send_buffer_this_time,CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME);
+
+					memcpy(send_buffer_this_time,send_buffer,service_signature_definition_length+send_data_string_length*sizeof(wchar_t));
+
+					int local_this_time_data_offset = local_part_counter*(CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t));
+
+					memcpy
+						(
+						send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t),
+						send_buffer+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+local_this_time_data_offset,
+						send_buffer_this_time_data_length-(service_signature_definition_length+send_data_string_length*sizeof(wchar_t))
+						);
+
+					try
+					{
+						local_bytes_sent = local_blocking_socket.SendDatagram(send_buffer_this_time,send_buffer_this_time_data_length,local_socket_address,CONST_WAIT_TIME_SEND);
+
+						local_data_size_send += local_bytes_sent;
+					}
+					catch(network::ip_4::CBlockingSocketException_ip_4 *local_blocking_socket_exception)
+					{
+						const int local_error_message_size = 10000;
+						wchar_t local_error_message[local_error_message_size];
+
+						const int local_system_error_message_size = local_error_message_size;
+						wchar_t local_system_error_message[local_system_error_message_size];
+
+						CString local_time_string = CTime::GetCurrentTime().FormatGmt("%d/%m/%y %H:%M:%S GMT");
+
+						local_blocking_socket_exception->GetErrorMessage(local_system_error_message,local_system_error_message_size);
+
+						wsprintf((wchar_t*)local_error_message, L"Сетевая ошибка -- %s -- %s\r\n", local_system_error_message, local_time_string.GetBuffer());
+
+						local_error_number = local_blocking_socket_exception->GetErrorNumber();
+
+						local_blocking_socket_exception->Delete();
+
+						if(local_error_number!=0)
+						{
+							//				galaxy::MessageBox(local_error_message,CString(L"Ошибка"));
+						}
+						break;
+					}
+
+					if(local_main_dialog->get_command_threads_retranslate_audio_stop())
+					{
+						break;
+					}
+					else
+					{
+						Sleep(10);
+					}
+
+				}
+
+				{
+					int local_bytes_sent = 0;
+					int local_error_number = 0;
+
+					char send_buffer[CONST_MESSAGE_LENGTH];
+
+					int send_buffer_data_length = service_signature_definition_length;
+
+					ZeroMemory(send_buffer,CONST_MESSAGE_LENGTH);
+
+					memcpy(send_buffer,service_signature,service_signature_definition_length);
+
+					CString send_data_string;
+
+					int send_data_string_length = 0;
+
+					send_data_string = command_audio_end;
+
+					send_data_string_length = send_data_string.GetLength();
+
+					memcpy(send_buffer+send_buffer_data_length,send_data_string.GetBuffer(),send_data_string_length*sizeof(wchar_t));
+
+					send_buffer_data_length += send_data_string_length*sizeof(wchar_t);
+
+
+					wchar_t zero_word = L'\0';
+					memcpy(send_buffer+send_buffer_data_length,&zero_word,sizeof(wchar_t));
+					send_buffer_data_length += sizeof(wchar_t);
+					send_data_string_length++;
+
+
+					memcpy(send_buffer+send_buffer_data_length,&sequence_number,sizeof(DWORD));
+					send_buffer_data_length += sizeof(DWORD);
+					send_data_string_length += sizeof(DWORD)/sizeof(wchar_t);
+
+
+					CString xor_code_string;
+
+					if(local_main_dialog->get_command_terminate_application())
+					{
+						break;
+					}
+					{
+						xor_code_string = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_XOR_CODE_state;						
+					}
+
+					char xor_code = _wtoi(xor_code_string);
+
+					encrypt::encrypt_xor(send_buffer+service_signature_definition_length,send_buffer_data_length-service_signature_definition_length,xor_code);
+
+					try
+					{
+						local_bytes_sent = local_blocking_socket.SendDatagram(send_buffer,send_buffer_data_length,local_socket_address,CONST_WAIT_TIME_SEND);
+
+						local_data_size_send += local_bytes_sent;
+					}
+					catch(network::ip_4::CBlockingSocketException_ip_4 *local_blocking_socket_exception)
+					{
+						const int local_error_message_size = 10000;
+						wchar_t local_error_message[local_error_message_size];
+
+						const int local_system_error_message_size = local_error_message_size;
+						wchar_t local_system_error_message[local_system_error_message_size];
+
+						CString local_time_string = CTime::GetCurrentTime().FormatGmt("%d/%m/%y %H:%M:%S GMT");
+
+						local_blocking_socket_exception->GetErrorMessage(local_system_error_message,local_system_error_message_size);
+
+						wsprintf((wchar_t*)local_error_message, L"Сетевая ошибка -- %s -- %s\r\n", local_system_error_message, local_time_string.GetBuffer());
+
+						local_error_number = local_blocking_socket_exception->GetErrorNumber();
+
+						local_blocking_socket_exception->Delete();
+
+						if(local_error_number!=0)
+						{
+							//				galaxy::MessageBox(local_error_message,CString(L"Ошибка"));
+						}
+					}
+				}
+
+
+
+				local_blocking_socket.Close();
+
+				if(local_bytes_sent<=0 && local_error_number==0)
+				{
+					//			galaxy::MessageBox(CString(L"local_bytes_sent<=0"),CString(L"Ошибка"));
+				}
+
+				if(local_main_dialog->get_command_threads_retranslate_audio_stop())
+				{
+					break;
+				}
+				else
+				{
+					Sleep(1);
+				}
+			}
+
+			if(local_stream!=NULL)
+			{
+				local_stream->Release();
+			}
+
+			ULONGLONG local_end_time = GetTickCount64();
+
+			ULONGLONG local_work_time = local_end_time - local_start_time;
+
+			if(local_main_dialog->get_command_threads_retranslate_audio_stop())
+			{
+				break;
+			}
+			else
+			{
+				if(local_work_time>=1000)
+					Sleep(1);
+				else
+				{
+					HRESULT hr;
+
+					AM_MEDIA_TYPE mt;
+					ZeroMemory(&mt, sizeof(mt));
+
+					if(local_main_dialog->web_camera_dialog!=NULL)
+					{
+						CSingleLock lock(&local_main_dialog->delete_web_camera_dialog_critical_section);
+
+						lock.Lock();
+
+						hr = local_main_dialog->web_camera_dialog->pAudioGrabber->GetConnectedMediaType(&mt);
+
+						lock.Unlock();
+
+						if (SUCCEEDED(hr))
+						{
+							if(mt.formattype==FORMAT_WaveFormatEx)
+							{
+								WAVEFORMATEX *wave_format_ex = (WAVEFORMATEX *)mt.pbFormat;
+
+								if(wave_format_ex!=NULL)
+								{
+									ULONGLONG chunk_playing_time = 
+										1000 *
+										wave_format_ex->nAvgBytesPerSec/
+										wave_format_ex->nSamplesPerSec/
+										wave_format_ex->nChannels/
+										(wave_format_ex->wBitsPerSample>>3)/
+										wave_format_ex->nBlockAlign
+										;
+
+									if(chunk_playing_time>local_work_time)
+										Sleep(DWORD(chunk_playing_time-local_work_time));
+									else
+										Sleep(1);
+								}
+							}
+							_FreeMediaType(mt);	
+						}
+						else
+							Sleep(DWORD(1000.0/CONST_AUDIO_PACKETS_PER_SECOND));		//	CONST_AUDIO_PACKETS_PER_SECOND кадров в секунду
+					}
+				}
+			}
+		}
+
+		if(local_main_dialog->get_command_threads_retranslate_audio_stop())
+		{
+			break;
+		}
+		else
+		{
+			Sleep(1);
+		}
+	}
+
+	{
+		{
+			CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
+
+			local_lock.Lock();
+
+			CWinThread *local_current_thread = AfxGetThread();
+
+			for
+				(
+				std::list<THREADS_INFORMATION>::iterator local_threads_iterator=local_main_dialog->threads_list.begin();
+			local_threads_iterator!=local_main_dialog->threads_list.end();
+			local_threads_iterator++
+				)
+			{		
+				CWinThread *local_thread = local_threads_iterator->WinThread;
+
+				if(local_thread->m_hThread==local_current_thread->m_hThread)
+				{
+					local_main_dialog->threads_list.erase(local_threads_iterator);
+					break;
+				}
+			}
+		}
+
+		delete[] send_buffer;
+		delete[] send_buffer_this_time;
+
+		delete local_send_audio_thread_parameters_structure;
+		return 1;
+	}
+}
+
+UINT __cdecl datagram_retranslate_audio_connection_thread_ip_6(LPVOID parameter)
+{
+	DWORD sequence_number = DWORD(rand());
+
+	thread_send_audio_parameters_structure_type *local_send_audio_thread_parameters_structure = (thread_send_audio_parameters_structure_type *)parameter;
+
+	if(local_send_audio_thread_parameters_structure==NULL)
+	{
+		return 0;
+	}
+
+	Cstl_network_ip_4_ip_6_udp_engineDialog *local_main_dialog = (local_send_audio_thread_parameters_structure)->parameter_main_dialog;
+
+	if(local_main_dialog==NULL)
+	{
+		delete local_send_audio_thread_parameters_structure;
+		return 0;
+	}
+
+	char *send_buffer = new char[CONST_MESSAGE_LENGTH_IMAGE];
+
+	if(send_buffer==NULL)
+	{
+		{
+			CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
+
+			local_lock.Lock();
+
+			CWinThread *local_current_thread = AfxGetThread();
+
+			for
+				(
+				std::list<THREADS_INFORMATION>::iterator local_threads_iterator=local_main_dialog->threads_list.begin();
+			local_threads_iterator!=local_main_dialog->threads_list.end();
+			local_threads_iterator++
+				)
+			{		
+				CWinThread *local_thread = local_threads_iterator->WinThread;
+
+				if(local_thread->m_hThread==local_current_thread->m_hThread)
+				{
+					local_main_dialog->threads_list.erase(local_threads_iterator);
+					break;
+				}
+			}
+		}
+
+		delete local_send_audio_thread_parameters_structure;
+		return 0;
+	}
+
+	char *send_buffer_this_time = new char[CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME];
+
+	if(send_buffer_this_time==NULL)
+	{
+		{
+			CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
+
+			local_lock.Lock();
+
+			CWinThread *local_current_thread = AfxGetThread();
+
+			for
+				(
+				std::list<THREADS_INFORMATION>::iterator local_threads_iterator=local_main_dialog->threads_list.begin();
+			local_threads_iterator!=local_main_dialog->threads_list.end();
+			local_threads_iterator++
+				)
+			{		
+				CWinThread *local_thread = local_threads_iterator->WinThread;
+
+				if(local_thread->m_hThread==local_current_thread->m_hThread)
+				{
+					local_main_dialog->threads_list.erase(local_threads_iterator);
+					break;
+				}
+			}
+		}
+
+		delete[] send_buffer;
+		delete local_send_audio_thread_parameters_structure;
+		return 0;
+	}
+
+	for(;;)
+	{
+		if(local_main_dialog->get_command_threads_retranslate_audio_stop())
+		{
+			break;
+		}
+
+		CString local_address(localhost_definition);
+
+		CStringA local_address_internet_address;
+
+		if(local_main_dialog->get_command_terminate_application())
+		{
+			break;
+		}
+
+		int peers_to_send_count = 0;
+		{
+			DWORD dwWaitResult;
+
+			dwWaitResult = WaitForSingleObject( 
+				local_main_dialog->do_not_terminate_application_event, // event handle
+				0);    // zero wait
+
+			if(dwWaitResult==WAIT_OBJECT_0)
+			{
+				// Event object was signaled		
+
+				if(local_main_dialog->get_command_terminate_application())
+				{
+					{
+						CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
+
+						local_lock.Lock();
+
+						CWinThread *local_current_thread = AfxGetThread();
+
+						for
+							(
+							std::list<THREADS_INFORMATION>::iterator local_threads_iterator=local_main_dialog->threads_list.begin();
+						local_threads_iterator!=local_main_dialog->threads_list.end();
+						local_threads_iterator++
+							)
+						{		
+							CWinThread *local_thread = local_threads_iterator->WinThread;
+
+							if(local_thread->m_hThread==local_current_thread->m_hThread)
+							{
+								local_main_dialog->threads_list.erase(local_threads_iterator);
+								break;
+							}
+						}
+					}
+
+					delete[] send_buffer;
+					delete local_send_audio_thread_parameters_structure;
+					return 0;
+				}
+
+				for(
+					std::list<GUI_LIST_CONTROL>::iterator current_item_iterator=local_main_dialog->GUI_CONTROLS_STATE_data.IDC_LIST_NODES_state.begin();
+					current_item_iterator!=local_main_dialog->GUI_CONTROLS_STATE_data.IDC_LIST_NODES_state.end();
+				current_item_iterator++
+					)
+				{
+					if(current_item_iterator->is_checked>0)
+					{
+						peers_to_send_count++;
+					}
+				}
+			}
+			else
+			{
+				if(local_main_dialog->get_command_terminate_application())
+				{
+					delete[] send_buffer;
+					delete local_send_audio_thread_parameters_structure;
+					return 0;
+				}
+			}
+
+		}
+
+		for(int peers_to_send_count_counter=0;peers_to_send_count_counter<peers_to_send_count;peers_to_send_count_counter++)
+		{
+			double local_data_size_send = 0.0;
+
+			if(local_main_dialog->get_command_terminate_application())
+			{
+				break;
+			}
+
+#ifdef use_istream_DEFINITION
+			IStream *local_stream = NULL;
+#endif
+
+			CString peer_to_send;
+
+			int loop_counter=0;
+			for(
+				std::list<GUI_LIST_CONTROL>::iterator current_item_iterator=local_main_dialog->GUI_CONTROLS_STATE_data.IDC_LIST_NODES_state.begin();
+				current_item_iterator!=local_main_dialog->GUI_CONTROLS_STATE_data.IDC_LIST_NODES_state.end();
+			current_item_iterator++
+				)
+			{
+				Sleep(1);
+				if(local_main_dialog->get_command_terminate_application())
+				{
+					break;
+				}
+				if(current_item_iterator->is_checked>0)
+				{
+					if(peers_to_send_count_counter==loop_counter)
+					{
+						peer_to_send = current_item_iterator->label;
+						break;
+					}
+					loop_counter++;
+				}
+
+				if(local_main_dialog->get_command_terminate_application())
+				{
+					break;
+				}
+			}
+
+			if(local_main_dialog->get_command_terminate_application())
+			{
+				break;
+			}
+
+			local_address = peer_to_send;
+
+
+			//	Здесь делаем снимок экрана
+
+			CSingleLock local_image_lock(&local_main_dialog->draw_audio_image_critical_section);
+
+			local_image_lock.Lock();
+
+			if(network::ip_6::domain_name_to_internet_6_name(local_address,local_address_internet_address)==false)
+			{
+				const int local_error_message_size = 10000;
+				wchar_t local_error_message[local_error_message_size];
+
+				const int local_system_error_message_size = local_error_message_size-1000;
+				wchar_t local_system_error_message[local_system_error_message_size];
+
+				wcscpy_s(local_system_error_message,local_system_error_message_size,L"domain_name_to_internet_6_name завершилась неудачей");
+
+				CString local_time_string = CTime::GetCurrentTime().FormatGmt("%d/%m/%y %H:%M:%S GMT");
+
+				wsprintf((wchar_t*)local_error_message, L"Сетевая ошибка -- %s -- %s\r\n", local_system_error_message, local_time_string.GetBuffer());
+
+				//delete local_send_video_thread_parameters_structure;
+
+				//			galaxy::MessageBox(local_error_message,CString(L"Ошибка"));
+
+				//{
+
+				//	CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
+
+				//	local_lock.Lock();
+
+				//	CWinThread *local_current_thread = AfxGetThread();
+
+				//	for
+				//		(
+				//		std::list<THREADS_INFORMATION>::iterator local_threads_iterator=local_main_dialog->threads_list.begin();
+				//	local_threads_iterator!=local_main_dialog->threads_list.end();
+				//	local_threads_iterator++
+				//		)
+				//	{		
+				//		CWinThread *local_thread = local_threads_iterator->WinThread;
+
+				//		if(local_thread->m_hThread==local_current_thread->m_hThread)
+				//		{
+				//			local_main_dialog->threads_list.erase(local_threads_iterator);
+				//			break;
+				//		}
+				//	}
+				//}
+
+				//delete[] send_buffer;
+				//delete[] send_buffer_this_time;
+
+				//return 0;
+				continue;
+			}
+#ifdef use_istream_DEFINITION
+			//if(local_main_dialog->web_camera_dialog!=NULL)
+			//{
+			//	CSingleLock lock(&local_main_dialog->delete_web_camera_dialog_critical_section);
+
+			//	lock.Lock();
+
+				local_stream = NULL;
+
+			//	//ULARGE_INTEGER zero_size = {0,0};
+
+			//	//local_stream->SetSize(zero_size);
+
+			//	//LARGE_INTEGER liBeggining = { 0 };
+
+			//	//local_stream->Seek(liBeggining, STREAM_SEEK_SET, NULL);
+
+			//	//CaptureAudioSampleShot(local_main_dialog->web_camera_dialog,local_stream);
+			//	CaptureAudioSampleGetFromTheList(local_main_dialog->web_camera_dialog,&local_stream);
+
+			//	if(local_stream==NULL)
+			//	{
+			//		continue;
+			//	}
+			//}
+
+			if(local_main_dialog->retranslate_microphone_frames_ip_6.size()==0)
+			{
+				Sleep(10);
+				continue;
+			}
+			else
+			{
+				std::list<STREAM_INFORMATION>::iterator local_frames_iterator = local_main_dialog->retranslate_microphone_frames_ip_6.begin();
+
+				local_frames_iterator->stream->Clone(&local_stream);
+
+				local_main_dialog->retranslate_microphone_frames_ip_6.pop_front();
+			}
+
+#endif
+			local_image_lock.Unlock();
+
+			if(local_stream==NULL)
+			{
+				continue;
+			}
+
+
+			ULONGLONG local_start_time = GetTickCount64();
+
+			STATSTG local_istream_statstg;
+			HRESULT local_stat_result = local_stream->Stat(&local_istream_statstg,STATFLAG::STATFLAG_DEFAULT);
+
+			/*/
+			//			Тест отображения из IStream
+			{
+			std::fstream local_file;
+			local_file.open("c:\\temp\\file_source.wav",std::ios_base::out | std::ios_base::binary | std::ios_base::trunc);
+
+			char *local_file_data = new char[CONST_MESSAGE_LENGTH_IMAGE];
+
+			ULONG local_read_bytes = 0;
+
+			LARGE_INTEGER liBeggining = { 0 };
+
+			local_stream->Seek(liBeggining, STREAM_SEEK_SET, NULL);
+
+			local_stream->Read(local_file_data,CONST_MESSAGE_LENGTH_IMAGE,&local_read_bytes);
+
+			local_file.write(local_file_data, local_read_bytes);
+
+			delete [] local_file_data;
+
+			local_file.flush();
+
+			local_file.close();
+			}
+			//*/
+
+
+
+			for(UINT local_parameter_port_number=port_number_start_const;local_parameter_port_number<=port_number_end_const;local_parameter_port_number++)
+			{
+				network::ip_6::CBlockingSocket_ip_6 local_blocking_socket;
+
+				if(network::ip_6::domain_name_to_internet_6_name(local_address,local_address_internet_address)==false)
+				{
+					const int local_error_message_size = 10000;
+					wchar_t local_error_message[local_error_message_size];
+
+					const int local_system_error_message_size = local_error_message_size-1000;
+					wchar_t local_system_error_message[local_system_error_message_size];
+
+					wcscpy_s(local_system_error_message,local_system_error_message_size,L"domain_name_to_internet_6_name завершилась неудачей");
+
+					CString local_time_string = CTime::GetCurrentTime().FormatGmt("%d/%m/%y %H:%M:%S GMT");
+
+					wsprintf((wchar_t*)local_error_message, L"Сетевая ошибка -- %s -- %s\r\n", local_system_error_message, local_time_string.GetBuffer());
+
+					//delete local_send_video_thread_parameters_structure;
+
+					//			galaxy::MessageBox(local_error_message,CString(L"Ошибка"));
+
+					//{
+
+					//	CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
+
+					//	local_lock.Lock();
+
+					//	CWinThread *local_current_thread = AfxGetThread();
+
+					//	for
+					//		(
+					//		std::list<THREADS_INFORMATION>::iterator local_threads_iterator=local_main_dialog->threads_list.begin();
+					//	local_threads_iterator!=local_main_dialog->threads_list.end();
+					//	local_threads_iterator++
+					//		)
+					//	{		
+					//		CWinThread *local_thread = local_threads_iterator->WinThread;
+
+					//		if(local_thread->m_hThread==local_current_thread->m_hThread)
+					//		{
+					//			local_main_dialog->threads_list.erase(local_threads_iterator);
+					//			break;
+					//		}
+					//	}
+					//}
+
+					//delete[] send_buffer;
+					//delete[] send_buffer_this_time;
+
+					//return 0;
+					break;
+				}
+
+				network::ip_6::CSockAddr_ip_6 local_socket_address(local_address_internet_address,local_parameter_port_number);
+
+				try
+				{
+					local_blocking_socket.Create(SOCK_DGRAM);
+				}
+				catch(network::ip_6::CBlockingSocketException_ip_6 *local_blocking_socket_exception)
+				{
+					const int local_error_message_size = 10000;
+					wchar_t local_error_message[local_error_message_size];
+
+					const int local_system_error_message_size = local_error_message_size-1000;
+					wchar_t local_system_error_message[local_system_error_message_size];
+
+					CString local_time_string = CTime::GetCurrentTime().FormatGmt("%d/%m/%y %H:%M:%S GMT");
+
+					local_blocking_socket_exception->GetErrorMessage(local_system_error_message,local_system_error_message_size);
+
+					wsprintf((wchar_t*)local_error_message, L"Сетевая ошибка -- %s -- %s\r\n", local_system_error_message, local_time_string.GetBuffer());
+
+					local_blocking_socket_exception->Delete();
+
+					delete local_send_audio_thread_parameters_structure;
+
+					//			galaxy::MessageBox(local_error_message,CString(L"Ошибка"));
+
+					{
+						CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
+
+						local_lock.Lock();
+
+						CWinThread *local_current_thread = AfxGetThread();
+
+						for
+							(
+							std::list<THREADS_INFORMATION>::iterator local_threads_iterator=local_main_dialog->threads_list.begin();
+						local_threads_iterator!=local_main_dialog->threads_list.end();
+						local_threads_iterator++
+							)
+						{		
+							CWinThread *local_thread = local_threads_iterator->WinThread;
+
+							if(local_thread->m_hThread==local_current_thread->m_hThread)
+							{
+								local_main_dialog->threads_list.erase(local_threads_iterator);
+								break;
+							}
+						}
+					}
+
+					if(local_stream!=NULL)
+					{
+						local_stream->Release();
+					}
+
+					delete[] send_buffer;
+					delete[] send_buffer_this_time;
+
+					return 0;
+				}
+
+				int local_bytes_sent = 0;
+				int local_error_number = 0;
+
+
+				int send_buffer_data_length = service_signature_definition_length;
+
+				ZeroMemory(send_buffer,CONST_MESSAGE_LENGTH_IMAGE);
+
+				memcpy(send_buffer,service_signature,service_signature_definition_length);
+
+
+
+				CString send_data_string = command_audio;
+
+				int send_data_string_length = send_data_string.GetLength();
+
+				memcpy(send_buffer+send_buffer_data_length,send_data_string.GetBuffer(),send_data_string_length*sizeof(wchar_t));
+
+				send_buffer_data_length += send_data_string_length*sizeof(wchar_t);
+
+				wchar_t zero_word = L'\0';
+				memcpy(send_buffer+send_buffer_data_length,&zero_word,sizeof(wchar_t));
+				send_buffer_data_length += sizeof(wchar_t);
+				send_data_string_length++;
+
+
+				memcpy(send_buffer+send_buffer_data_length,&sequence_number,sizeof(DWORD));
+				send_buffer_data_length += sizeof(DWORD);
+				send_data_string_length += sizeof(DWORD)/sizeof(wchar_t);
+
+
+
+				LARGE_INTEGER liBeggining = { 0 };
+#ifdef use_istream_DEFINITION
+				local_stream->Seek(liBeggining, STREAM_SEEK_SET, NULL);
+#endif
+
+
+				ULONG local_read = 0;
+#ifdef use_istream_DEFINITION
+				local_stream->Read(send_buffer+send_buffer_data_length, CONST_MESSAGE_LENGTH_IMAGE - send_buffer_data_length, &local_read);
+#else
+				local_read = 100000;
+#endif
+				send_buffer_data_length += local_read;
+
+
+
+
+				CString xor_code_string;
+
+				if(local_main_dialog->get_command_terminate_application())
+				{
+					break;
+				}
+				{
+					xor_code_string = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_XOR_CODE_state;
+				}
+
+				char xor_code = _wtoi(xor_code_string);
+
+				encrypt::encrypt_xor(send_buffer+service_signature_definition_length,send_buffer_data_length-service_signature_definition_length,xor_code);
+
+				int local_header_length = service_signature_definition_length+send_data_string_length*sizeof(wchar_t);
+
+				int local_part_counter = 0;
+				int local_parts_count = local_read/(CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t));
+				int local_last_part_size = local_read % (CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t));
+
+				if(local_last_part_size!=0)
+				{
+					local_parts_count++;
+				}
+
+				for(;local_part_counter<local_parts_count;local_part_counter++)
+				{
+					int send_buffer_this_time_data_length = CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME;
+
+					if(local_part_counter==local_parts_count-1)
+					{
+						if(local_last_part_size!=0)
+						{
+							send_buffer_this_time_data_length = local_last_part_size+service_signature_definition_length+send_data_string_length*sizeof(wchar_t);
+						}
+					}
+
+					ZeroMemory(send_buffer_this_time,CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME);
+
+					memcpy(send_buffer_this_time,send_buffer,service_signature_definition_length+send_data_string_length*sizeof(wchar_t));
+
+					int local_this_time_data_offset = local_part_counter*(CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t));
+
+					memcpy
+						(
+						send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t),
+						send_buffer+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+local_this_time_data_offset,
+						send_buffer_this_time_data_length-(service_signature_definition_length+send_data_string_length*sizeof(wchar_t))
+						);
+
+					try
+					{
+						local_bytes_sent = local_blocking_socket.SendDatagram(send_buffer_this_time,send_buffer_this_time_data_length,local_socket_address,CONST_WAIT_TIME_SEND);
+
+						local_data_size_send += local_bytes_sent;
+					}
+					catch(network::ip_6::CBlockingSocketException_ip_6 *local_blocking_socket_exception)
+					{
+						const int local_error_message_size = 10000;
+						wchar_t local_error_message[local_error_message_size];
+
+						const int local_system_error_message_size = local_error_message_size;
+						wchar_t local_system_error_message[local_system_error_message_size];
+
+						CString local_time_string = CTime::GetCurrentTime().FormatGmt("%d/%m/%y %H:%M:%S GMT");
+
+						local_blocking_socket_exception->GetErrorMessage(local_system_error_message,local_system_error_message_size);
+
+						wsprintf((wchar_t*)local_error_message, L"Сетевая ошибка -- %s -- %s\r\n", local_system_error_message, local_time_string.GetBuffer());
+
+						local_error_number = local_blocking_socket_exception->GetErrorNumber();
+
+						local_blocking_socket_exception->Delete();
+
+						if(local_error_number!=0)
+						{
+							//				galaxy::MessageBox(local_error_message,CString(L"Ошибка"));
+						}
+						break;
+					}
+
+					if(local_main_dialog->get_command_threads_retranslate_audio_stop())
+					{
+						break;
+					}
+					else
+					{
+						Sleep(10);
+					}
+
+				}
+
+				{
+					int local_bytes_sent = 0;
+					int local_error_number = 0;
+
+					char send_buffer[CONST_MESSAGE_LENGTH];
+
+					int send_buffer_data_length = service_signature_definition_length;
+
+					ZeroMemory(send_buffer,CONST_MESSAGE_LENGTH);
+
+					memcpy(send_buffer,service_signature,service_signature_definition_length);
+
+					CString send_data_string;
+
+					int send_data_string_length = 0;
+
+					send_data_string = command_audio_end;
+
+					send_data_string_length = send_data_string.GetLength();
+
+					memcpy(send_buffer+send_buffer_data_length,send_data_string.GetBuffer(),send_data_string_length*sizeof(wchar_t));
+
+					send_buffer_data_length += send_data_string_length*sizeof(wchar_t);
+
+
+					wchar_t zero_word = L'\0';
+					memcpy(send_buffer+send_buffer_data_length,&zero_word,sizeof(wchar_t));
+					send_buffer_data_length += sizeof(wchar_t);
+					send_data_string_length++;
+
+
+					memcpy(send_buffer+send_buffer_data_length,&sequence_number,sizeof(DWORD));
+					send_buffer_data_length += sizeof(DWORD);
+					send_data_string_length += sizeof(DWORD)/sizeof(wchar_t);
+
+
+					CString xor_code_string;
+
+					if(local_main_dialog->get_command_terminate_application())
+					{
+						break;
+					}
+					{
+						xor_code_string = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_XOR_CODE_state;						
+					}
+
+					char xor_code = _wtoi(xor_code_string);
+
+					encrypt::encrypt_xor(send_buffer+service_signature_definition_length,send_buffer_data_length-service_signature_definition_length,xor_code);
+
+					try
+					{
+						local_bytes_sent = local_blocking_socket.SendDatagram(send_buffer,send_buffer_data_length,local_socket_address,CONST_WAIT_TIME_SEND);
+
+						local_data_size_send += local_bytes_sent;
+					}
+					catch(network::ip_6::CBlockingSocketException_ip_6 *local_blocking_socket_exception)
+					{
+						const int local_error_message_size = 10000;
+						wchar_t local_error_message[local_error_message_size];
+
+						const int local_system_error_message_size = local_error_message_size;
+						wchar_t local_system_error_message[local_system_error_message_size];
+
+						CString local_time_string = CTime::GetCurrentTime().FormatGmt("%d/%m/%y %H:%M:%S GMT");
+
+						local_blocking_socket_exception->GetErrorMessage(local_system_error_message,local_system_error_message_size);
+
+						wsprintf((wchar_t*)local_error_message, L"Сетевая ошибка -- %s -- %s\r\n", local_system_error_message, local_time_string.GetBuffer());
+
+						local_error_number = local_blocking_socket_exception->GetErrorNumber();
+
+						local_blocking_socket_exception->Delete();
+
+						if(local_error_number!=0)
+						{
+							//				galaxy::MessageBox(local_error_message,CString(L"Ошибка"));
+						}
+					}
+				}
+
+
+
+				local_blocking_socket.Close();
+
+				if(local_bytes_sent<=0 && local_error_number==0)
+				{
+					//			galaxy::MessageBox(CString(L"local_bytes_sent<=0"),CString(L"Ошибка"));
+				}
+
+				if(local_main_dialog->get_command_threads_web_camera_video_stop())
+				{
+					break;
+				}
+				else
+				{
+					Sleep(1);
+				}
+			}
+
+			if(local_stream!=NULL)
+			{
+				local_stream->Release();
+			}
+
+			ULONGLONG local_end_time = GetTickCount64();
+
+			ULONGLONG local_work_time = local_end_time - local_start_time;
+
+			if(local_main_dialog->get_command_threads_retranslate_audio_stop())
+			{
+				break;
+			}
+			else
+			{
+				if(local_work_time>=1000)
+					Sleep(1);
+				else
+				{
+					HRESULT hr;
+
+					AM_MEDIA_TYPE mt;
+					ZeroMemory(&mt, sizeof(mt));
+
+					if(local_main_dialog->web_camera_dialog!=NULL)
+					{
+						CSingleLock lock(&local_main_dialog->delete_web_camera_dialog_critical_section);
+
+						lock.Lock();
+
+						hr = local_main_dialog->web_camera_dialog->pAudioGrabber->GetConnectedMediaType(&mt);
+
+						lock.Unlock();
+
+						if (SUCCEEDED(hr))
+						{
+							if(mt.formattype==FORMAT_WaveFormatEx)
+							{
+								WAVEFORMATEX *wave_format_ex = (WAVEFORMATEX *)mt.pbFormat;
+
+								if(wave_format_ex!=NULL)
+								{
+									ULONGLONG chunk_playing_time = 
+										1000 *
+										wave_format_ex->nAvgBytesPerSec/
+										wave_format_ex->nSamplesPerSec/
+										wave_format_ex->nChannels/
+										(wave_format_ex->wBitsPerSample>>3)/
+										wave_format_ex->nBlockAlign
+										;
+
+									if(chunk_playing_time>local_work_time)
+										Sleep(DWORD(chunk_playing_time-local_work_time));
+									else
+										Sleep(1);
+								}
+							}
+							_FreeMediaType(mt);	
+						}
+						else
+							Sleep(DWORD(1000.0/CONST_AUDIO_PACKETS_PER_SECOND));		//	CONST_AUDIO_PACKETS_PER_SECOND кадров в секунду
+					}
+				}
+			}
+		}
+
+		if(local_main_dialog->get_command_threads_retranslate_audio_stop())
+		{
+			break;
+		}
+		else
+		{
+			Sleep(1);
+		}
+	}
+
+	{
+		{
+			CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
+
+			local_lock.Lock();
+
+			CWinThread *local_current_thread = AfxGetThread();
+
+			for
+				(
+				std::list<THREADS_INFORMATION>::iterator local_threads_iterator=local_main_dialog->threads_list.begin();
+			local_threads_iterator!=local_main_dialog->threads_list.end();
+			local_threads_iterator++
+				)
+			{		
+				CWinThread *local_thread = local_threads_iterator->WinThread;
+
+				if(local_thread->m_hThread==local_current_thread->m_hThread)
+				{
+					local_main_dialog->threads_list.erase(local_threads_iterator);
+					break;
+				}
+			}
+		}
+
+		delete[] send_buffer;
+		delete[] send_buffer_this_time;
+
+		delete local_send_audio_thread_parameters_structure;
+		return 1;
+	}
+}
+

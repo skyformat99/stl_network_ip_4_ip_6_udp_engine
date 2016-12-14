@@ -88,7 +88,9 @@ protected:
 	bool command_threads_enable_save_video_stop;
 
 
-	bool command_threads_retranslate_stop;
+	bool command_threads_retranslate_video_stop;
+	bool command_threads_retranslate_audio_stop;
+	bool command_threads_retranslate_web_camera_video_stop;
 
 public:
 	bool get_command_terminate_application()
@@ -180,21 +182,48 @@ public:
 	}
 
 
-	bool get_command_threads_retranslate_stop()
+	bool get_command_threads_retranslate_video_stop()
 	{
-		return command_threads_retranslate_stop;
+		return command_threads_retranslate_video_stop;
 	}
 
-	bool set_command_threads_retranslate_stop(bool command_threads_retranslate_stop_parameter)
+	bool set_command_threads_retranslate_video_stop(bool command_threads_retranslate_video_stop_parameter)
 	{
-		bool former_command_threads_retranslate_stop = command_threads_retranslate_stop;
+		bool former_command_threads_retranslate_video_stop = command_threads_retranslate_video_stop;
 
-		command_threads_retranslate_stop = command_threads_retranslate_stop_parameter;
+		command_threads_retranslate_video_stop = command_threads_retranslate_video_stop_parameter;
 
-		return former_command_threads_retranslate_stop;
+		return former_command_threads_retranslate_video_stop;
 	}
 
-	
+	bool get_command_threads_retranslate_audio_stop()
+	{
+		return command_threads_retranslate_audio_stop;
+	}
+
+	bool set_command_threads_retranslate_audio_stop(bool command_threads_retranslate_audio_stop_parameter)
+	{
+		bool former_command_threads_retranslate_audio_stop = command_threads_retranslate_audio_stop;
+
+		command_threads_retranslate_audio_stop = command_threads_retranslate_audio_stop_parameter;
+
+		return former_command_threads_retranslate_audio_stop;
+	}
+
+	bool get_command_threads_retranslate_web_camera_video_stop()
+	{
+		return command_threads_retranslate_web_camera_video_stop;
+	}
+
+	bool set_command_threads_retranslate_web_camera_video_stop(bool command_threads_retranslate_web_camera_video_stop_parameter)
+	{
+		bool former_command_threads_retranslate_web_camera_video_stop = command_threads_retranslate_web_camera_video_stop;
+
+		command_threads_retranslate_web_camera_video_stop = command_threads_retranslate_web_camera_video_stop_parameter;
+
+		return former_command_threads_retranslate_web_camera_video_stop;
+	}
+
 public:
 	afx_msg void OnBnClickedButtonStartListen();
 	afx_msg void OnBnClickedButtonConnect();
@@ -265,6 +294,14 @@ public:
 
 	CCriticalSection threads_list_critical_section;
 	std::list<THREADS_INFORMATION> threads_list;
+
+	std::list<STREAM_INFORMATION> retranslate_video_frames_ip_4;
+	std::list<STREAM_INFORMATION> retranslate_web_camera_video_frames_ip_4;
+	std::list<STREAM_INFORMATION> retranslate_microphone_frames_ip_4;
+
+	std::list<STREAM_INFORMATION> retranslate_video_frames_ip_6;
+	std::list<STREAM_INFORMATION> retranslate_web_camera_video_frames_ip_6;
+	std::list<STREAM_INFORMATION> retranslate_microphone_frames_ip_6;
 
 	CCriticalSection delete_web_camera_dialog_critical_section;
 	CCriticalSection delete_received_video_dialog_critical_section;

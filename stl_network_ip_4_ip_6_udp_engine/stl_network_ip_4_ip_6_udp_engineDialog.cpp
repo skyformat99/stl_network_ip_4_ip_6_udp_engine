@@ -4553,18 +4553,17 @@ void Cstl_network_ip_4_ip_6_udp_engineDialog::OnClose()
 
 
 	{
+		button_enable_chat.SetCheck(0);
+		button_enable_draw_video.SetCheck(0);
+		button_enable_play_audio.SetCheck(0);
+		button_enable_web_camera.SetCheck(0);
+
 		for(int local_index=0;local_index<list_nodes.GetCount();local_index++)
 		{
 			list_nodes.SetSel(local_index,FALSE);
 		}
 
 		list_nodes.ResetContent();
-
-
-		button_enable_chat.SetCheck(0);
-		button_enable_draw_video.SetCheck(0);
-		button_enable_play_audio.SetCheck(0);
-		button_enable_web_camera.SetCheck(0);
 	}
 
 	ResetEvent(do_not_terminate_application_event);
@@ -6579,10 +6578,10 @@ UINT __cdecl datagram_send_video_connection_thread_ip_4(LPVOID parameter)
 
 				CString xor_code_string;
 
-				if(local_main_dialog->get_command_terminate_application())
-				{
-					break;
-				}
+				//if(local_main_dialog->get_command_terminate_application())
+				//{
+				//	break;
+				//}
 				{
 					xor_code_string = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_XOR_CODE_state;
 				}
@@ -6658,11 +6657,11 @@ UINT __cdecl datagram_send_video_connection_thread_ip_4(LPVOID parameter)
 						break;
 					}
 
-					if(local_main_dialog->get_command_threads_video_stop())
-					{
-						break;
-					}
-					else
+					//if(local_main_dialog->get_command_threads_video_stop())
+					//{
+					//	break;
+					//}
+					//else
 					{
 						Sleep(10);
 					}
@@ -6707,10 +6706,10 @@ UINT __cdecl datagram_send_video_connection_thread_ip_4(LPVOID parameter)
 
 					CString xor_code_string;
 
-					if(local_main_dialog->get_command_terminate_application())
-					{
-						break;
-					}
+					//if(local_main_dialog->get_command_terminate_application())
+					//{
+					//	break;
+					//}
 					{
 						xor_code_string = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_XOR_CODE_state;
 					}
@@ -7404,10 +7403,10 @@ UINT __cdecl datagram_send_video_connection_thread_ip_6(LPVOID parameter)
 
 				CString xor_code_string;
 
-				if(local_main_dialog->get_command_terminate_application())
-				{
-					break;
-				}
+				//if(local_main_dialog->get_command_terminate_application())
+				//{
+				//	break;
+				//}
 				{
 					xor_code_string = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_XOR_CODE_state;					
 				}
@@ -7483,11 +7482,11 @@ UINT __cdecl datagram_send_video_connection_thread_ip_6(LPVOID parameter)
 						break;
 					}
 
-					if(local_main_dialog->get_command_threads_video_stop())
-					{
-						break;
-					}
-					else
+					//if(local_main_dialog->get_command_threads_video_stop())
+					//{
+					//	break;
+					//}
+					//else
 					{
 						Sleep(10);
 					}
@@ -7531,10 +7530,10 @@ UINT __cdecl datagram_send_video_connection_thread_ip_6(LPVOID parameter)
 
 					CString xor_code_string;
 
-					if(local_main_dialog->get_command_terminate_application())
-					{
-						break;
-					}
+					//if(local_main_dialog->get_command_terminate_application())
+					//{
+					//	break;
+					//}
 					{
 						xor_code_string = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_XOR_CODE_state;						
 					}
@@ -8417,10 +8416,10 @@ UINT __cdecl datagram_send_web_camera_video_connection_thread_ip_4(LPVOID parame
 
 				CString xor_code_string;
 
-				if(local_main_dialog->get_command_terminate_application())
-				{
-					break;
-				}
+				//if(local_main_dialog->get_command_terminate_application())
+				//{
+				//	break;
+				//}
 				{
 					xor_code_string = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_XOR_CODE_state;
 				}
@@ -8496,11 +8495,11 @@ UINT __cdecl datagram_send_web_camera_video_connection_thread_ip_4(LPVOID parame
 						break;
 					}
 
-					if(local_main_dialog->get_command_threads_web_camera_video_stop())
-					{
-						break;
-					}
-					else
+					//if(local_main_dialog->get_command_threads_web_camera_video_stop())
+					//{
+					//	break;
+					//}
+					//else
 					{
 						Sleep(10);
 					}
@@ -8545,10 +8544,10 @@ UINT __cdecl datagram_send_web_camera_video_connection_thread_ip_4(LPVOID parame
 
 					CString xor_code_string;
 
-					if(local_main_dialog->get_command_terminate_application())
-					{
-						break;
-					}
+					//if(local_main_dialog->get_command_terminate_application())
+					//{
+					//	break;
+					//}
 					{
 						xor_code_string = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_XOR_CODE_state;
 					}
@@ -9259,10 +9258,10 @@ UINT __cdecl datagram_send_web_camera_video_connection_thread_ip_6(LPVOID parame
 
 				CString xor_code_string;
 
-				if(local_main_dialog->get_command_terminate_application())
-				{
-					break;
-				}
+				//if(local_main_dialog->get_command_terminate_application())
+				//{
+				//	break;
+				//}
 				{
 					xor_code_string = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_XOR_CODE_state;				
 				}
@@ -9338,11 +9337,11 @@ UINT __cdecl datagram_send_web_camera_video_connection_thread_ip_6(LPVOID parame
 						break;
 					}
 
-					if(local_main_dialog->get_command_threads_web_camera_video_stop())
-					{
-						break;
-					}
-					else
+					//if(local_main_dialog->get_command_threads_web_camera_video_stop())
+					//{
+					//	break;
+					//}
+					//else
 					{
 						Sleep(10);
 					}
@@ -9387,10 +9386,10 @@ UINT __cdecl datagram_send_web_camera_video_connection_thread_ip_6(LPVOID parame
 
 					CString xor_code_string;
 
-					if(local_main_dialog->get_command_terminate_application())
-					{
-						break;
-					}
+					//if(local_main_dialog->get_command_terminate_application())
+					//{
+					//	break;
+					//}
 					{
 						xor_code_string = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_XOR_CODE_state;
 					}
@@ -10618,10 +10617,10 @@ UINT __cdecl datagram_send_audio_connection_thread_ip_4(LPVOID parameter)
 
 				CString xor_code_string;
 
-				if(local_main_dialog->get_command_terminate_application())
-				{
-					break;
-				}
+				//if(local_main_dialog->get_command_terminate_application())
+				//{
+				//	break;
+				//}
 				{
 					xor_code_string = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_XOR_CODE_state;					
 				}
@@ -10697,11 +10696,11 @@ UINT __cdecl datagram_send_audio_connection_thread_ip_4(LPVOID parameter)
 						break;
 					}
 
-					if(local_main_dialog->get_command_threads_audio_stop())
-					{
-						break;
-					}
-					else
+					//if(local_main_dialog->get_command_threads_audio_stop())
+					//{
+					//	break;
+					//}
+					//else
 					{
 						Sleep(10);
 					}
@@ -10746,10 +10745,10 @@ UINT __cdecl datagram_send_audio_connection_thread_ip_4(LPVOID parameter)
 
 					CString xor_code_string;
 
-					if(local_main_dialog->get_command_terminate_application())
-					{
-						break;
-					}
+					//if(local_main_dialog->get_command_terminate_application())
+					//{
+					//	break;
+					//}
 					{
 						xor_code_string = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_XOR_CODE_state;						
 					}
@@ -11515,10 +11514,10 @@ UINT __cdecl datagram_send_audio_connection_thread_ip_6(LPVOID parameter)
 
 				CString xor_code_string;
 
-				if(local_main_dialog->get_command_terminate_application())
-				{
-					break;
-				}
+				//if(local_main_dialog->get_command_terminate_application())
+				//{
+				//	break;
+				//}
 				{
 					xor_code_string = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_XOR_CODE_state;
 				}
@@ -11594,11 +11593,11 @@ UINT __cdecl datagram_send_audio_connection_thread_ip_6(LPVOID parameter)
 						break;
 					}
 
-					if(local_main_dialog->get_command_threads_audio_stop())
-					{
-						break;
-					}
-					else
+					//if(local_main_dialog->get_command_threads_audio_stop())
+					//{
+					//	break;
+					//}
+					//else
 					{
 						Sleep(10);
 					}
@@ -11643,10 +11642,10 @@ UINT __cdecl datagram_send_audio_connection_thread_ip_6(LPVOID parameter)
 
 					CString xor_code_string;
 
-					if(local_main_dialog->get_command_terminate_application())
-					{
-						break;
-					}
+					//if(local_main_dialog->get_command_terminate_application())
+					//{
+					//	break;
+					//}
 					{
 						xor_code_string = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_XOR_CODE_state;						
 					}
@@ -14954,10 +14953,10 @@ UINT __cdecl datagram_retranslate_video_connection_thread_ip_4(LPVOID parameter)
 
 				CString xor_code_string;
 
-				if(local_main_dialog->get_command_terminate_application())
-				{
-					break;
-				}
+				//if(local_main_dialog->get_command_terminate_application())
+				//{
+				//	break;
+				//}
 				{
 					xor_code_string = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_XOR_CODE_state;
 				}
@@ -15033,11 +15032,11 @@ UINT __cdecl datagram_retranslate_video_connection_thread_ip_4(LPVOID parameter)
 						break;
 					}
 
-					if(local_main_dialog->get_command_threads_retranslate_video_stop())
-					{
-						break;
-					}
-					else
+					//if(local_main_dialog->get_command_threads_retranslate_video_stop())
+					//{
+					//	break;
+					//}
+					//else
 					{
 						Sleep(10);
 					}
@@ -15082,10 +15081,10 @@ UINT __cdecl datagram_retranslate_video_connection_thread_ip_4(LPVOID parameter)
 
 					CString xor_code_string;
 
-					if(local_main_dialog->get_command_terminate_application())
-					{
-						break;
-					}
+					//if(local_main_dialog->get_command_terminate_application())
+					//{
+					//	break;
+					//}
 					{
 						xor_code_string = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_XOR_CODE_state;
 					}
@@ -15784,10 +15783,10 @@ UINT __cdecl datagram_retranslate_video_connection_thread_ip_6(LPVOID parameter)
 
 				CString xor_code_string;
 
-				if(local_main_dialog->get_command_terminate_application())
-				{
-					break;
-				}
+				//if(local_main_dialog->get_command_terminate_application())
+				//{
+				//	break;
+				//}
 				{
 					xor_code_string = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_XOR_CODE_state;					
 				}
@@ -15863,11 +15862,11 @@ UINT __cdecl datagram_retranslate_video_connection_thread_ip_6(LPVOID parameter)
 						break;
 					}
 
-					if(local_main_dialog->get_command_threads_retranslate_video_stop())
-					{
-						break;
-					}
-					else
+					//if(local_main_dialog->get_command_threads_retranslate_video_stop())
+					//{
+					//	break;
+					//}
+					//else
 					{
 						Sleep(10);
 					}
@@ -15911,10 +15910,10 @@ UINT __cdecl datagram_retranslate_video_connection_thread_ip_6(LPVOID parameter)
 
 					CString xor_code_string;
 
-					if(local_main_dialog->get_command_terminate_application())
-					{
-						break;
-					}
+					//if(local_main_dialog->get_command_terminate_application())
+					//{
+					//	break;
+					//}
 					{
 						xor_code_string = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_XOR_CODE_state;						
 					}
@@ -16705,10 +16704,10 @@ UINT __cdecl datagram_retranslate_web_camera_video_connection_thread_ip_4(LPVOID
 
 				CString xor_code_string;
 
-				if(local_main_dialog->get_command_terminate_application())
-				{
-					break;
-				}
+				//if(local_main_dialog->get_command_terminate_application())
+				//{
+				//	break;
+				//}
 				{
 					xor_code_string = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_XOR_CODE_state;
 				}
@@ -16784,11 +16783,11 @@ UINT __cdecl datagram_retranslate_web_camera_video_connection_thread_ip_4(LPVOID
 						break;
 					}
 
-					if(local_main_dialog->get_command_threads_retranslate_web_camera_video_stop())
-					{
-						break;
-					}
-					else
+					//if(local_main_dialog->get_command_threads_retranslate_web_camera_video_stop())
+					//{
+					//	break;
+					//}
+					//else
 					{
 						Sleep(10);
 					}
@@ -16833,10 +16832,10 @@ UINT __cdecl datagram_retranslate_web_camera_video_connection_thread_ip_4(LPVOID
 
 					CString xor_code_string;
 
-					if(local_main_dialog->get_command_terminate_application())
-					{
-						break;
-					}
+					//if(local_main_dialog->get_command_terminate_application())
+					//{
+					//	break;
+					//}
 					{
 						xor_code_string = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_XOR_CODE_state;
 					}
@@ -17544,10 +17543,10 @@ UINT __cdecl datagram_retranslate_web_camera_video_connection_thread_ip_6(LPVOID
 
 				CString xor_code_string;
 
-				if(local_main_dialog->get_command_terminate_application())
-				{
-					break;
-				}
+				//if(local_main_dialog->get_command_terminate_application())
+				//{
+				//	break;
+				//}
 				{
 					xor_code_string = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_XOR_CODE_state;				
 				}
@@ -17623,11 +17622,11 @@ UINT __cdecl datagram_retranslate_web_camera_video_connection_thread_ip_6(LPVOID
 						break;
 					}
 
-					if(local_main_dialog->get_command_threads_retranslate_web_camera_video_stop())
-					{
-						break;
-					}
-					else
+					//if(local_main_dialog->get_command_threads_retranslate_web_camera_video_stop())
+					//{
+					//	break;
+					//}
+					//else
 					{
 						Sleep(10);
 					}
@@ -17672,10 +17671,10 @@ UINT __cdecl datagram_retranslate_web_camera_video_connection_thread_ip_6(LPVOID
 
 					CString xor_code_string;
 
-					if(local_main_dialog->get_command_terminate_application())
-					{
-						break;
-					}
+					//if(local_main_dialog->get_command_terminate_application())
+					//{
+					//	break;
+					//}
 					{
 						xor_code_string = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_XOR_CODE_state;
 					}
@@ -18506,10 +18505,10 @@ UINT __cdecl datagram_retranslate_audio_connection_thread_ip_4(LPVOID parameter)
 
 				CString xor_code_string;
 
-				if(local_main_dialog->get_command_terminate_application())
-				{
-					break;
-				}
+				//if(local_main_dialog->get_command_terminate_application())
+				//{
+				//	break;
+				//}
 				{
 					xor_code_string = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_XOR_CODE_state;					
 				}
@@ -18585,11 +18584,11 @@ UINT __cdecl datagram_retranslate_audio_connection_thread_ip_4(LPVOID parameter)
 						break;
 					}
 
-					if(local_main_dialog->get_command_threads_retranslate_audio_stop())
-					{
-						break;
-					}
-					else
+					//if(local_main_dialog->get_command_threads_retranslate_audio_stop())
+					//{
+					//	break;
+					//}
+					//else
 					{
 						Sleep(10);
 					}
@@ -18634,10 +18633,10 @@ UINT __cdecl datagram_retranslate_audio_connection_thread_ip_4(LPVOID parameter)
 
 					CString xor_code_string;
 
-					if(local_main_dialog->get_command_terminate_application())
-					{
-						break;
-					}
+					//if(local_main_dialog->get_command_terminate_application())
+					//{
+					//	break;
+					//}
 					{
 						xor_code_string = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_XOR_CODE_state;						
 					}
@@ -19415,10 +19414,10 @@ UINT __cdecl datagram_retranslate_audio_connection_thread_ip_6(LPVOID parameter)
 
 				CString xor_code_string;
 
-				if(local_main_dialog->get_command_terminate_application())
-				{
-					break;
-				}
+				//if(local_main_dialog->get_command_terminate_application())
+				//{
+				//	break;
+				//}
 				{
 					xor_code_string = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_XOR_CODE_state;
 				}
@@ -19494,11 +19493,11 @@ UINT __cdecl datagram_retranslate_audio_connection_thread_ip_6(LPVOID parameter)
 						break;
 					}
 
-					if(local_main_dialog->get_command_threads_retranslate_audio_stop())
-					{
-						break;
-					}
-					else
+					//if(local_main_dialog->get_command_threads_retranslate_audio_stop())
+					//{
+					//	break;
+					//}
+					//else
 					{
 						Sleep(10);
 					}
@@ -19543,10 +19542,10 @@ UINT __cdecl datagram_retranslate_audio_connection_thread_ip_6(LPVOID parameter)
 
 					CString xor_code_string;
 
-					if(local_main_dialog->get_command_terminate_application())
-					{
-						break;
-					}
+					//if(local_main_dialog->get_command_terminate_application())
+					//{
+					//	break;
+					//}
 					{
 						xor_code_string = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_XOR_CODE_state;						
 					}

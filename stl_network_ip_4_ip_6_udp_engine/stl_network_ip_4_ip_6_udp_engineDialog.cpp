@@ -6152,6 +6152,8 @@ UINT __cdecl datagram_send_video_connection_thread_ip_4(LPVOID parameter)
 
 	for(;;)
 	{
+		ULONGLONG local_start_time = GetTickCount64();
+
 		if(local_main_dialog->get_command_threads_video_stop())
 		{
 			break;
@@ -6249,9 +6251,14 @@ UINT __cdecl datagram_send_video_connection_thread_ip_4(LPVOID parameter)
 			continue;
 		}
 
+		STATSTG local_istream_statstg;
+		HRESULT local_stat_result = local_stream->Stat(&local_istream_statstg,STATFLAG::STATFLAG_DEFAULT);
+
+		double local_data_size_send = 0.0;
+
 		for(int peers_to_send_count_counter=0;peers_to_send_count_counter<peers_to_send_count;peers_to_send_count_counter++)
 		{
-			double local_data_size_send = 0.0;
+			//double local_data_size_send = 0.0;
 
 			if(local_main_dialog->get_command_terminate_application())
 			{
@@ -6379,10 +6386,10 @@ UINT __cdecl datagram_send_video_connection_thread_ip_4(LPVOID parameter)
 #endif
 			//local_image_lock.Unlock();
 
-			ULONGLONG local_start_time = GetTickCount64();
+			//ULONGLONG local_start_time = GetTickCount64();
 
-			STATSTG local_istream_statstg;
-			HRESULT local_stat_result = local_stream->Stat(&local_istream_statstg,STATFLAG::STATFLAG_DEFAULT);
+			//STATSTG local_istream_statstg;
+			//HRESULT local_stat_result = local_stream->Stat(&local_istream_statstg,STATFLAG::STATFLAG_DEFAULT);
 
 			/*/
 			//			“ест отображени€ из IStream
@@ -6762,42 +6769,80 @@ UINT __cdecl datagram_send_video_connection_thread_ip_4(LPVOID parameter)
 				}
 			}
 
-			ULONGLONG local_end_time = GetTickCount64();
+			//ULONGLONG local_end_time = GetTickCount64();
 
-			ULONGLONG local_work_time = local_end_time - local_start_time;
+			//ULONGLONG local_work_time = local_end_time - local_start_time;
 
-			if(local_main_dialog->get_command_threads_video_stop())
+			//if(local_main_dialog->get_command_threads_video_stop())
+			//{
+			//	break;
+			//}
+			//else
+			//{
+			//	CString local_string_speed;
+
+			//	if(local_main_dialog->get_command_terminate_application())
+			//	{
+			//		break;
+			//	}
+			//	{
+			//		local_string_speed = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_SPEED_state;
+			//	}
+			//	double local_double_speed = _wtof(local_string_speed);
+			//	if(local_data_size_send!=0.0)
+			//	{
+			//		DWORD time_to_work = 1000;
+			//		double local_current_time_in_seconds = double(local_work_time)/1000.0;
+			//		double local_current_bits_send = (local_data_size_send*8.0);
+			//		double local_current_speed = local_current_bits_send/local_current_time_in_seconds;
+			//		double local_current_frame_rate = 1.0/local_current_time_in_seconds;
+			//		double local_speed_factor = local_double_speed/local_current_speed;
+			//		double local_common_factor = min(local_speed_factor,local_current_frame_rate);
+
+			//		time_to_work = DWORD(local_common_factor*local_work_time);
+
+			//		DWORD time_to_sleep = 1000 - time_to_work;
+
+			//		Sleep(time_to_sleep);
+			//	}
+			//}
+		}
+
+		ULONGLONG local_end_time = GetTickCount64();
+
+		ULONGLONG local_work_time = local_end_time - local_start_time;
+
+		if(local_main_dialog->get_command_threads_video_stop())
+		{
+			break;
+		}
+		else
+		{
+			CString local_string_speed;
+				
+			if(local_main_dialog->get_command_terminate_application())
 			{
 				break;
 			}
-			else
 			{
-				CString local_string_speed;
+				local_string_speed = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_SPEED_state;
+			}
+			double local_double_speed = _wtof(local_string_speed);
+			if(local_data_size_send!=0.0)
+			{
+				DWORD time_to_work = 1000;
+				double local_current_time_in_seconds = double(local_work_time)/1000.0;
+				double local_current_bits_send = (local_data_size_send*8.0);
+				double local_current_speed = local_current_bits_send/local_current_time_in_seconds;
+				double local_current_frame_rate = 1.0/local_current_time_in_seconds;
+				double local_speed_factor = local_double_speed/local_current_speed;
+				double local_common_factor = min(local_speed_factor,local_current_frame_rate);
 
-				if(local_main_dialog->get_command_terminate_application())
-				{
-					break;
-				}
-				{
-					local_string_speed = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_SPEED_state;
-				}
-				double local_double_speed = _wtof(local_string_speed);
-				if(local_data_size_send!=0.0)
-				{
-					DWORD time_to_work = 1000;
-					double local_current_time_in_seconds = double(local_work_time)/1000.0;
-					double local_current_bits_send = (local_data_size_send*8.0);
-					double local_current_speed = local_current_bits_send/local_current_time_in_seconds;
-					double local_current_frame_rate = 1.0/local_current_time_in_seconds;
-					double local_speed_factor = local_double_speed/local_current_speed;
-					double local_common_factor = min(local_speed_factor,local_current_frame_rate);
+				time_to_work = DWORD(local_common_factor*local_work_time);
 
-					time_to_work = DWORD(local_common_factor*local_work_time);
+				DWORD time_to_sleep = 1000 - time_to_work;
 
-					DWORD time_to_sleep = 1000 - time_to_work;
-
-					Sleep(time_to_sleep);
-				}
+				Sleep(time_to_sleep);
 			}
 		}
 
@@ -6930,6 +6975,8 @@ UINT __cdecl datagram_send_video_connection_thread_ip_6(LPVOID parameter)
 
 	for(;;)
 	{
+		ULONGLONG local_start_time = GetTickCount64();
+
 		if(local_main_dialog->get_command_threads_video_stop())
 		{
 			break;
@@ -7028,9 +7075,14 @@ UINT __cdecl datagram_send_video_connection_thread_ip_6(LPVOID parameter)
 			continue;
 		}
 
+		STATSTG local_istream_statstg;
+		HRESULT local_stat_result = local_stream->Stat(&local_istream_statstg,STATFLAG::STATFLAG_DEFAULT);
+
+		double local_data_size_send = 0.0;
+
 		for(int peers_to_send_count_counter=0;peers_to_send_count_counter<peers_to_send_count;peers_to_send_count_counter++)
 		{
-			double local_data_size_send = 0.0;
+			//double local_data_size_send = 0.0;
 
 			if(local_main_dialog->get_command_terminate_application())
 			{
@@ -7158,10 +7210,10 @@ UINT __cdecl datagram_send_video_connection_thread_ip_6(LPVOID parameter)
 #endif
 			//local_image_lock.Unlock();
 
-			ULONGLONG local_start_time = GetTickCount64();
+			//ULONGLONG local_start_time = GetTickCount64();
 
-			STATSTG local_istream_statstg;
-			HRESULT local_stat_result = local_stream->Stat(&local_istream_statstg,STATFLAG::STATFLAG_DEFAULT);
+			//STATSTG local_istream_statstg;
+			//HRESULT local_stat_result = local_stream->Stat(&local_istream_statstg,STATFLAG::STATFLAG_DEFAULT);
 
 			/*/
 			//			“ест отображени€ из IStream
@@ -7541,42 +7593,80 @@ UINT __cdecl datagram_send_video_connection_thread_ip_6(LPVOID parameter)
 				}
 			}
 
-			ULONGLONG local_end_time = GetTickCount64();
+			//ULONGLONG local_end_time = GetTickCount64();
 
-			ULONGLONG local_work_time = local_end_time - local_start_time;
+			//ULONGLONG local_work_time = local_end_time - local_start_time;
 
-			if(local_main_dialog->get_command_threads_video_stop())
+			//if(local_main_dialog->get_command_threads_video_stop())
+			//{
+			//	break;
+			//}
+			//else
+			//{
+			//	CString local_string_speed;
+
+			//	if(local_main_dialog->get_command_terminate_application())
+			//	{
+			//		break;
+			//	}
+			//	{
+			//		local_string_speed = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_SPEED_state;					
+			//	}
+			//	double local_double_speed = _wtof(local_string_speed);
+			//	if(local_data_size_send!=0.0)
+			//	{
+			//		DWORD time_to_work = 1000;
+			//		double local_current_time_in_seconds = double(local_work_time)/1000.0;
+			//		double local_current_bits_send = (local_data_size_send*8.0);
+			//		double local_current_speed = local_current_bits_send/local_current_time_in_seconds;
+			//		double local_current_frame_rate = 1.0/local_current_time_in_seconds;
+			//		double local_speed_factor = local_double_speed/local_current_speed;
+			//		double local_common_factor = min(local_speed_factor,local_current_frame_rate);
+
+			//		time_to_work = DWORD(local_common_factor*local_work_time);
+
+			//		DWORD time_to_sleep = 1000 - time_to_work;
+
+			//		Sleep(time_to_sleep);
+			//	}
+			//}
+		}
+
+		ULONGLONG local_end_time = GetTickCount64();
+
+		ULONGLONG local_work_time = local_end_time - local_start_time;
+
+		if(local_main_dialog->get_command_threads_video_stop())
+		{
+			break;
+		}
+		else
+		{
+			CString local_string_speed;
+
+			if(local_main_dialog->get_command_terminate_application())
 			{
 				break;
 			}
-			else
 			{
-				CString local_string_speed;
+				local_string_speed = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_SPEED_state;					
+			}
+			double local_double_speed = _wtof(local_string_speed);
+			if(local_data_size_send!=0.0)
+			{
+				DWORD time_to_work = 1000;
+				double local_current_time_in_seconds = double(local_work_time)/1000.0;
+				double local_current_bits_send = (local_data_size_send*8.0);
+				double local_current_speed = local_current_bits_send/local_current_time_in_seconds;
+				double local_current_frame_rate = 1.0/local_current_time_in_seconds;
+				double local_speed_factor = local_double_speed/local_current_speed;
+				double local_common_factor = min(local_speed_factor,local_current_frame_rate);
 
-				if(local_main_dialog->get_command_terminate_application())
-				{
-					break;
-				}
-				{
-					local_string_speed = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_SPEED_state;					
-				}
-				double local_double_speed = _wtof(local_string_speed);
-				if(local_data_size_send!=0.0)
-				{
-					DWORD time_to_work = 1000;
-					double local_current_time_in_seconds = double(local_work_time)/1000.0;
-					double local_current_bits_send = (local_data_size_send*8.0);
-					double local_current_speed = local_current_bits_send/local_current_time_in_seconds;
-					double local_current_frame_rate = 1.0/local_current_time_in_seconds;
-					double local_speed_factor = local_double_speed/local_current_speed;
-					double local_common_factor = min(local_speed_factor,local_current_frame_rate);
+				time_to_work = DWORD(local_common_factor*local_work_time);
 
-					time_to_work = DWORD(local_common_factor*local_work_time);
+				DWORD time_to_sleep = 1000 - time_to_work;
 
-					DWORD time_to_sleep = 1000 - time_to_work;
-
-					Sleep(time_to_sleep);
-				}
+				Sleep(time_to_sleep);
 			}
 		}
 
@@ -7879,6 +7969,8 @@ UINT __cdecl datagram_send_web_camera_video_connection_thread_ip_4(LPVOID parame
 
 	for(;;)
 	{
+		ULONGLONG local_start_time = GetTickCount64();
+
 		if(local_main_dialog->get_command_threads_web_camera_video_stop())
 		{
 			break;
@@ -7984,10 +8076,15 @@ UINT __cdecl datagram_send_web_camera_video_connection_thread_ip_4(LPVOID parame
 		{
 			continue;
 		}
+		
+		STATSTG local_istream_statstg;
+		HRESULT local_stat_result = local_stream->Stat(&local_istream_statstg,STATFLAG::STATFLAG_DEFAULT);
+
+		double local_data_size_send = 0.0;
 
 		for(int peers_to_send_count_counter=0;peers_to_send_count_counter<peers_to_send_count;peers_to_send_count_counter++)
 		{
-			double local_data_size_send = 0.0;
+			//double local_data_size_send = 0.0;
 
 			if(local_main_dialog->get_command_terminate_application())
 			{
@@ -8126,10 +8223,10 @@ UINT __cdecl datagram_send_web_camera_video_connection_thread_ip_4(LPVOID parame
 			//local_image_lock.Unlock();
 
 
-			ULONGLONG local_start_time = GetTickCount64();
+			//ULONGLONG local_start_time = GetTickCount64();
 
-			STATSTG local_istream_statstg;
-			HRESULT local_stat_result = local_stream->Stat(&local_istream_statstg,STATFLAG::STATFLAG_DEFAULT);
+			//STATSTG local_istream_statstg;
+			//HRESULT local_stat_result = local_stream->Stat(&local_istream_statstg,STATFLAG::STATFLAG_DEFAULT);
 
 			/*/
 			//			“ест отображени€ из IStream
@@ -8510,42 +8607,80 @@ UINT __cdecl datagram_send_web_camera_video_connection_thread_ip_4(LPVOID parame
 				}
 			}
 
-			ULONGLONG local_end_time = GetTickCount64();
+			//ULONGLONG local_end_time = GetTickCount64();
 
-			ULONGLONG local_work_time = local_end_time - local_start_time;
+			//ULONGLONG local_work_time = local_end_time - local_start_time;
 
-			if(local_main_dialog->get_command_threads_web_camera_video_stop())
+			//if(local_main_dialog->get_command_threads_web_camera_video_stop())
+			//{
+			//	break;
+			//}
+			//else
+			//{
+			//	CString local_string_speed;
+
+			//	if(local_main_dialog->get_command_terminate_application())
+			//	{
+			//		break;
+			//	}
+			//	{
+			//		local_string_speed = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_SPEED_state;
+			//	}
+			//	double local_double_speed = _wtof(local_string_speed);
+			//	if(local_data_size_send!=0.0)
+			//	{
+			//		DWORD time_to_work = 1000;
+			//		double local_current_time_in_seconds = double(local_work_time)/1000.0;
+			//		double local_current_bits_send = (local_data_size_send*8.0);
+			//		double local_current_speed = local_current_bits_send/local_current_time_in_seconds;
+			//		double local_current_frame_rate = 1.0/local_current_time_in_seconds;
+			//		double local_speed_factor = local_double_speed/local_current_speed;
+			//		double local_common_factor = min(local_speed_factor,local_current_frame_rate);
+
+			//		time_to_work = DWORD(local_common_factor*local_work_time);
+
+			//		DWORD time_to_sleep = 1000 - time_to_work;
+
+			//		Sleep(time_to_sleep);
+			//	}
+			//}
+		}
+
+		ULONGLONG local_end_time = GetTickCount64();
+
+		ULONGLONG local_work_time = local_end_time - local_start_time;
+
+		if(local_main_dialog->get_command_threads_web_camera_video_stop())
+		{
+			break;
+		}
+		else
+		{
+			CString local_string_speed;
+				
+			if(local_main_dialog->get_command_terminate_application())
 			{
 				break;
 			}
-			else
 			{
-				CString local_string_speed;
+				local_string_speed = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_SPEED_state;
+			}
+			double local_double_speed = _wtof(local_string_speed);
+			if(local_data_size_send!=0.0)
+			{
+				DWORD time_to_work = 1000;
+				double local_current_time_in_seconds = double(local_work_time)/1000.0;
+				double local_current_bits_send = (local_data_size_send*8.0);
+				double local_current_speed = local_current_bits_send/local_current_time_in_seconds;
+				double local_current_frame_rate = 1.0/local_current_time_in_seconds;
+				double local_speed_factor = local_double_speed/local_current_speed;
+				double local_common_factor = min(local_speed_factor,local_current_frame_rate);
 
-				if(local_main_dialog->get_command_terminate_application())
-				{
-					break;
-				}
-				{
-					local_string_speed = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_SPEED_state;
-				}
-				double local_double_speed = _wtof(local_string_speed);
-				if(local_data_size_send!=0.0)
-				{
-					DWORD time_to_work = 1000;
-					double local_current_time_in_seconds = double(local_work_time)/1000.0;
-					double local_current_bits_send = (local_data_size_send*8.0);
-					double local_current_speed = local_current_bits_send/local_current_time_in_seconds;
-					double local_current_frame_rate = 1.0/local_current_time_in_seconds;
-					double local_speed_factor = local_double_speed/local_current_speed;
-					double local_common_factor = min(local_speed_factor,local_current_frame_rate);
+				time_to_work = DWORD(local_common_factor*local_work_time);
 
-					time_to_work = DWORD(local_common_factor*local_work_time);
+				DWORD time_to_sleep = 1000 - time_to_work;
 
-					DWORD time_to_sleep = 1000 - time_to_work;
-
-					Sleep(time_to_sleep);
-				}
+				Sleep(time_to_sleep);
 			}
 		}
 
@@ -8678,6 +8813,8 @@ UINT __cdecl datagram_send_web_camera_video_connection_thread_ip_6(LPVOID parame
 
 	for(;;)
 	{
+		ULONGLONG local_start_time = GetTickCount64();
+
 		if(local_main_dialog->get_command_threads_web_camera_video_stop())
 		{
 			break;
@@ -8783,9 +8920,14 @@ UINT __cdecl datagram_send_web_camera_video_connection_thread_ip_6(LPVOID parame
 			continue;
 		}
 
+		STATSTG local_istream_statstg;
+		HRESULT local_stat_result = local_stream->Stat(&local_istream_statstg,STATFLAG::STATFLAG_DEFAULT);
+
+		double local_data_size_send = 0.0;
+
 		for(int peers_to_send_count_counter=0;peers_to_send_count_counter<peers_to_send_count;peers_to_send_count_counter++)
 		{
-			double local_data_size_send = 0.0;
+			//double local_data_size_send = 0.0;
 
 			if(local_main_dialog->get_command_terminate_application())
 			{
@@ -8923,10 +9065,10 @@ UINT __cdecl datagram_send_web_camera_video_connection_thread_ip_6(LPVOID parame
 			//local_image_lock.Unlock();
 
 
-			ULONGLONG local_start_time = GetTickCount64();
+			//ULONGLONG local_start_time = GetTickCount64();
 
-			STATSTG local_istream_statstg;
-			HRESULT local_stat_result = local_stream->Stat(&local_istream_statstg,STATFLAG::STATFLAG_DEFAULT);
+			//STATSTG local_istream_statstg;
+			//HRESULT local_stat_result = local_stream->Stat(&local_istream_statstg,STATFLAG::STATFLAG_DEFAULT);
 
 			/*/
 			//			“ест отображени€ из IStream
@@ -9307,42 +9449,80 @@ UINT __cdecl datagram_send_web_camera_video_connection_thread_ip_6(LPVOID parame
 				}
 			}
 
-			ULONGLONG local_end_time = GetTickCount64();
+			//ULONGLONG local_end_time = GetTickCount64();
 
-			ULONGLONG local_work_time = local_end_time - local_start_time;
+			//ULONGLONG local_work_time = local_end_time - local_start_time;
 
-			if(local_main_dialog->get_command_threads_web_camera_video_stop())
+			//if(local_main_dialog->get_command_threads_web_camera_video_stop())
+			//{
+			//	break;
+			//}
+			//else
+			//{
+			//	CString local_string_speed;
+
+			//	if(local_main_dialog->get_command_terminate_application())
+			//	{
+			//		break;
+			//	}
+			//	{
+			//		local_string_speed = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_SPEED_state;				
+			//	}
+			//	double local_double_speed = _wtof(local_string_speed);
+			//	if(local_data_size_send!=0.0)
+			//	{
+			//		DWORD time_to_work = 1000;
+			//		double local_current_time_in_seconds = double(local_work_time)/1000.0;
+			//		double local_current_bits_send = (local_data_size_send*8.0);
+			//		double local_current_speed = local_current_bits_send/local_current_time_in_seconds;
+			//		double local_current_frame_rate = 1.0/local_current_time_in_seconds;
+			//		double local_speed_factor = local_double_speed/local_current_speed;
+			//		double local_common_factor = min(local_speed_factor,local_current_frame_rate);
+
+			//		time_to_work = DWORD(local_common_factor*local_work_time);
+
+			//		DWORD time_to_sleep = 1000 - time_to_work;
+
+			//		Sleep(time_to_sleep);
+			//	}
+			//}
+		}
+
+		ULONGLONG local_end_time = GetTickCount64();
+
+		ULONGLONG local_work_time = local_end_time - local_start_time;
+
+		if(local_main_dialog->get_command_threads_web_camera_video_stop())
+		{
+			break;
+		}
+		else
+		{
+			CString local_string_speed;
+
+			if(local_main_dialog->get_command_terminate_application())
 			{
 				break;
 			}
-			else
 			{
-				CString local_string_speed;
+				local_string_speed = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_SPEED_state;				
+			}
+			double local_double_speed = _wtof(local_string_speed);
+			if(local_data_size_send!=0.0)
+			{
+				DWORD time_to_work = 1000;
+				double local_current_time_in_seconds = double(local_work_time)/1000.0;
+				double local_current_bits_send = (local_data_size_send*8.0);
+				double local_current_speed = local_current_bits_send/local_current_time_in_seconds;
+				double local_current_frame_rate = 1.0/local_current_time_in_seconds;
+				double local_speed_factor = local_double_speed/local_current_speed;
+				double local_common_factor = min(local_speed_factor,local_current_frame_rate);
 
-				if(local_main_dialog->get_command_terminate_application())
-				{
-					break;
-				}
-				{
-					local_string_speed = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_SPEED_state;				
-				}
-				double local_double_speed = _wtof(local_string_speed);
-				if(local_data_size_send!=0.0)
-				{
-					DWORD time_to_work = 1000;
-					double local_current_time_in_seconds = double(local_work_time)/1000.0;
-					double local_current_bits_send = (local_data_size_send*8.0);
-					double local_current_speed = local_current_bits_send/local_current_time_in_seconds;
-					double local_current_frame_rate = 1.0/local_current_time_in_seconds;
-					double local_speed_factor = local_double_speed/local_current_speed;
-					double local_common_factor = min(local_speed_factor,local_current_frame_rate);
+				time_to_work = DWORD(local_common_factor*local_work_time);
 
-					time_to_work = DWORD(local_common_factor*local_work_time);
+				DWORD time_to_sleep = 1000 - time_to_work;
 
-					DWORD time_to_sleep = 1000 - time_to_work;
-
-					Sleep(time_to_sleep);
-				}
+				Sleep(time_to_sleep);
 			}
 		}
 
@@ -9961,6 +10141,8 @@ UINT __cdecl datagram_send_audio_connection_thread_ip_4(LPVOID parameter)
 
 	for(;;)
 	{
+		ULONGLONG local_start_time = GetTickCount64();
+
 		if(local_main_dialog->get_command_threads_audio_stop())
 		{
 			break;
@@ -10050,7 +10232,7 @@ UINT __cdecl datagram_send_audio_connection_thread_ip_4(LPVOID parameter)
 
 			lock.Lock();
 		
-			CaptureAudioSampleGetFromTheList(local_main_dialog->web_camera_dialog,&local_stream);
+			CaptureAudioSampleGetFromTheList_ip_4(local_main_dialog->web_camera_dialog,&local_stream);
 		}
 
 		if(local_stream==NULL)
@@ -10059,9 +10241,14 @@ UINT __cdecl datagram_send_audio_connection_thread_ip_4(LPVOID parameter)
 			continue;
 		}
 
+		STATSTG local_istream_statstg;
+		HRESULT local_stat_result = local_stream->Stat(&local_istream_statstg,STATFLAG::STATFLAG_DEFAULT);
+
+		double local_data_size_send = 0.0;
+
 		for(int peers_to_send_count_counter=0;peers_to_send_count_counter<peers_to_send_count;peers_to_send_count_counter++)
 		{
-			double local_data_size_send = 0.0;
+			//double local_data_size_send = 0.0;
 
 			if(local_main_dialog->get_command_terminate_application())
 			{
@@ -10234,10 +10421,10 @@ UINT __cdecl datagram_send_audio_connection_thread_ip_4(LPVOID parameter)
 			break;
 			/*/
 
-			ULONGLONG local_start_time = GetTickCount64();
+			//ULONGLONG local_start_time = GetTickCount64();
 
-			STATSTG local_istream_statstg;
-			HRESULT local_stat_result = local_stream->Stat(&local_istream_statstg,STATFLAG::STATFLAG_DEFAULT);
+			//STATSTG local_istream_statstg;
+			//HRESULT local_stat_result = local_stream->Stat(&local_istream_statstg,STATFLAG::STATFLAG_DEFAULT);
 
 			/*/
 			//			“ест отображени€ из IStream
@@ -10264,8 +10451,6 @@ UINT __cdecl datagram_send_audio_connection_thread_ip_4(LPVOID parameter)
 			local_file.close();
 			}
 			//*/
-
-
 
 			for(UINT local_parameter_port_number=port_number_start_const;local_parameter_port_number<=port_number_end_const;local_parameter_port_number++)
 			{
@@ -10628,62 +10813,129 @@ UINT __cdecl datagram_send_audio_connection_thread_ip_4(LPVOID parameter)
 			//	local_stream->Release();
 			//}
 
-			ULONGLONG local_end_time = GetTickCount64();
+			//ULONGLONG local_end_time = GetTickCount64();
 
-			ULONGLONG local_work_time = local_end_time - local_start_time;
+			//ULONGLONG local_work_time = local_end_time - local_start_time;
 
-			if(local_main_dialog->get_command_threads_audio_stop())
-			{
-				break;
-			}
+			//if(local_main_dialog->get_command_threads_audio_stop())
+			//{
+			//	break;
+			//}
+			//else
+			//{
+			//	if(local_work_time>=1000)
+			//		Sleep(1);
+			//	else
+			//	{
+			//		HRESULT hr;
+
+			//		AM_MEDIA_TYPE mt;
+			//		ZeroMemory(&mt, sizeof(mt));
+
+			//		if(local_main_dialog->web_camera_dialog!=NULL)
+			//		{
+			//			CSingleLock lock(&local_main_dialog->delete_web_camera_dialog_critical_section);
+
+			//			lock.Lock();
+
+			//			hr = local_main_dialog->web_camera_dialog->pAudioGrabber->GetConnectedMediaType(&mt);
+
+			//			lock.Unlock();
+
+			//			if (SUCCEEDED(hr))
+			//			{
+			//				if(mt.formattype==FORMAT_WaveFormatEx)
+			//				{
+			//					WAVEFORMATEX *wave_format_ex = (WAVEFORMATEX *)mt.pbFormat;
+
+			//					if(wave_format_ex!=NULL)
+			//					{
+			//						ULONGLONG chunk_playing_time = 
+			//							1000 *
+			//							wave_format_ex->nAvgBytesPerSec/
+			//							wave_format_ex->nSamplesPerSec/
+			//							wave_format_ex->nChannels/
+			//							(wave_format_ex->wBitsPerSample>>3)/
+			//							wave_format_ex->nBlockAlign
+			//							;
+
+			//						if(chunk_playing_time>local_work_time)
+			//							Sleep(DWORD(chunk_playing_time-local_work_time));
+			//						else
+			//							Sleep(1);
+			//					}
+			//				}
+			//				_FreeMediaType(mt);	
+			//			}
+			//			else
+			//				Sleep(DWORD(1000.0/CONST_AUDIO_PACKETS_PER_SECOND));		//	CONST_AUDIO_PACKETS_PER_SECOND кадров в секунду
+			//		}
+			//	}
+			//}
+		}
+
+		ULONGLONG local_end_time = GetTickCount64();
+
+		ULONGLONG local_work_time = local_end_time - local_start_time;
+
+		if(local_main_dialog->get_command_threads_audio_stop())
+		{
+			break;
+		}
+		else
+		{
+			if(local_work_time>=1000)
+				Sleep(1);
 			else
 			{
-				if(local_work_time>=1000)
-					Sleep(1);
-				else
+				HRESULT hr;
+
+				AM_MEDIA_TYPE mt;
+				ZeroMemory(&mt, sizeof(mt));
+
+				if(local_main_dialog->web_camera_dialog!=NULL)
 				{
-					HRESULT hr;
+					CSingleLock lock(&local_main_dialog->delete_web_camera_dialog_critical_section);
 
-					AM_MEDIA_TYPE mt;
-					ZeroMemory(&mt, sizeof(mt));
+					lock.Lock();
 
-					if(local_main_dialog->web_camera_dialog!=NULL)
+					hr = local_main_dialog->web_camera_dialog->pAudioGrabber->GetConnectedMediaType(&mt);
+
+					lock.Unlock();
+
+					if (SUCCEEDED(hr))
 					{
-						CSingleLock lock(&local_main_dialog->delete_web_camera_dialog_critical_section);
-
-						lock.Lock();
-
-						hr = local_main_dialog->web_camera_dialog->pAudioGrabber->GetConnectedMediaType(&mt);
-
-						lock.Unlock();
-
-						if (SUCCEEDED(hr))
+						if(mt.formattype==FORMAT_WaveFormatEx)
 						{
-							if(mt.formattype==FORMAT_WaveFormatEx)
+							WAVEFORMATEX *wave_format_ex = (WAVEFORMATEX *)mt.pbFormat;
+
+							if(wave_format_ex!=NULL)
 							{
-								WAVEFORMATEX *wave_format_ex = (WAVEFORMATEX *)mt.pbFormat;
+								ULONGLONG chunk_playing_time = 
+									1000 *
+									wave_format_ex->nAvgBytesPerSec/
+									wave_format_ex->nSamplesPerSec/
+									wave_format_ex->nChannels/
+									(wave_format_ex->wBitsPerSample>>3)/
+									wave_format_ex->nBlockAlign
+									;
 
-								if(wave_format_ex!=NULL)
-								{
-									ULONGLONG chunk_playing_time = 
-										1000 *
-										wave_format_ex->nAvgBytesPerSec/
-										wave_format_ex->nSamplesPerSec/
-										wave_format_ex->nChannels/
-										(wave_format_ex->wBitsPerSample>>3)/
-										wave_format_ex->nBlockAlign
-										;
-
-									if(chunk_playing_time>local_work_time)
-										Sleep(DWORD(chunk_playing_time-local_work_time));
-									else
-										Sleep(1);
-								}
+								if(chunk_playing_time>local_work_time)
+									Sleep(DWORD(chunk_playing_time-local_work_time));
+								else
+									Sleep(1);
 							}
-							_FreeMediaType(mt);	
 						}
-						else
-							Sleep(DWORD(1000.0/CONST_AUDIO_PACKETS_PER_SECOND));		//	CONST_AUDIO_PACKETS_PER_SECOND кадров в секунду
+						_FreeMediaType(mt);	
+					}
+					else
+					{
+						double local_factor = peers_to_send_count*(port_number_end_const-port_number_start_const+1);
+						if(local_factor==0.0)
+						{
+							local_factor = 1.0;
+						}
+						Sleep(DWORD(1000.0/CONST_AUDIO_PACKETS_PER_SECOND/local_factor));		//	CONST_AUDIO_PACKETS_PER_SECOND кадров в секунду
 					}
 				}
 			}
@@ -10818,6 +11070,8 @@ UINT __cdecl datagram_send_audio_connection_thread_ip_6(LPVOID parameter)
 
 	for(;;)
 	{
+		ULONGLONG local_start_time = GetTickCount64();
+
 		if(local_main_dialog->get_command_threads_audio_stop())
 		{
 			break;
@@ -10907,7 +11161,7 @@ UINT __cdecl datagram_send_audio_connection_thread_ip_6(LPVOID parameter)
 
 			lock.Lock();
 		
-			CaptureAudioSampleGetFromTheList(local_main_dialog->web_camera_dialog,&local_stream);
+			CaptureAudioSampleGetFromTheList_ip_6(local_main_dialog->web_camera_dialog,&local_stream);
 		}
 
 		if(local_stream==NULL)
@@ -10915,10 +11169,15 @@ UINT __cdecl datagram_send_audio_connection_thread_ip_6(LPVOID parameter)
 			Sleep(10);
 			continue;
 		}
+		
+		STATSTG local_istream_statstg;
+		HRESULT local_stat_result = local_stream->Stat(&local_istream_statstg,STATFLAG::STATFLAG_DEFAULT);
+
+		double local_data_size_send = 0.0;
 
 		for(int peers_to_send_count_counter=0;peers_to_send_count_counter<peers_to_send_count;peers_to_send_count_counter++)
 		{
-			double local_data_size_send = 0.0;
+			//double local_data_size_send = 0.0;
 
 			if(local_main_dialog->get_command_terminate_application())
 			{
@@ -11057,10 +11316,10 @@ UINT __cdecl datagram_send_audio_connection_thread_ip_6(LPVOID parameter)
 			//}
 
 
-			ULONGLONG local_start_time = GetTickCount64();
+			//ULONGLONG local_start_time = GetTickCount64();
 
-			STATSTG local_istream_statstg;
-			HRESULT local_stat_result = local_stream->Stat(&local_istream_statstg,STATFLAG::STATFLAG_DEFAULT);
+			//STATSTG local_istream_statstg;
+			//HRESULT local_stat_result = local_stream->Stat(&local_istream_statstg,STATFLAG::STATFLAG_DEFAULT);
 
 			/*/
 			//			“ест отображени€ из IStream
@@ -11451,62 +11710,129 @@ UINT __cdecl datagram_send_audio_connection_thread_ip_6(LPVOID parameter)
 			//	local_stream->Release();
 			//}
 
-			ULONGLONG local_end_time = GetTickCount64();
+			//ULONGLONG local_end_time = GetTickCount64();
 
-			ULONGLONG local_work_time = local_end_time - local_start_time;
+			//ULONGLONG local_work_time = local_end_time - local_start_time;
 
-			if(local_main_dialog->get_command_threads_audio_stop())
-			{
-				break;
-			}
+			//if(local_main_dialog->get_command_threads_audio_stop())
+			//{
+			//	break;
+			//}
+			//else
+			//{
+			//	if(local_work_time>=1000)
+			//		Sleep(1);
+			//	else
+			//	{
+			//		HRESULT hr;
+
+			//		AM_MEDIA_TYPE mt;
+			//		ZeroMemory(&mt, sizeof(mt));
+
+			//		if(local_main_dialog->web_camera_dialog!=NULL)
+			//		{
+			//			CSingleLock lock(&local_main_dialog->delete_web_camera_dialog_critical_section);
+
+			//			lock.Lock();
+
+			//			hr = local_main_dialog->web_camera_dialog->pAudioGrabber->GetConnectedMediaType(&mt);
+
+			//			lock.Unlock();
+
+			//			if (SUCCEEDED(hr))
+			//			{
+			//				if(mt.formattype==FORMAT_WaveFormatEx)
+			//				{
+			//					WAVEFORMATEX *wave_format_ex = (WAVEFORMATEX *)mt.pbFormat;
+
+			//					if(wave_format_ex!=NULL)
+			//					{
+			//						ULONGLONG chunk_playing_time = 
+			//							1000 *
+			//							wave_format_ex->nAvgBytesPerSec/
+			//							wave_format_ex->nSamplesPerSec/
+			//							wave_format_ex->nChannels/
+			//							(wave_format_ex->wBitsPerSample>>3)/
+			//							wave_format_ex->nBlockAlign
+			//							;
+
+			//						if(chunk_playing_time>local_work_time)
+			//							Sleep(DWORD(chunk_playing_time-local_work_time));
+			//						else
+			//							Sleep(1);
+			//					}
+			//				}
+			//				_FreeMediaType(mt);	
+			//			}
+			//			else
+			//				Sleep(DWORD(1000.0/CONST_AUDIO_PACKETS_PER_SECOND));		//	CONST_AUDIO_PACKETS_PER_SECOND кадров в секунду
+			//		}
+			//	}
+			//}
+		}
+
+		ULONGLONG local_end_time = GetTickCount64();
+
+		ULONGLONG local_work_time = local_end_time - local_start_time;
+
+		if(local_main_dialog->get_command_threads_audio_stop())
+		{
+			break;
+		}
+		else
+		{
+			if(local_work_time>=1000)
+				Sleep(1);
 			else
 			{
-				if(local_work_time>=1000)
-					Sleep(1);
-				else
+				HRESULT hr;
+
+				AM_MEDIA_TYPE mt;
+				ZeroMemory(&mt, sizeof(mt));
+
+				if(local_main_dialog->web_camera_dialog!=NULL)
 				{
-					HRESULT hr;
+					CSingleLock lock(&local_main_dialog->delete_web_camera_dialog_critical_section);
 
-					AM_MEDIA_TYPE mt;
-					ZeroMemory(&mt, sizeof(mt));
+					lock.Lock();
 
-					if(local_main_dialog->web_camera_dialog!=NULL)
+					hr = local_main_dialog->web_camera_dialog->pAudioGrabber->GetConnectedMediaType(&mt);
+
+					lock.Unlock();
+
+					if (SUCCEEDED(hr))
 					{
-						CSingleLock lock(&local_main_dialog->delete_web_camera_dialog_critical_section);
-
-						lock.Lock();
-
-						hr = local_main_dialog->web_camera_dialog->pAudioGrabber->GetConnectedMediaType(&mt);
-
-						lock.Unlock();
-
-						if (SUCCEEDED(hr))
+						if(mt.formattype==FORMAT_WaveFormatEx)
 						{
-							if(mt.formattype==FORMAT_WaveFormatEx)
+							WAVEFORMATEX *wave_format_ex = (WAVEFORMATEX *)mt.pbFormat;
+
+							if(wave_format_ex!=NULL)
 							{
-								WAVEFORMATEX *wave_format_ex = (WAVEFORMATEX *)mt.pbFormat;
+								ULONGLONG chunk_playing_time = 
+									1000 *
+									wave_format_ex->nAvgBytesPerSec/
+									wave_format_ex->nSamplesPerSec/
+									wave_format_ex->nChannels/
+									(wave_format_ex->wBitsPerSample>>3)/
+									wave_format_ex->nBlockAlign
+									;
 
-								if(wave_format_ex!=NULL)
-								{
-									ULONGLONG chunk_playing_time = 
-										1000 *
-										wave_format_ex->nAvgBytesPerSec/
-										wave_format_ex->nSamplesPerSec/
-										wave_format_ex->nChannels/
-										(wave_format_ex->wBitsPerSample>>3)/
-										wave_format_ex->nBlockAlign
-										;
-
-									if(chunk_playing_time>local_work_time)
-										Sleep(DWORD(chunk_playing_time-local_work_time));
-									else
-										Sleep(1);
-								}
+								if(chunk_playing_time>local_work_time)
+									Sleep(DWORD(chunk_playing_time-local_work_time));
+								else
+									Sleep(1);
 							}
-							_FreeMediaType(mt);	
 						}
-						else
-							Sleep(DWORD(1000.0/CONST_AUDIO_PACKETS_PER_SECOND));		//	CONST_AUDIO_PACKETS_PER_SECOND кадров в секунду
+						_FreeMediaType(mt);	
+					}
+					else
+					{
+						double local_factor = peers_to_send_count*(port_number_end_const-port_number_start_const+1);
+						if(local_factor==0.0)
+						{
+							local_factor = 1.0;
+						}
+						Sleep(DWORD(1000.0/CONST_AUDIO_PACKETS_PER_SECOND/local_factor));		//	CONST_AUDIO_PACKETS_PER_SECOND кадров в секунду
 					}
 				}
 			}
@@ -12567,6 +12893,8 @@ UINT __cdecl datagram_retranslate_connection_thread_ip_4(LPVOID parameter)
 
 	for(;;)
 	{
+		ULONGLONG local_start_time = GetTickCount64();
+
 		if(local_main_dialog->get_command_threads_retranslate_stop())
 		{
 			break;
@@ -12651,9 +12979,11 @@ UINT __cdecl datagram_retranslate_connection_thread_ip_4(LPVOID parameter)
 			}
 		}
 
+		double local_data_size_send = 0.0;
+
 		for(int peers_to_send_count_counter=0;peers_to_send_count_counter<peers_to_send_count;peers_to_send_count_counter++)
 		{
-			double local_data_size_send = 0.0;
+			//double local_data_size_send = 0.0;
 
 			if(local_main_dialog->get_command_terminate_application())
 			{
@@ -12748,7 +13078,7 @@ UINT __cdecl datagram_retranslate_connection_thread_ip_4(LPVOID parameter)
 				continue;
 			}
 
-			ULONGLONG local_start_time = GetTickCount64();
+			//ULONGLONG local_start_time = GetTickCount64();
 
 			for(UINT local_parameter_port_number=port_number_start_const;local_parameter_port_number<=port_number_end_const;local_parameter_port_number++)
 			{
@@ -13107,42 +13437,80 @@ UINT __cdecl datagram_retranslate_connection_thread_ip_4(LPVOID parameter)
 				}
 			}
 
-			ULONGLONG local_end_time = GetTickCount64();
+			//ULONGLONG local_end_time = GetTickCount64();
 
-			ULONGLONG local_work_time = local_end_time - local_start_time;
+			//ULONGLONG local_work_time = local_end_time - local_start_time;
 
-			if(local_main_dialog->get_command_threads_retranslate_stop())
+			//if(local_main_dialog->get_command_threads_retranslate_stop())
+			//{
+			//	break;
+			//}
+			//else
+			//{
+			//	CString local_string_speed;
+
+			//	if(local_main_dialog->get_command_terminate_application())
+			//	{
+			//		break;
+			//	}
+			//	{
+			//		local_string_speed = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_SPEED_state;
+			//	}
+			//	double local_double_speed = _wtof(local_string_speed);
+			//	if(local_data_size_send!=0.0)
+			//	{
+			//		DWORD time_to_work = 1000;
+			//		double local_current_time_in_seconds = double(local_work_time)/1000.0;
+			//		double local_current_bits_send = (local_data_size_send*8.0);
+			//		double local_current_speed = local_current_bits_send/local_current_time_in_seconds;
+			//		double local_current_frame_rate = 1.0/local_current_time_in_seconds;
+			//		double local_speed_factor = local_double_speed/local_current_speed;
+			//		double local_common_factor = min(local_speed_factor,local_current_frame_rate);
+
+			//		time_to_work = DWORD(local_common_factor*local_work_time);
+
+			//		DWORD time_to_sleep = 1000 - time_to_work;
+
+			//		Sleep(time_to_sleep);
+			//	}
+			//}
+		}
+
+		ULONGLONG local_end_time = GetTickCount64();
+
+		ULONGLONG local_work_time = local_end_time - local_start_time;
+
+		if(local_main_dialog->get_command_threads_retranslate_stop())
+		{
+			break;
+		}
+		else
+		{
+			CString local_string_speed;
+
+			if(local_main_dialog->get_command_terminate_application())
 			{
 				break;
 			}
-			else
 			{
-				CString local_string_speed;
+				local_string_speed = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_SPEED_state;
+			}
+			double local_double_speed = _wtof(local_string_speed);
+			if(local_data_size_send!=0.0)
+			{
+				DWORD time_to_work = 1000;
+				double local_current_time_in_seconds = double(local_work_time)/1000.0;
+				double local_current_bits_send = (local_data_size_send*8.0);
+				double local_current_speed = local_current_bits_send/local_current_time_in_seconds;
+				double local_current_frame_rate = 1.0/local_current_time_in_seconds;
+				double local_speed_factor = local_double_speed/local_current_speed;
+				double local_common_factor = min(local_speed_factor,local_current_frame_rate);
 
-				if(local_main_dialog->get_command_terminate_application())
-				{
-					break;
-				}
-				{
-					local_string_speed = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_SPEED_state;
-				}
-				double local_double_speed = _wtof(local_string_speed);
-				if(local_data_size_send!=0.0)
-				{
-					DWORD time_to_work = 1000;
-					double local_current_time_in_seconds = double(local_work_time)/1000.0;
-					double local_current_bits_send = (local_data_size_send*8.0);
-					double local_current_speed = local_current_bits_send/local_current_time_in_seconds;
-					double local_current_frame_rate = 1.0/local_current_time_in_seconds;
-					double local_speed_factor = local_double_speed/local_current_speed;
-					double local_common_factor = min(local_speed_factor,local_current_frame_rate);
+				time_to_work = DWORD(local_common_factor*local_work_time);
 
-					time_to_work = DWORD(local_common_factor*local_work_time);
+				DWORD time_to_sleep = 1000 - time_to_work;
 
-					DWORD time_to_sleep = 1000 - time_to_work;
-
-					Sleep(time_to_sleep);
-				}
+				Sleep(time_to_sleep);
 			}
 		}
 
@@ -13290,6 +13658,8 @@ UINT __cdecl datagram_retranslate_connection_thread_ip_6(LPVOID parameter)
 
 	for(;;)
 	{
+		ULONGLONG local_start_time = GetTickCount64();
+
 		if(local_main_dialog->get_command_threads_retranslate_stop())
 		{
 			break;
@@ -13374,10 +13744,12 @@ UINT __cdecl datagram_retranslate_connection_thread_ip_6(LPVOID parameter)
 			}
 
 		}
+		
+		double local_data_size_send = 0.0;
 
 		for(int peers_to_send_count_counter=0;peers_to_send_count_counter<peers_to_send_count;peers_to_send_count_counter++)
 		{
-			double local_data_size_send = 0.0;
+			//double local_data_size_send = 0.0;
 
 			if(local_main_dialog->get_command_terminate_application())
 			{
@@ -13477,7 +13849,7 @@ UINT __cdecl datagram_retranslate_connection_thread_ip_6(LPVOID parameter)
 				continue;
 			}
 
-			ULONGLONG local_start_time = GetTickCount64();
+			//ULONGLONG local_start_time = GetTickCount64();
 
 
 
@@ -13840,42 +14212,80 @@ UINT __cdecl datagram_retranslate_connection_thread_ip_6(LPVOID parameter)
 				}
 			}
 
-			ULONGLONG local_end_time = GetTickCount64();
+			//ULONGLONG local_end_time = GetTickCount64();
 
-			ULONGLONG local_work_time = local_end_time - local_start_time;
+			//ULONGLONG local_work_time = local_end_time - local_start_time;
 
-			if(local_main_dialog->get_command_threads_retranslate_stop())
+			//if(local_main_dialog->get_command_threads_retranslate_stop())
+			//{
+			//	break;
+			//}
+			//else
+			//{
+			//	CString local_string_speed;
+
+			//	if(local_main_dialog->get_command_terminate_application())
+			//	{
+			//		break;
+			//	}
+			//	{
+			//		local_string_speed = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_SPEED_state;					
+			//	}
+			//	double local_double_speed = _wtof(local_string_speed);
+			//	if(local_data_size_send!=0.0)
+			//	{
+			//		DWORD time_to_work = 1000;
+			//		double local_current_time_in_seconds = double(local_work_time)/1000.0;
+			//		double local_current_bits_send = (local_data_size_send*8.0);
+			//		double local_current_speed = local_current_bits_send/local_current_time_in_seconds;
+			//		double local_current_frame_rate = 1.0/local_current_time_in_seconds;
+			//		double local_speed_factor = local_double_speed/local_current_speed;
+			//		double local_common_factor = min(local_speed_factor,local_current_frame_rate);
+
+			//		time_to_work = DWORD(local_common_factor*local_work_time);
+
+			//		DWORD time_to_sleep = 1000 - time_to_work;
+
+			//		Sleep(time_to_sleep);
+			//	}
+			//}
+		}
+
+		ULONGLONG local_end_time = GetTickCount64();
+
+		ULONGLONG local_work_time = local_end_time - local_start_time;
+
+		if(local_main_dialog->get_command_threads_retranslate_stop())
+		{
+			break;
+		}
+		else
+		{
+			CString local_string_speed;
+
+			if(local_main_dialog->get_command_terminate_application())
 			{
 				break;
 			}
-			else
 			{
-				CString local_string_speed;
+				local_string_speed = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_SPEED_state;					
+			}
+			double local_double_speed = _wtof(local_string_speed);
+			if(local_data_size_send!=0.0)
+			{
+				DWORD time_to_work = 1000;
+				double local_current_time_in_seconds = double(local_work_time)/1000.0;
+				double local_current_bits_send = (local_data_size_send*8.0);
+				double local_current_speed = local_current_bits_send/local_current_time_in_seconds;
+				double local_current_frame_rate = 1.0/local_current_time_in_seconds;
+				double local_speed_factor = local_double_speed/local_current_speed;
+				double local_common_factor = min(local_speed_factor,local_current_frame_rate);
 
-				if(local_main_dialog->get_command_terminate_application())
-				{
-					break;
-				}
-				{
-					local_string_speed = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_SPEED_state;					
-				}
-				double local_double_speed = _wtof(local_string_speed);
-				if(local_data_size_send!=0.0)
-				{
-					DWORD time_to_work = 1000;
-					double local_current_time_in_seconds = double(local_work_time)/1000.0;
-					double local_current_bits_send = (local_data_size_send*8.0);
-					double local_current_speed = local_current_bits_send/local_current_time_in_seconds;
-					double local_current_frame_rate = 1.0/local_current_time_in_seconds;
-					double local_speed_factor = local_double_speed/local_current_speed;
-					double local_common_factor = min(local_speed_factor,local_current_frame_rate);
+				time_to_work = DWORD(local_common_factor*local_work_time);
 
-					time_to_work = DWORD(local_common_factor*local_work_time);
+				DWORD time_to_sleep = 1000 - time_to_work;
 
-					DWORD time_to_sleep = 1000 - time_to_work;
-
-					Sleep(time_to_sleep);
-				}
+				Sleep(time_to_sleep);
 			}
 		}
 
@@ -14093,6 +14503,8 @@ UINT __cdecl datagram_retranslate_video_connection_thread_ip_4(LPVOID parameter)
 
 	for(;;)
 	{
+		ULONGLONG local_start_time = GetTickCount64();
+
 		if(local_main_dialog->get_command_threads_retranslate_video_stop())
 		{
 			break;
@@ -14195,9 +14607,14 @@ UINT __cdecl datagram_retranslate_video_connection_thread_ip_4(LPVOID parameter)
 			continue;
 		}
 
+		STATSTG local_istream_statstg;
+		HRESULT local_stat_result = local_stream->Stat(&local_istream_statstg,STATFLAG::STATFLAG_DEFAULT);
+
+		double local_data_size_send = 0.0;
+
 		for(int peers_to_send_count_counter=0;peers_to_send_count_counter<peers_to_send_count;peers_to_send_count_counter++)
 		{
-			double local_data_size_send = 0.0;
+			//double local_data_size_send = 0.0;
 
 			if(local_main_dialog->get_command_terminate_application())
 			{
@@ -14326,10 +14743,10 @@ UINT __cdecl datagram_retranslate_video_connection_thread_ip_4(LPVOID parameter)
 #endif
 			//local_image_lock.Unlock();
 
-			ULONGLONG local_start_time = GetTickCount64();
+			//ULONGLONG local_start_time = GetTickCount64();
 
-			STATSTG local_istream_statstg;
-			HRESULT local_stat_result = local_stream->Stat(&local_istream_statstg,STATFLAG::STATFLAG_DEFAULT);
+			//STATSTG local_istream_statstg;
+			//HRESULT local_stat_result = local_stream->Stat(&local_istream_statstg,STATFLAG::STATFLAG_DEFAULT);
 
 			/*/
 			//			“ест отображени€ из IStream
@@ -14727,42 +15144,80 @@ UINT __cdecl datagram_retranslate_video_connection_thread_ip_4(LPVOID parameter)
 				}
 			}
 
-			ULONGLONG local_end_time = GetTickCount64();
+			//ULONGLONG local_end_time = GetTickCount64();
 
-			ULONGLONG local_work_time = local_end_time - local_start_time;
+			//ULONGLONG local_work_time = local_end_time - local_start_time;
 
-			if(local_main_dialog->get_command_threads_retranslate_video_stop())
+			//if(local_main_dialog->get_command_threads_retranslate_video_stop())
+			//{
+			//	break;
+			//}
+			//else
+			//{
+			//	CString local_string_speed;
+
+			//	if(local_main_dialog->get_command_terminate_application())
+			//	{
+			//		break;
+			//	}
+			//	{
+			//		local_string_speed = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_SPEED_state;
+			//	}
+			//	double local_double_speed = _wtof(local_string_speed);
+			//	if(local_data_size_send!=0.0)
+			//	{
+			//		DWORD time_to_work = 1000;
+			//		double local_current_time_in_seconds = double(local_work_time)/1000.0;
+			//		double local_current_bits_send = (local_data_size_send*8.0);
+			//		double local_current_speed = local_current_bits_send/local_current_time_in_seconds;
+			//		double local_current_frame_rate = 1.0/local_current_time_in_seconds;
+			//		double local_speed_factor = local_double_speed/local_current_speed;
+			//		double local_common_factor = min(local_speed_factor,local_current_frame_rate);
+
+			//		time_to_work = DWORD(local_common_factor*local_work_time);
+
+			//		DWORD time_to_sleep = 1000 - time_to_work;
+
+			//		Sleep(time_to_sleep);
+			//	}
+			//}
+		}
+
+		ULONGLONG local_end_time = GetTickCount64();
+
+		ULONGLONG local_work_time = local_end_time - local_start_time;
+
+		if(local_main_dialog->get_command_threads_retranslate_video_stop())
+		{
+			break;
+		}
+		else
+		{
+			CString local_string_speed;
+
+			if(local_main_dialog->get_command_terminate_application())
 			{
 				break;
 			}
-			else
 			{
-				CString local_string_speed;
+				local_string_speed = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_SPEED_state;
+			}
+			double local_double_speed = _wtof(local_string_speed);
+			if(local_data_size_send!=0.0)
+			{
+				DWORD time_to_work = 1000;
+				double local_current_time_in_seconds = double(local_work_time)/1000.0;
+				double local_current_bits_send = (local_data_size_send*8.0);
+				double local_current_speed = local_current_bits_send/local_current_time_in_seconds;
+				double local_current_frame_rate = 1.0/local_current_time_in_seconds;
+				double local_speed_factor = local_double_speed/local_current_speed;
+				double local_common_factor = min(local_speed_factor,local_current_frame_rate);
 
-				if(local_main_dialog->get_command_terminate_application())
-				{
-					break;
-				}
-				{
-					local_string_speed = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_SPEED_state;
-				}
-				double local_double_speed = _wtof(local_string_speed);
-				if(local_data_size_send!=0.0)
-				{
-					DWORD time_to_work = 1000;
-					double local_current_time_in_seconds = double(local_work_time)/1000.0;
-					double local_current_bits_send = (local_data_size_send*8.0);
-					double local_current_speed = local_current_bits_send/local_current_time_in_seconds;
-					double local_current_frame_rate = 1.0/local_current_time_in_seconds;
-					double local_speed_factor = local_double_speed/local_current_speed;
-					double local_common_factor = min(local_speed_factor,local_current_frame_rate);
+				time_to_work = DWORD(local_common_factor*local_work_time);
 
-					time_to_work = DWORD(local_common_factor*local_work_time);
+				DWORD time_to_sleep = 1000 - time_to_work;
 
-					DWORD time_to_sleep = 1000 - time_to_work;
-
-					Sleep(time_to_sleep);
-				}
+				Sleep(time_to_sleep);
 			}
 		}
 
@@ -14895,6 +15350,8 @@ UINT __cdecl datagram_retranslate_video_connection_thread_ip_6(LPVOID parameter)
 
 	for(;;)
 	{
+		ULONGLONG local_start_time = GetTickCount64();
+
 		if(local_main_dialog->get_command_threads_retranslate_video_stop())
 		{
 			break;
@@ -14998,9 +15455,14 @@ UINT __cdecl datagram_retranslate_video_connection_thread_ip_6(LPVOID parameter)
 			continue;
 		}
 
+		STATSTG local_istream_statstg;
+		HRESULT local_stat_result = local_stream->Stat(&local_istream_statstg,STATFLAG::STATFLAG_DEFAULT);
+
+		double local_data_size_send = 0.0;
+
 		for(int peers_to_send_count_counter=0;peers_to_send_count_counter<peers_to_send_count;peers_to_send_count_counter++)
 		{
-			double local_data_size_send = 0.0;
+			//double local_data_size_send = 0.0;
 
 			if(local_main_dialog->get_command_terminate_application())
 			{
@@ -15128,10 +15590,10 @@ UINT __cdecl datagram_retranslate_video_connection_thread_ip_6(LPVOID parameter)
 #endif
 			//local_image_lock.Unlock();
 
-			ULONGLONG local_start_time = GetTickCount64();
+			//ULONGLONG local_start_time = GetTickCount64();
 
-			STATSTG local_istream_statstg;
-			HRESULT local_stat_result = local_stream->Stat(&local_istream_statstg,STATFLAG::STATFLAG_DEFAULT);
+			//STATSTG local_istream_statstg;
+			//HRESULT local_stat_result = local_stream->Stat(&local_istream_statstg,STATFLAG::STATFLAG_DEFAULT);
 
 			/*/
 			//			“ест отображени€ из IStream
@@ -15511,42 +15973,80 @@ UINT __cdecl datagram_retranslate_video_connection_thread_ip_6(LPVOID parameter)
 				}
 			}
 
-			ULONGLONG local_end_time = GetTickCount64();
+			//ULONGLONG local_end_time = GetTickCount64();
 
-			ULONGLONG local_work_time = local_end_time - local_start_time;
+			//ULONGLONG local_work_time = local_end_time - local_start_time;
 
-			if(local_main_dialog->get_command_threads_retranslate_video_stop())
+			//if(local_main_dialog->get_command_threads_retranslate_video_stop())
+			//{
+			//	break;
+			//}
+			//else
+			//{
+			//	CString local_string_speed;
+
+			//	if(local_main_dialog->get_command_terminate_application())
+			//	{
+			//		break;
+			//	}
+			//	{
+			//		local_string_speed = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_SPEED_state;					
+			//	}
+			//	double local_double_speed = _wtof(local_string_speed);
+			//	if(local_data_size_send!=0.0)
+			//	{
+			//		DWORD time_to_work = 1000;
+			//		double local_current_time_in_seconds = double(local_work_time)/1000.0;
+			//		double local_current_bits_send = (local_data_size_send*8.0);
+			//		double local_current_speed = local_current_bits_send/local_current_time_in_seconds;
+			//		double local_current_frame_rate = 1.0/local_current_time_in_seconds;
+			//		double local_speed_factor = local_double_speed/local_current_speed;
+			//		double local_common_factor = min(local_speed_factor,local_current_frame_rate);
+
+			//		time_to_work = DWORD(local_common_factor*local_work_time);
+
+			//		DWORD time_to_sleep = 1000 - time_to_work;
+
+			//		Sleep(time_to_sleep);
+			//	}
+			//}
+		}
+
+		ULONGLONG local_end_time = GetTickCount64();
+
+		ULONGLONG local_work_time = local_end_time - local_start_time;
+
+		if(local_main_dialog->get_command_threads_retranslate_video_stop())
+		{
+			break;
+		}
+		else
+		{
+			CString local_string_speed;
+				
+			if(local_main_dialog->get_command_terminate_application())
 			{
 				break;
 			}
-			else
 			{
-				CString local_string_speed;
+				local_string_speed = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_SPEED_state;					
+			}
+			double local_double_speed = _wtof(local_string_speed);
+			if(local_data_size_send!=0.0)
+			{
+				DWORD time_to_work = 1000;
+				double local_current_time_in_seconds = double(local_work_time)/1000.0;
+				double local_current_bits_send = (local_data_size_send*8.0);
+				double local_current_speed = local_current_bits_send/local_current_time_in_seconds;
+				double local_current_frame_rate = 1.0/local_current_time_in_seconds;
+				double local_speed_factor = local_double_speed/local_current_speed;
+				double local_common_factor = min(local_speed_factor,local_current_frame_rate);
 
-				if(local_main_dialog->get_command_terminate_application())
-				{
-					break;
-				}
-				{
-					local_string_speed = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_SPEED_state;					
-				}
-				double local_double_speed = _wtof(local_string_speed);
-				if(local_data_size_send!=0.0)
-				{
-					DWORD time_to_work = 1000;
-					double local_current_time_in_seconds = double(local_work_time)/1000.0;
-					double local_current_bits_send = (local_data_size_send*8.0);
-					double local_current_speed = local_current_bits_send/local_current_time_in_seconds;
-					double local_current_frame_rate = 1.0/local_current_time_in_seconds;
-					double local_speed_factor = local_double_speed/local_current_speed;
-					double local_common_factor = min(local_speed_factor,local_current_frame_rate);
+				time_to_work = DWORD(local_common_factor*local_work_time);
 
-					time_to_work = DWORD(local_common_factor*local_work_time);
+				DWORD time_to_sleep = 1000 - time_to_work;
 
-					DWORD time_to_sleep = 1000 - time_to_work;
-
-					Sleep(time_to_sleep);
-				}
+				Sleep(time_to_sleep);
 			}
 		}
 
@@ -15760,6 +16260,8 @@ UINT __cdecl datagram_retranslate_web_camera_video_connection_thread_ip_4(LPVOID
 
 	for(;;)
 	{
+		ULONGLONG local_start_time = GetTickCount64();
+
 		if(local_main_dialog->get_command_threads_retranslate_web_camera_video_stop())
 		{
 			break;
@@ -15863,9 +16365,14 @@ UINT __cdecl datagram_retranslate_web_camera_video_connection_thread_ip_4(LPVOID
 			continue;
 		}
 
+		STATSTG local_istream_statstg;
+		HRESULT local_stat_result = local_stream->Stat(&local_istream_statstg,STATFLAG::STATFLAG_DEFAULT);
+
+		double local_data_size_send = 0.0;
+
 		for(int peers_to_send_count_counter=0;peers_to_send_count_counter<peers_to_send_count;peers_to_send_count_counter++)
 		{
-			double local_data_size_send = 0.0;
+			//double local_data_size_send = 0.0;
 
 			if(local_main_dialog->get_command_terminate_application())
 			{
@@ -16004,10 +16511,10 @@ UINT __cdecl datagram_retranslate_web_camera_video_connection_thread_ip_4(LPVOID
 			//local_image_lock.Unlock();
 
 
-			ULONGLONG local_start_time = GetTickCount64();
+			//ULONGLONG local_start_time = GetTickCount64();
 
-			STATSTG local_istream_statstg;
-			HRESULT local_stat_result = local_stream->Stat(&local_istream_statstg,STATFLAG::STATFLAG_DEFAULT);
+			//STATSTG local_istream_statstg;
+			//HRESULT local_stat_result = local_stream->Stat(&local_istream_statstg,STATFLAG::STATFLAG_DEFAULT);
 
 			/*/
 			//			“ест отображени€ из IStream
@@ -16388,42 +16895,80 @@ UINT __cdecl datagram_retranslate_web_camera_video_connection_thread_ip_4(LPVOID
 				}
 			}
 
-			ULONGLONG local_end_time = GetTickCount64();
+			//ULONGLONG local_end_time = GetTickCount64();
 
-			ULONGLONG local_work_time = local_end_time - local_start_time;
+			//ULONGLONG local_work_time = local_end_time - local_start_time;
 
-			if(local_main_dialog->get_command_threads_retranslate_web_camera_video_stop())
+			//if(local_main_dialog->get_command_threads_retranslate_web_camera_video_stop())
+			//{
+			//	break;
+			//}
+			//else
+			//{
+			//	CString local_string_speed;
+
+			//	if(local_main_dialog->get_command_terminate_application())
+			//	{
+			//		break;
+			//	}
+			//	{
+			//		local_string_speed = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_SPEED_state;
+			//	}
+			//	double local_double_speed = _wtof(local_string_speed);
+			//	if(local_data_size_send!=0.0)
+			//	{
+			//		DWORD time_to_work = 1000;
+			//		double local_current_time_in_seconds = double(local_work_time)/1000.0;
+			//		double local_current_bits_send = (local_data_size_send*8.0);
+			//		double local_current_speed = local_current_bits_send/local_current_time_in_seconds;
+			//		double local_current_frame_rate = 1.0/local_current_time_in_seconds;
+			//		double local_speed_factor = local_double_speed/local_current_speed;
+			//		double local_common_factor = min(local_speed_factor,local_current_frame_rate);
+
+			//		time_to_work = DWORD(local_common_factor*local_work_time);
+
+			//		DWORD time_to_sleep = 1000 - time_to_work;
+
+			//		Sleep(time_to_sleep);
+			//	}
+			//}
+		}
+
+		ULONGLONG local_end_time = GetTickCount64();
+
+		ULONGLONG local_work_time = local_end_time - local_start_time;
+
+		if(local_main_dialog->get_command_threads_retranslate_web_camera_video_stop())
+		{
+			break;
+		}
+		else
+		{
+			CString local_string_speed;
+
+			if(local_main_dialog->get_command_terminate_application())
 			{
 				break;
 			}
-			else
 			{
-				CString local_string_speed;
+				local_string_speed = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_SPEED_state;
+			}
+			double local_double_speed = _wtof(local_string_speed);
+			if(local_data_size_send!=0.0)
+			{
+				DWORD time_to_work = 1000;
+				double local_current_time_in_seconds = double(local_work_time)/1000.0;
+				double local_current_bits_send = (local_data_size_send*8.0);
+				double local_current_speed = local_current_bits_send/local_current_time_in_seconds;
+				double local_current_frame_rate = 1.0/local_current_time_in_seconds;
+				double local_speed_factor = local_double_speed/local_current_speed;
+				double local_common_factor = min(local_speed_factor,local_current_frame_rate);
 
-				if(local_main_dialog->get_command_terminate_application())
-				{
-					break;
-				}
-				{
-					local_string_speed = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_SPEED_state;
-				}
-				double local_double_speed = _wtof(local_string_speed);
-				if(local_data_size_send!=0.0)
-				{
-					DWORD time_to_work = 1000;
-					double local_current_time_in_seconds = double(local_work_time)/1000.0;
-					double local_current_bits_send = (local_data_size_send*8.0);
-					double local_current_speed = local_current_bits_send/local_current_time_in_seconds;
-					double local_current_frame_rate = 1.0/local_current_time_in_seconds;
-					double local_speed_factor = local_double_speed/local_current_speed;
-					double local_common_factor = min(local_speed_factor,local_current_frame_rate);
+				time_to_work = DWORD(local_common_factor*local_work_time);
 
-					time_to_work = DWORD(local_common_factor*local_work_time);
+				DWORD time_to_sleep = 1000 - time_to_work;
 
-					DWORD time_to_sleep = 1000 - time_to_work;
-
-					Sleep(time_to_sleep);
-				}
+				Sleep(time_to_sleep);
 			}
 		}
 
@@ -16556,6 +17101,8 @@ UINT __cdecl datagram_retranslate_web_camera_video_connection_thread_ip_6(LPVOID
 
 	for(;;)
 	{
+		ULONGLONG local_start_time = GetTickCount64();
+
 		if(local_main_dialog->get_command_threads_retranslate_web_camera_video_stop())
 		{
 			break;
@@ -16658,9 +17205,14 @@ UINT __cdecl datagram_retranslate_web_camera_video_connection_thread_ip_6(LPVOID
 			continue;
 		}
 
+		STATSTG local_istream_statstg;
+		HRESULT local_stat_result = local_stream->Stat(&local_istream_statstg,STATFLAG::STATFLAG_DEFAULT);
+
+		double local_data_size_send = 0.0;
+
 		for(int peers_to_send_count_counter=0;peers_to_send_count_counter<peers_to_send_count;peers_to_send_count_counter++)
 		{
-			double local_data_size_send = 0.0;
+			//double local_data_size_send = 0.0;
 
 			if(local_main_dialog->get_command_terminate_application())
 			{
@@ -16798,10 +17350,10 @@ UINT __cdecl datagram_retranslate_web_camera_video_connection_thread_ip_6(LPVOID
 			//local_image_lock.Unlock();
 
 
-			ULONGLONG local_start_time = GetTickCount64();
+			//ULONGLONG local_start_time = GetTickCount64();
 
-			STATSTG local_istream_statstg;
-			HRESULT local_stat_result = local_stream->Stat(&local_istream_statstg,STATFLAG::STATFLAG_DEFAULT);
+			//STATSTG local_istream_statstg;
+			//HRESULT local_stat_result = local_stream->Stat(&local_istream_statstg,STATFLAG::STATFLAG_DEFAULT);
 
 			/*/
 			//			“ест отображени€ из IStream
@@ -17182,42 +17734,80 @@ UINT __cdecl datagram_retranslate_web_camera_video_connection_thread_ip_6(LPVOID
 				}
 			}
 
-			ULONGLONG local_end_time = GetTickCount64();
+			//ULONGLONG local_end_time = GetTickCount64();
 
-			ULONGLONG local_work_time = local_end_time - local_start_time;
+			//ULONGLONG local_work_time = local_end_time - local_start_time;
 
-			if(local_main_dialog->get_command_threads_retranslate_web_camera_video_stop())
+			//if(local_main_dialog->get_command_threads_retranslate_web_camera_video_stop())
+			//{
+			//	break;
+			//}
+			//else
+			//{
+			//	CString local_string_speed;
+
+			//	if(local_main_dialog->get_command_terminate_application())
+			//	{
+			//		break;
+			//	}
+			//	{
+			//		local_string_speed = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_SPEED_state;				
+			//	}
+			//	double local_double_speed = _wtof(local_string_speed);
+			//	if(local_data_size_send!=0.0)
+			//	{
+			//		DWORD time_to_work = 1000;
+			//		double local_current_time_in_seconds = double(local_work_time)/1000.0;
+			//		double local_current_bits_send = (local_data_size_send*8.0);
+			//		double local_current_speed = local_current_bits_send/local_current_time_in_seconds;
+			//		double local_current_frame_rate = 1.0/local_current_time_in_seconds;
+			//		double local_speed_factor = local_double_speed/local_current_speed;
+			//		double local_common_factor = min(local_speed_factor,local_current_frame_rate);
+
+			//		time_to_work = DWORD(local_common_factor*local_work_time);
+
+			//		DWORD time_to_sleep = 1000 - time_to_work;
+
+			//		Sleep(time_to_sleep);
+			//	}
+			//}
+		}
+
+		ULONGLONG local_end_time = GetTickCount64();
+
+		ULONGLONG local_work_time = local_end_time - local_start_time;
+
+		if(local_main_dialog->get_command_threads_retranslate_web_camera_video_stop())
+		{
+			break;
+		}
+		else
+		{
+			CString local_string_speed;
+
+			if(local_main_dialog->get_command_terminate_application())
 			{
 				break;
 			}
-			else
 			{
-				CString local_string_speed;
+				local_string_speed = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_SPEED_state;				
+			}
+			double local_double_speed = _wtof(local_string_speed);
+			if(local_data_size_send!=0.0)
+			{
+				DWORD time_to_work = 1000;
+				double local_current_time_in_seconds = double(local_work_time)/1000.0;
+				double local_current_bits_send = (local_data_size_send*8.0);
+				double local_current_speed = local_current_bits_send/local_current_time_in_seconds;
+				double local_current_frame_rate = 1.0/local_current_time_in_seconds;
+				double local_speed_factor = local_double_speed/local_current_speed;
+				double local_common_factor = min(local_speed_factor,local_current_frame_rate);
 
-				if(local_main_dialog->get_command_terminate_application())
-				{
-					break;
-				}
-				{
-					local_string_speed = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_SPEED_state;				
-				}
-				double local_double_speed = _wtof(local_string_speed);
-				if(local_data_size_send!=0.0)
-				{
-					DWORD time_to_work = 1000;
-					double local_current_time_in_seconds = double(local_work_time)/1000.0;
-					double local_current_bits_send = (local_data_size_send*8.0);
-					double local_current_speed = local_current_bits_send/local_current_time_in_seconds;
-					double local_current_frame_rate = 1.0/local_current_time_in_seconds;
-					double local_speed_factor = local_double_speed/local_current_speed;
-					double local_common_factor = min(local_speed_factor,local_current_frame_rate);
+				time_to_work = DWORD(local_common_factor*local_work_time);
 
-					time_to_work = DWORD(local_common_factor*local_work_time);
+				DWORD time_to_sleep = 1000 - time_to_work;
 
-					DWORD time_to_sleep = 1000 - time_to_work;
-
-					Sleep(time_to_sleep);
-				}
+				Sleep(time_to_sleep);
 			}
 		}
 
@@ -17433,6 +18023,8 @@ UINT __cdecl datagram_retranslate_audio_connection_thread_ip_4(LPVOID parameter)
 
 	for(;;)
 	{
+		ULONGLONG local_start_time = GetTickCount64();
+
 		if(local_main_dialog->get_command_threads_retranslate_audio_stop())
 		{
 			break;
@@ -17536,9 +18128,14 @@ UINT __cdecl datagram_retranslate_audio_connection_thread_ip_4(LPVOID parameter)
 			continue;
 		}
 
+		STATSTG local_istream_statstg;
+		HRESULT local_stat_result = local_stream->Stat(&local_istream_statstg,STATFLAG::STATFLAG_DEFAULT);
+
+		double local_data_size_send = 0.0;
+
 		for(int peers_to_send_count_counter=0;peers_to_send_count_counter<peers_to_send_count;peers_to_send_count_counter++)
 		{
-			double local_data_size_send = 0.0;
+			//double local_data_size_send = 0.0;
 
 			if(local_main_dialog->get_command_terminate_application())
 			{
@@ -17710,10 +18307,10 @@ UINT __cdecl datagram_retranslate_audio_connection_thread_ip_4(LPVOID parameter)
 			break;
 			/*/
 
-			ULONGLONG local_start_time = GetTickCount64();
+			//ULONGLONG local_start_time = GetTickCount64();
 
-			STATSTG local_istream_statstg;
-			HRESULT local_stat_result = local_stream->Stat(&local_istream_statstg,STATFLAG::STATFLAG_DEFAULT);
+			//STATSTG local_istream_statstg;
+			//HRESULT local_stat_result = local_stream->Stat(&local_istream_statstg,STATFLAG::STATFLAG_DEFAULT);
 
 			/*/
 			//			“ест отображени€ из IStream
@@ -18104,69 +18701,140 @@ UINT __cdecl datagram_retranslate_audio_connection_thread_ip_4(LPVOID parameter)
 			//	local_stream->Release();
 			//}
 
-			ULONGLONG local_end_time = GetTickCount64();
+			//ULONGLONG local_end_time = GetTickCount64();
 
-			ULONGLONG local_work_time = local_end_time - local_start_time;
+			//ULONGLONG local_work_time = local_end_time - local_start_time;
 
-			if(local_main_dialog->get_command_threads_retranslate_audio_stop())
+			//if(local_main_dialog->get_command_threads_retranslate_audio_stop())
+			//{
+			//	break;
+			//}
+			//else
+			//{
+			//	Sleep(DWORD(1000.0/CONST_AUDIO_PACKETS_PER_SECOND));		//	CONST_AUDIO_PACKETS_PER_SECOND кадров в секунду
+
+			//	/*/
+			//	if(local_work_time>=1000)
+			//		Sleep(1);
+			//	else
+			//	{
+			//		HRESULT hr;
+
+			//		AM_MEDIA_TYPE mt;
+			//		ZeroMemory(&mt, sizeof(mt));
+
+			//		if(local_main_dialog->web_camera_dialog!=NULL)
+			//		{
+			//			CSingleLock lock(&local_main_dialog->delete_web_camera_dialog_critical_section);
+
+			//			lock.Lock();
+
+			//			hr = local_main_dialog->web_camera_dialog->pAudioGrabber->GetConnectedMediaType(&mt);
+
+			//			lock.Unlock();
+
+			//			if (SUCCEEDED(hr))
+			//			{
+			//				if(mt.formattype==FORMAT_WaveFormatEx)
+			//				{
+			//					WAVEFORMATEX *wave_format_ex = (WAVEFORMATEX *)mt.pbFormat;
+
+			//					if(wave_format_ex!=NULL)
+			//					{
+			//						ULONGLONG chunk_playing_time = 
+			//							1000 *
+			//							wave_format_ex->nAvgBytesPerSec/
+			//							wave_format_ex->nSamplesPerSec/
+			//							wave_format_ex->nChannels/
+			//							(wave_format_ex->wBitsPerSample>>3)/
+			//							wave_format_ex->nBlockAlign
+			//							;
+
+			//						if(chunk_playing_time>local_work_time)
+			//							Sleep(DWORD(chunk_playing_time-local_work_time));
+			//						else
+			//							Sleep(1);
+			//					}
+			//				}
+			//				_FreeMediaType(mt);	
+			//			}
+			//			else
+			//				Sleep(DWORD(1000.0/CONST_AUDIO_PACKETS_PER_SECOND));		//	CONST_AUDIO_PACKETS_PER_SECOND кадров в секунду
+			//		}
+			//	}
+			//	/*/
+			//}
+		}
+
+		ULONGLONG local_end_time = GetTickCount64();
+
+		ULONGLONG local_work_time = local_end_time - local_start_time;
+
+		if(local_main_dialog->get_command_threads_retranslate_audio_stop())
+		{
+			break;
+		}
+		else
+		{
 			{
-				break;
+				double local_factor = peers_to_send_count*(port_number_end_const-port_number_start_const+1);
+				if(local_factor==0.0)
+				{
+					local_factor = 1.0;
+				}
+				Sleep(DWORD(1000.0/CONST_AUDIO_PACKETS_PER_SECOND/local_factor));		//	CONST_AUDIO_PACKETS_PER_SECOND кадров в секунду
 			}
+
+			/*/
+			if(local_work_time>=1000)
+				Sleep(1);
 			else
 			{
-				Sleep(DWORD(1000.0/CONST_AUDIO_PACKETS_PER_SECOND));		//	CONST_AUDIO_PACKETS_PER_SECOND кадров в секунду
+				HRESULT hr;
 
-				/*/
-				if(local_work_time>=1000)
-					Sleep(1);
-				else
+				AM_MEDIA_TYPE mt;
+				ZeroMemory(&mt, sizeof(mt));
+
+				if(local_main_dialog->web_camera_dialog!=NULL)
 				{
-					HRESULT hr;
+					CSingleLock lock(&local_main_dialog->delete_web_camera_dialog_critical_section);
 
-					AM_MEDIA_TYPE mt;
-					ZeroMemory(&mt, sizeof(mt));
+					lock.Lock();
 
-					if(local_main_dialog->web_camera_dialog!=NULL)
+					hr = local_main_dialog->web_camera_dialog->pAudioGrabber->GetConnectedMediaType(&mt);
+
+					lock.Unlock();
+
+					if (SUCCEEDED(hr))
 					{
-						CSingleLock lock(&local_main_dialog->delete_web_camera_dialog_critical_section);
-
-						lock.Lock();
-
-						hr = local_main_dialog->web_camera_dialog->pAudioGrabber->GetConnectedMediaType(&mt);
-
-						lock.Unlock();
-
-						if (SUCCEEDED(hr))
+						if(mt.formattype==FORMAT_WaveFormatEx)
 						{
-							if(mt.formattype==FORMAT_WaveFormatEx)
+							WAVEFORMATEX *wave_format_ex = (WAVEFORMATEX *)mt.pbFormat;
+
+							if(wave_format_ex!=NULL)
 							{
-								WAVEFORMATEX *wave_format_ex = (WAVEFORMATEX *)mt.pbFormat;
+								ULONGLONG chunk_playing_time = 
+									1000 *
+									wave_format_ex->nAvgBytesPerSec/
+									wave_format_ex->nSamplesPerSec/
+									wave_format_ex->nChannels/
+									(wave_format_ex->wBitsPerSample>>3)/
+									wave_format_ex->nBlockAlign
+									;
 
-								if(wave_format_ex!=NULL)
-								{
-									ULONGLONG chunk_playing_time = 
-										1000 *
-										wave_format_ex->nAvgBytesPerSec/
-										wave_format_ex->nSamplesPerSec/
-										wave_format_ex->nChannels/
-										(wave_format_ex->wBitsPerSample>>3)/
-										wave_format_ex->nBlockAlign
-										;
-
-									if(chunk_playing_time>local_work_time)
-										Sleep(DWORD(chunk_playing_time-local_work_time));
-									else
-										Sleep(1);
-								}
+								if(chunk_playing_time>local_work_time)
+									Sleep(DWORD(chunk_playing_time-local_work_time));
+								else
+									Sleep(1);
 							}
-							_FreeMediaType(mt);	
 						}
-						else
-							Sleep(DWORD(1000.0/CONST_AUDIO_PACKETS_PER_SECOND));		//	CONST_AUDIO_PACKETS_PER_SECOND кадров в секунду
+						_FreeMediaType(mt);	
 					}
+					else
+						Sleep(DWORD(1000.0/CONST_AUDIO_PACKETS_PER_SECOND));		//	CONST_AUDIO_PACKETS_PER_SECOND кадров в секунду
 				}
-				/*/
 			}
+			/*/
 		}
 
 		if(local_main_dialog->get_command_threads_retranslate_audio_stop())
@@ -18298,6 +18966,8 @@ UINT __cdecl datagram_retranslate_audio_connection_thread_ip_6(LPVOID parameter)
 
 	for(;;)
 	{
+		ULONGLONG local_start_time = GetTickCount64();
+
 		if(local_main_dialog->get_command_threads_retranslate_audio_stop())
 		{
 			break;
@@ -18400,10 +19070,15 @@ UINT __cdecl datagram_retranslate_audio_connection_thread_ip_6(LPVOID parameter)
 			Sleep(10);
 			continue;
 		}
+			
+		STATSTG local_istream_statstg;
+		HRESULT local_stat_result = local_stream->Stat(&local_istream_statstg,STATFLAG::STATFLAG_DEFAULT);
+
+		double local_data_size_send = 0.0;
 
 		for(int peers_to_send_count_counter=0;peers_to_send_count_counter<peers_to_send_count;peers_to_send_count_counter++)
 		{
-			double local_data_size_send = 0.0;
+			//double local_data_size_send = 0.0;
 
 			if(local_main_dialog->get_command_terminate_application())
 			{
@@ -18541,10 +19216,10 @@ UINT __cdecl datagram_retranslate_audio_connection_thread_ip_6(LPVOID parameter)
 			//}
 
 
-			ULONGLONG local_start_time = GetTickCount64();
+			//ULONGLONG local_start_time = GetTickCount64();
 
-			STATSTG local_istream_statstg;
-			HRESULT local_stat_result = local_stream->Stat(&local_istream_statstg,STATFLAG::STATFLAG_DEFAULT);
+			//STATSTG local_istream_statstg;
+			//HRESULT local_stat_result = local_stream->Stat(&local_istream_statstg,STATFLAG::STATFLAG_DEFAULT);
 
 			/*/
 			//			“ест отображени€ из IStream
@@ -18935,69 +19610,140 @@ UINT __cdecl datagram_retranslate_audio_connection_thread_ip_6(LPVOID parameter)
 			//	local_stream->Release();
 			//}
 
-			ULONGLONG local_end_time = GetTickCount64();
+			//ULONGLONG local_end_time = GetTickCount64();
 
-			ULONGLONG local_work_time = local_end_time - local_start_time;
+			//ULONGLONG local_work_time = local_end_time - local_start_time;
 
-			if(local_main_dialog->get_command_threads_retranslate_audio_stop())
+			//if(local_main_dialog->get_command_threads_retranslate_audio_stop())
+			//{
+			//	break;
+			//}
+			//else
+			//{
+			//	Sleep(DWORD(1000.0/CONST_AUDIO_PACKETS_PER_SECOND));		//	CONST_AUDIO_PACKETS_PER_SECOND кадров в секунду
+
+			//	/*/
+			//	if(local_work_time>=1000)
+			//		Sleep(1);
+			//	else
+			//	{
+			//		HRESULT hr;
+
+			//		AM_MEDIA_TYPE mt;
+			//		ZeroMemory(&mt, sizeof(mt));
+
+			//		if(local_main_dialog->web_camera_dialog!=NULL)
+			//		{
+			//			CSingleLock lock(&local_main_dialog->delete_web_camera_dialog_critical_section);
+
+			//			lock.Lock();
+
+			//			hr = local_main_dialog->web_camera_dialog->pAudioGrabber->GetConnectedMediaType(&mt);
+
+			//			lock.Unlock();
+
+			//			if (SUCCEEDED(hr))
+			//			{
+			//				if(mt.formattype==FORMAT_WaveFormatEx)
+			//				{
+			//					WAVEFORMATEX *wave_format_ex = (WAVEFORMATEX *)mt.pbFormat;
+
+			//					if(wave_format_ex!=NULL)
+			//					{
+			//						ULONGLONG chunk_playing_time = 
+			//							1000 *
+			//							wave_format_ex->nAvgBytesPerSec/
+			//							wave_format_ex->nSamplesPerSec/
+			//							wave_format_ex->nChannels/
+			//							(wave_format_ex->wBitsPerSample>>3)/
+			//							wave_format_ex->nBlockAlign
+			//							;
+
+			//						if(chunk_playing_time>local_work_time)
+			//							Sleep(DWORD(chunk_playing_time-local_work_time));
+			//						else
+			//							Sleep(1);
+			//					}
+			//				}
+			//				_FreeMediaType(mt);	
+			//			}
+			//			else
+			//				Sleep(DWORD(1000.0/CONST_AUDIO_PACKETS_PER_SECOND));		//	CONST_AUDIO_PACKETS_PER_SECOND кадров в секунду
+			//		}
+			//	}
+			//	/*/
+			//}
+		}
+
+		ULONGLONG local_end_time = GetTickCount64();
+
+		ULONGLONG local_work_time = local_end_time - local_start_time;
+
+		if(local_main_dialog->get_command_threads_retranslate_audio_stop())
+		{
+			break;
+		}
+		else
+		{
 			{
-				break;
+				double local_factor = peers_to_send_count*(port_number_end_const-port_number_start_const+1);
+				if(local_factor==0.0)
+				{
+					local_factor = 1.0;
+				}
+				Sleep(DWORD(1000.0/CONST_AUDIO_PACKETS_PER_SECOND/local_factor));		//	CONST_AUDIO_PACKETS_PER_SECOND кадров в секунду
 			}
+
+			/*/
+			if(local_work_time>=1000)
+				Sleep(1);
 			else
 			{
-				Sleep(DWORD(1000.0/CONST_AUDIO_PACKETS_PER_SECOND));		//	CONST_AUDIO_PACKETS_PER_SECOND кадров в секунду
+				HRESULT hr;
 
-				/*/
-				if(local_work_time>=1000)
-					Sleep(1);
-				else
+				AM_MEDIA_TYPE mt;
+				ZeroMemory(&mt, sizeof(mt));
+
+				if(local_main_dialog->web_camera_dialog!=NULL)
 				{
-					HRESULT hr;
+					CSingleLock lock(&local_main_dialog->delete_web_camera_dialog_critical_section);
 
-					AM_MEDIA_TYPE mt;
-					ZeroMemory(&mt, sizeof(mt));
+					lock.Lock();
 
-					if(local_main_dialog->web_camera_dialog!=NULL)
+					hr = local_main_dialog->web_camera_dialog->pAudioGrabber->GetConnectedMediaType(&mt);
+
+					lock.Unlock();
+
+					if (SUCCEEDED(hr))
 					{
-						CSingleLock lock(&local_main_dialog->delete_web_camera_dialog_critical_section);
-
-						lock.Lock();
-
-						hr = local_main_dialog->web_camera_dialog->pAudioGrabber->GetConnectedMediaType(&mt);
-
-						lock.Unlock();
-
-						if (SUCCEEDED(hr))
+						if(mt.formattype==FORMAT_WaveFormatEx)
 						{
-							if(mt.formattype==FORMAT_WaveFormatEx)
+							WAVEFORMATEX *wave_format_ex = (WAVEFORMATEX *)mt.pbFormat;
+
+							if(wave_format_ex!=NULL)
 							{
-								WAVEFORMATEX *wave_format_ex = (WAVEFORMATEX *)mt.pbFormat;
+								ULONGLONG chunk_playing_time = 
+									1000 *
+									wave_format_ex->nAvgBytesPerSec/
+									wave_format_ex->nSamplesPerSec/
+									wave_format_ex->nChannels/
+									(wave_format_ex->wBitsPerSample>>3)/
+									wave_format_ex->nBlockAlign
+									;
 
-								if(wave_format_ex!=NULL)
-								{
-									ULONGLONG chunk_playing_time = 
-										1000 *
-										wave_format_ex->nAvgBytesPerSec/
-										wave_format_ex->nSamplesPerSec/
-										wave_format_ex->nChannels/
-										(wave_format_ex->wBitsPerSample>>3)/
-										wave_format_ex->nBlockAlign
-										;
-
-									if(chunk_playing_time>local_work_time)
-										Sleep(DWORD(chunk_playing_time-local_work_time));
-									else
-										Sleep(1);
-								}
+								if(chunk_playing_time>local_work_time)
+									Sleep(DWORD(chunk_playing_time-local_work_time));
+								else
+									Sleep(1);
 							}
-							_FreeMediaType(mt);	
 						}
-						else
-							Sleep(DWORD(1000.0/CONST_AUDIO_PACKETS_PER_SECOND));		//	CONST_AUDIO_PACKETS_PER_SECOND кадров в секунду
+						_FreeMediaType(mt);	
 					}
+					else
+						Sleep(DWORD(1000.0/CONST_AUDIO_PACKETS_PER_SECOND));		//	CONST_AUDIO_PACKETS_PER_SECOND кадров в секунду
 				}
-				/*/
 			}
+			/*/
 		}
 
 		if(local_main_dialog->get_command_threads_retranslate_audio_stop())

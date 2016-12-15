@@ -70,7 +70,9 @@ public:
 		double SampleTime;
 	};
 
-	std::list<Captured_Audio_Data_List_ITEM> audio_captured_fragments_list;
+	std::list<Captured_Audio_Data_List_ITEM> audio_captured_fragments_list_ip_4;
+
+	std::list<Captured_Audio_Data_List_ITEM> audio_captured_fragments_list_ip_6;
 
 	CCriticalSection audio_captured_fragments_list_critical_section;
 
@@ -119,7 +121,8 @@ void CaptureVideoSampleShot(CWebCameraPictureDialog *local_web_camera_dialog, CI
 void CaptureVideoSampleShotIntoStream(CWebCameraPictureDialog *local_web_camera_dialog, IStream **parameter_stream);
 
 void CaptureAudioSampleShot(CWebCameraPictureDialog *local_web_camera_dialog, IStream *parameter_audio_image);
-void CaptureAudioSampleGetFromTheList(CWebCameraPictureDialog *local_web_camera_dialog, IStream **parameter_audio_image);
+void CaptureAudioSampleGetFromTheList_ip_4(CWebCameraPictureDialog *local_web_camera_dialog, IStream **parameter_audio_image);
+void CaptureAudioSampleGetFromTheList_ip_6(CWebCameraPictureDialog *local_web_camera_dialog, IStream **parameter_audio_image);
 
 
 void _FreeMediaType(AM_MEDIA_TYPE& mt);

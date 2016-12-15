@@ -615,10 +615,15 @@ STDMETHODIMP CWebCameraPictureDialog::SampleCB( double SampleTime, IMediaSample 
 
 STDMETHODIMP CWebCameraPictureDialog::BufferCB( double SampleTime, BYTE *pBuffer, long BufferLen )
 {
-	Captured_Audio_Data_List_ITEM arrived_audio_data;
-	ZeroMemory(&arrived_audio_data,sizeof(Captured_Audio_Data_List_ITEM));
+	Captured_Audio_Data_List_ITEM arrived_audio_data_ip_4;
+	ZeroMemory(&arrived_audio_data_ip_4,sizeof(Captured_Audio_Data_List_ITEM));
 
-	arrived_audio_data.SampleTime = SampleTime;
+	arrived_audio_data_ip_4.SampleTime = SampleTime;
+
+	Captured_Audio_Data_List_ITEM arrived_audio_data_ip_6;
+	ZeroMemory(&arrived_audio_data_ip_6,sizeof(Captured_Audio_Data_List_ITEM));
+
+	arrived_audio_data_ip_6.SampleTime = SampleTime;
 
 	HRESULT hr = S_OK;
 
@@ -680,13 +685,29 @@ STDMETHODIMP CWebCameraPictureDialog::BufferCB( double SampleTime, BYTE *pBuffer
 
 						//local_wave.Save(L"c:\\temp\\cwave_source_BufferCB.wav");
 
-						HRESULT local_create_IStream_result = CreateStreamOnHGlobal ( 0 , TRUE , &arrived_audio_data.audio_stream );
+						HRESULT local_create_IStream_result = S_OK;
 
-						if(SUCCEEDED(local_create_IStream_result))
 						{
-							if(local_wave.Save(arrived_audio_data.audio_stream)==TRUE)
+							local_create_IStream_result = CreateStreamOnHGlobal ( 0 , TRUE , &arrived_audio_data_ip_4.audio_stream );
+
+							if(SUCCEEDED(local_create_IStream_result))
 							{
-								audio_captured_fragments_list.push_back(arrived_audio_data);
+								if(local_wave.Save(arrived_audio_data_ip_4.audio_stream)==TRUE)
+								{
+									audio_captured_fragments_list_ip_4.push_back(arrived_audio_data_ip_4);
+								}
+							}
+						}
+
+						{
+							local_create_IStream_result = CreateStreamOnHGlobal ( 0 , TRUE , &arrived_audio_data_ip_6.audio_stream );
+
+							if(SUCCEEDED(local_create_IStream_result))
+							{
+								if(local_wave.Save(arrived_audio_data_ip_6.audio_stream)==TRUE)
+								{
+									audio_captured_fragments_list_ip_6.push_back(arrived_audio_data_ip_6);
+								}
 							}
 						}
 
@@ -701,7 +722,7 @@ STDMETHODIMP CWebCameraPictureDialog::BufferCB( double SampleTime, BYTE *pBuffer
 	return hr;
 }
 
-void CaptureAudioSampleGetFromTheList(CWebCameraPictureDialog *local_web_camera_dialog, IStream **parameter_audio_image)
+void CaptureAudioSampleGetFromTheList_ip_4(CWebCameraPictureDialog *local_web_camera_dialog, IStream **parameter_audio_image)
 {
 	if(local_web_camera_dialog==NULL)
 	{
@@ -719,7 +740,7 @@ void CaptureAudioSampleGetFromTheList(CWebCameraPictureDialog *local_web_camera_
 
 		local_lock.Lock();
 
-		if(local_web_camera_dialog->audio_captured_fragments_list.size()==0)
+		if(local_web_camera_dialog->audio_captured_fragments_list_ip_4.size()==0)
 		{
 			Cstl_network_ip_4_ip_6_udp_engineDialog *local_main_dialog = (Cstl_network_ip_4_ip_6_udp_engineDialog*)local_web_camera_dialog->main_dialog;
 
@@ -740,21 +761,77 @@ void CaptureAudioSampleGetFromTheList(CWebCameraPictureDialog *local_web_camera_
 		}
 		else
 		{
-			if(local_web_camera_dialog->audio_captured_fragments_list.begin()!=local_web_camera_dialog->audio_captured_fragments_list.end())
+			if(local_web_camera_dialog->audio_captured_fragments_list_ip_4.begin()!=local_web_camera_dialog->audio_captured_fragments_list_ip_4.end())
 			{
-				CWebCameraPictureDialog::Captured_Audio_Data_List_ITEM local_item = *local_web_camera_dialog->audio_captured_fragments_list.begin();
+				CWebCameraPictureDialog::Captured_Audio_Data_List_ITEM local_item = *local_web_camera_dialog->audio_captured_fragments_list_ip_4.begin();
 
 				local_item.audio_stream->Clone(parameter_audio_image);
 
 				local_item.audio_stream->Release();
 
-				local_web_camera_dialog->audio_captured_fragments_list.pop_front();
+				local_web_camera_dialog->audio_captured_fragments_list_ip_4.pop_front();
 			}
 
 			break;
 		}
 	}
 }
+
+void CaptureAudioSampleGetFromTheList_ip_6(CWebCameraPictureDialog *local_web_camera_dialog, IStream **parameter_audio_image)
+{
+	if(local_web_camera_dialog==NULL)
+	{
+		return;
+	}
+
+	for(;;)
+	{
+		if(local_web_camera_dialog==NULL)
+		{
+			return;
+		}
+
+		CSingleLock local_lock(&local_web_camera_dialog->audio_captured_fragments_list_critical_section);
+
+		local_lock.Lock();
+
+		if(local_web_camera_dialog->audio_captured_fragments_list_ip_6.size()==0)
+		{
+			Cstl_network_ip_4_ip_6_udp_engineDialog *local_main_dialog = (Cstl_network_ip_4_ip_6_udp_engineDialog*)local_web_camera_dialog->main_dialog;
+
+			if(local_main_dialog==NULL)
+			{
+				return;
+			}
+
+			if(local_main_dialog->get_command_threads_audio_stop())
+			{
+				return;
+			}
+			else
+			{
+				Sleep(1);
+				continue;
+			}
+		}
+		else
+		{
+			if(local_web_camera_dialog->audio_captured_fragments_list_ip_6.begin()!=local_web_camera_dialog->audio_captured_fragments_list_ip_6.end())
+			{
+				CWebCameraPictureDialog::Captured_Audio_Data_List_ITEM local_item = *local_web_camera_dialog->audio_captured_fragments_list_ip_6.begin();
+
+				local_item.audio_stream->Clone(parameter_audio_image);
+
+				local_item.audio_stream->Release();
+
+				local_web_camera_dialog->audio_captured_fragments_list_ip_6.pop_front();
+			}
+
+			break;
+		}
+	}
+}
+
 
 HRESULT STDMETHODCALLTYPE CWebCameraPictureDialog::QueryInterface( 
 	/* [in] */ REFIID riid,

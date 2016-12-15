@@ -6232,6 +6232,23 @@ UINT __cdecl datagram_send_video_connection_thread_ip_4(LPVOID parameter)
 			}
 		}
 
+		CImage local_image;
+
+		CaptureScreenShot(&local_image);
+
+		CComPtr<IStream> local_stream;
+
+		HRESULT local_create_IStream_result = CreateStreamOnHGlobal ( 0 , TRUE , &local_stream );
+
+		try
+		{
+			HRESULT local_save_result = local_image.Save(local_stream, Gdiplus::ImageFormatPNG);
+		}
+		catch(...)
+		{
+			continue;
+		}
+
 		for(int peers_to_send_count_counter=0;peers_to_send_count_counter<peers_to_send_count;peers_to_send_count_counter++)
 		{
 			double local_data_size_send = 0.0;
@@ -6242,7 +6259,7 @@ UINT __cdecl datagram_send_video_connection_thread_ip_4(LPVOID parameter)
 			}
 
 #ifdef use_istream_DEFINITION
-			CImage local_image;
+			//CImage local_image;
 #endif
 
 			CString peer_to_send;
@@ -6289,10 +6306,10 @@ UINT __cdecl datagram_send_video_connection_thread_ip_4(LPVOID parameter)
 
 			//local_image_lock.Lock();
 #ifdef use_istream_DEFINITION
-			if(!local_image.IsNull())
-			{
-				local_image.Destroy();
-			}
+			//if(!local_image.IsNull())
+			//{
+			//	local_image.Destroy();
+			//}
 #endif
 
 			if(network::ip_4::domain_name_to_internet_4_name(local_address,local_address_internet_address)==false)
@@ -6345,20 +6362,20 @@ UINT __cdecl datagram_send_video_connection_thread_ip_4(LPVOID parameter)
 				continue;
 			}
 #ifdef use_istream_DEFINITION
-			CaptureScreenShot(&local_image);
+			//CaptureScreenShot(&local_image);
 
-			CComPtr<IStream> local_stream;
+			//CComPtr<IStream> local_stream;
 
-			HRESULT local_create_IStream_result = CreateStreamOnHGlobal ( 0 , TRUE , &local_stream );
+			//HRESULT local_create_IStream_result = CreateStreamOnHGlobal ( 0 , TRUE , &local_stream );
 
-			try
-			{
-				HRESULT local_save_result = local_image.Save(local_stream, Gdiplus::ImageFormatPNG);
-			}
-			catch(...)
-			{
-				continue;
-			}
+			//try
+			//{
+			//	HRESULT local_save_result = local_image.Save(local_stream, Gdiplus::ImageFormatPNG);
+			//}
+			//catch(...)
+			//{
+			//	continue;
+			//}
 #endif
 			//local_image_lock.Unlock();
 
@@ -6994,6 +7011,23 @@ UINT __cdecl datagram_send_video_connection_thread_ip_6(LPVOID parameter)
 
 		}
 
+		CImage local_image;
+
+		CaptureScreenShot(&local_image);
+
+		CComPtr<IStream> local_stream;
+
+		HRESULT local_create_IStream_result = CreateStreamOnHGlobal ( 0 , TRUE , &local_stream );
+
+		try
+		{
+			HRESULT local_save_result = local_image.Save(local_stream, Gdiplus::ImageFormatPNG);
+		}
+		catch(...)
+		{
+			continue;
+		}
+
 		for(int peers_to_send_count_counter=0;peers_to_send_count_counter<peers_to_send_count;peers_to_send_count_counter++)
 		{
 			double local_data_size_send = 0.0;
@@ -7004,7 +7038,7 @@ UINT __cdecl datagram_send_video_connection_thread_ip_6(LPVOID parameter)
 			}
 
 #ifdef use_istream_DEFINITION
-			CImage local_image;
+			//CImage local_image;
 #endif
 
 			CString peer_to_send;
@@ -7051,10 +7085,10 @@ UINT __cdecl datagram_send_video_connection_thread_ip_6(LPVOID parameter)
 
 			//local_image_lock.Lock();
 #ifdef use_istream_DEFINITION
-			if(!local_image.IsNull())
-			{
-				local_image.Destroy();
-			}
+			//if(!local_image.IsNull())
+			//{
+			//	local_image.Destroy();
+			//}
 #endif
 
 			if(network::ip_6::domain_name_to_internet_6_name(local_address,local_address_internet_address)==false)
@@ -7107,20 +7141,20 @@ UINT __cdecl datagram_send_video_connection_thread_ip_6(LPVOID parameter)
 				continue;
 			}
 #ifdef use_istream_DEFINITION
-			CaptureScreenShot(&local_image);
+			//CaptureScreenShot(&local_image);
 
-			CComPtr<IStream> local_stream;
+			//CComPtr<IStream> local_stream;
 
-			HRESULT local_create_IStream_result = CreateStreamOnHGlobal ( 0 , TRUE , &local_stream );
+			//HRESULT local_create_IStream_result = CreateStreamOnHGlobal ( 0 , TRUE , &local_stream );
 
-			try
-			{
-				HRESULT local_save_result = local_image.Save(local_stream, Gdiplus::ImageFormatPNG);
-			}
-			catch(...)
-			{
-				continue;
-			}
+			//try
+			//{
+			//	HRESULT local_save_result = local_image.Save(local_stream, Gdiplus::ImageFormatPNG);
+			//}
+			//catch(...)
+			//{
+			//	continue;
+			//}
 #endif
 			//local_image_lock.Unlock();
 
@@ -7926,6 +7960,31 @@ UINT __cdecl datagram_send_web_camera_video_connection_thread_ip_4(LPVOID parame
 
 		}
 
+		CImage local_image;
+
+		if(local_main_dialog->web_camera_dialog!=NULL)
+		{
+			CSingleLock lock(&local_main_dialog->delete_web_camera_dialog_critical_section);
+
+			lock.Lock();
+
+			//CaptureWndShot(local_main_dialog->web_camera_dialog->m_hWnd,&local_image,ENGINE_WINDOWS_SIZE_CX/2,ENGINE_WINDOWS_SIZE_CY/2);
+			CaptureVideoSampleShot(local_main_dialog->web_camera_dialog,&local_image);
+		}
+
+		CComPtr<IStream> local_stream;
+
+		HRESULT local_create_IStream_result = CreateStreamOnHGlobal ( 0 , TRUE , &local_stream );
+
+		try
+		{
+			HRESULT local_save_result = local_image.Save(local_stream, Gdiplus::ImageFormatJPEG);
+		}
+		catch(...)
+		{
+			continue;
+		}
+
 		for(int peers_to_send_count_counter=0;peers_to_send_count_counter<peers_to_send_count;peers_to_send_count_counter++)
 		{
 			double local_data_size_send = 0.0;
@@ -7936,7 +7995,7 @@ UINT __cdecl datagram_send_web_camera_video_connection_thread_ip_4(LPVOID parame
 			}
 
 #ifdef use_istream_DEFINITION
-			CImage local_image;
+//			CImage local_image;
 #endif
 
 			CString peer_to_send;
@@ -7983,10 +8042,10 @@ UINT __cdecl datagram_send_web_camera_video_connection_thread_ip_4(LPVOID parame
 
 			//local_image_lock.Lock();
 #ifdef use_istream_DEFINITION
-			if(!local_image.IsNull())
-			{
-				local_image.Destroy();
-			}
+//			if(!local_image.IsNull())
+//			{
+//				local_image.Destroy();
+//			}
 #endif
 
 
@@ -8041,28 +8100,28 @@ UINT __cdecl datagram_send_web_camera_video_connection_thread_ip_4(LPVOID parame
 			}
 
 #ifdef use_istream_DEFINITION
-			if(local_main_dialog->web_camera_dialog!=NULL)
-			{
-				CSingleLock lock(&local_main_dialog->delete_web_camera_dialog_critical_section);
+			//if(local_main_dialog->web_camera_dialog!=NULL)
+			//{
+			//	CSingleLock lock(&local_main_dialog->delete_web_camera_dialog_critical_section);
 
-				lock.Lock();
+			//	lock.Lock();
 
-				//CaptureWndShot(local_main_dialog->web_camera_dialog->m_hWnd,&local_image,ENGINE_WINDOWS_SIZE_CX/2,ENGINE_WINDOWS_SIZE_CY/2);
-				CaptureVideoSampleShot(local_main_dialog->web_camera_dialog,&local_image);
-			}
+			//	//CaptureWndShot(local_main_dialog->web_camera_dialog->m_hWnd,&local_image,ENGINE_WINDOWS_SIZE_CX/2,ENGINE_WINDOWS_SIZE_CY/2);
+			//	CaptureVideoSampleShot(local_main_dialog->web_camera_dialog,&local_image);
+			//}
 
-			CComPtr<IStream> local_stream;
+			//CComPtr<IStream> local_stream;
 
-			HRESULT local_create_IStream_result = CreateStreamOnHGlobal ( 0 , TRUE , &local_stream );
+			//HRESULT local_create_IStream_result = CreateStreamOnHGlobal ( 0 , TRUE , &local_stream );
 
-			try
-			{
-				HRESULT local_save_result = local_image.Save(local_stream, Gdiplus::ImageFormatJPEG);
-			}
-			catch(...)
-			{
-				continue;
-			}
+			//try
+			//{
+			//	HRESULT local_save_result = local_image.Save(local_stream, Gdiplus::ImageFormatJPEG);
+			//}
+			//catch(...)
+			//{
+			//	continue;
+			//}
 #endif
 			//local_image_lock.Unlock();
 
@@ -8699,6 +8758,31 @@ UINT __cdecl datagram_send_web_camera_video_connection_thread_ip_6(LPVOID parame
 
 		}
 
+		CImage local_image;
+
+		if(local_main_dialog->web_camera_dialog!=NULL)
+		{
+			CSingleLock lock(&local_main_dialog->delete_web_camera_dialog_critical_section);
+
+			lock.Lock();
+
+			//CaptureWndShot(local_main_dialog->web_camera_dialog->m_hWnd,&local_image,ENGINE_WINDOWS_SIZE_CX/2,ENGINE_WINDOWS_SIZE_CY/2);
+			CaptureVideoSampleShot(local_main_dialog->web_camera_dialog,&local_image);
+		}
+
+		CComPtr<IStream> local_stream;
+
+		HRESULT local_create_IStream_result = CreateStreamOnHGlobal ( 0 , TRUE , &local_stream );
+
+		try
+		{
+			HRESULT local_save_result = local_image.Save(local_stream, Gdiplus::ImageFormatJPEG);
+		}
+		catch(...)
+		{
+			continue;
+		}
+
 		for(int peers_to_send_count_counter=0;peers_to_send_count_counter<peers_to_send_count;peers_to_send_count_counter++)
 		{
 			double local_data_size_send = 0.0;
@@ -8709,7 +8793,7 @@ UINT __cdecl datagram_send_web_camera_video_connection_thread_ip_6(LPVOID parame
 			}
 
 #ifdef use_istream_DEFINITION
-			CImage local_image;
+//			CImage local_image;
 #endif
 
 			CString peer_to_send;
@@ -8756,10 +8840,10 @@ UINT __cdecl datagram_send_web_camera_video_connection_thread_ip_6(LPVOID parame
 
 			//local_image_lock.Lock();
 #ifdef use_istream_DEFINITION
-			if(!local_image.IsNull())
-			{
-				local_image.Destroy();
-			}
+			//if(!local_image.IsNull())
+			//{
+			//	local_image.Destroy();
+			//}
 #endif
 
 			if(network::ip_6::domain_name_to_internet_6_name(local_address,local_address_internet_address)==false)
@@ -8813,28 +8897,28 @@ UINT __cdecl datagram_send_web_camera_video_connection_thread_ip_6(LPVOID parame
 			}
 
 #ifdef use_istream_DEFINITION
-			if(local_main_dialog->web_camera_dialog!=NULL)
-			{
-				CSingleLock lock(&local_main_dialog->delete_web_camera_dialog_critical_section);
+			//if(local_main_dialog->web_camera_dialog!=NULL)
+			//{
+			//	CSingleLock lock(&local_main_dialog->delete_web_camera_dialog_critical_section);
 
-				lock.Lock();
+			//	lock.Lock();
 
-				//CaptureWndShot(local_main_dialog->web_camera_dialog->m_hWnd,&local_image,ENGINE_WINDOWS_SIZE_CX/2,ENGINE_WINDOWS_SIZE_CY/2);
-				CaptureVideoSampleShot(local_main_dialog->web_camera_dialog,&local_image);
-			}
+			//	//CaptureWndShot(local_main_dialog->web_camera_dialog->m_hWnd,&local_image,ENGINE_WINDOWS_SIZE_CX/2,ENGINE_WINDOWS_SIZE_CY/2);
+			//	CaptureVideoSampleShot(local_main_dialog->web_camera_dialog,&local_image);
+			//}
 
-			CComPtr<IStream> local_stream;
+			//CComPtr<IStream> local_stream;
 
-			HRESULT local_create_IStream_result = CreateStreamOnHGlobal ( 0 , TRUE , &local_stream );
+			//HRESULT local_create_IStream_result = CreateStreamOnHGlobal ( 0 , TRUE , &local_stream );
 
-			try
-			{
-				HRESULT local_save_result = local_image.Save(local_stream, Gdiplus::ImageFormatJPEG);
-			}
-			catch(...)
-			{
-				continue;
-			}
+			//try
+			//{
+			//	HRESULT local_save_result = local_image.Save(local_stream, Gdiplus::ImageFormatJPEG);
+			//}
+			//catch(...)
+			//{
+			//	continue;
+			//}
 #endif
 			//local_image_lock.Unlock();
 
@@ -9958,6 +10042,23 @@ UINT __cdecl datagram_send_audio_connection_thread_ip_4(LPVOID parameter)
 
 		}
 
+		CComPtr<IStream> local_stream;
+
+		if(local_main_dialog->web_camera_dialog!=NULL)
+		{
+			CSingleLock lock(&local_main_dialog->delete_web_camera_dialog_critical_section);
+
+			lock.Lock();
+		
+			CaptureAudioSampleGetFromTheList(local_main_dialog->web_camera_dialog,&local_stream);
+		}
+
+		if(local_stream==NULL)
+		{
+			Sleep(10);
+			continue;
+		}
+
 		for(int peers_to_send_count_counter=0;peers_to_send_count_counter<peers_to_send_count;peers_to_send_count_counter++)
 		{
 			double local_data_size_send = 0.0;
@@ -9968,7 +10069,7 @@ UINT __cdecl datagram_send_audio_connection_thread_ip_4(LPVOID parameter)
 			}
 
 #ifdef use_istream_DEFINITION
-			IStream * local_stream = NULL;
+			//IStream * local_stream = NULL;
 #endif
 
 			CString peer_to_send;
@@ -10011,9 +10112,9 @@ UINT __cdecl datagram_send_audio_connection_thread_ip_4(LPVOID parameter)
 
 			//	Здесь делаем снимок экрана
 
-			CSingleLock local_image_lock(&local_main_dialog->draw_audio_image_critical_section);
+			//CSingleLock local_image_lock(&local_main_dialog->draw_audio_image_critical_section);
 
-			local_image_lock.Lock();
+			//local_image_lock.Lock();
 #ifdef use_istream_DEFINITION
 #endif
 
@@ -10067,38 +10168,38 @@ UINT __cdecl datagram_send_audio_connection_thread_ip_4(LPVOID parameter)
 				continue;
 			}
 #ifdef use_istream_DEFINITION
-			if(local_main_dialog->web_camera_dialog!=NULL)
-			{
-				CSingleLock lock(&local_main_dialog->delete_web_camera_dialog_critical_section);
+			//if(local_main_dialog->web_camera_dialog!=NULL)
+			//{
+			//	CSingleLock lock(&local_main_dialog->delete_web_camera_dialog_critical_section);
 
-				lock.Lock();
+			//	lock.Lock();
 
-				local_stream = NULL;
+			//	//local_stream = NULL;
 
-				//ULARGE_INTEGER zero_size = {0,0};
+			//	//ULARGE_INTEGER zero_size = {0,0};
 
-				//local_stream->SetSize(zero_size);
+			//	//local_stream->SetSize(zero_size);
 
-				//LARGE_INTEGER liBeggining = { 0 };
+			//	//LARGE_INTEGER liBeggining = { 0 };
 
-				//local_stream->Seek(liBeggining, STREAM_SEEK_SET, NULL);
+			//	//local_stream->Seek(liBeggining, STREAM_SEEK_SET, NULL);
 
-				//CaptureAudioSampleShot(local_main_dialog->web_camera_dialog,local_stream);
-				CaptureAudioSampleGetFromTheList(local_main_dialog->web_camera_dialog,&local_stream);
+			//	//CaptureAudioSampleShot(local_main_dialog->web_camera_dialog,local_stream);
+			//	CaptureAudioSampleGetFromTheList(local_main_dialog->web_camera_dialog,&local_stream);
 
-				if(local_stream==NULL)
-				{
-					continue;
-				}
-			}
+			//	//if(local_stream==NULL)
+			//	//{
+			//	//	continue;
+			//	//}
+			//}
 
 #endif
-			local_image_lock.Unlock();
+			//local_image_lock.Unlock();
 
-			if(local_stream==NULL)
-			{
-				continue;
-			}
+			//if(local_stream==NULL)
+			//{
+			//	continue;
+			//}
 
 			/*/
 			//	Здесь воспроизводится аудио сампле
@@ -10270,10 +10371,10 @@ UINT __cdecl datagram_send_audio_connection_thread_ip_4(LPVOID parameter)
 						}
 					}
 
-					if(local_stream!=NULL)
-					{
-						local_stream->Release();
-					}
+					//if(local_stream!=NULL)
+					//{
+					//	local_stream->Release();
+					//}
 
 					delete[] send_buffer;
 					delete[] send_buffer_this_time;
@@ -10522,10 +10623,10 @@ UINT __cdecl datagram_send_audio_connection_thread_ip_4(LPVOID parameter)
 				}
 			}
 
-			if(local_stream!=NULL)
-			{
-				local_stream->Release();
-			}
+			//if(local_stream!=NULL)
+			//{
+			//	local_stream->Release();
+			//}
 
 			ULONGLONG local_end_time = GetTickCount64();
 
@@ -10798,6 +10899,23 @@ UINT __cdecl datagram_send_audio_connection_thread_ip_6(LPVOID parameter)
 
 		}
 
+		CComPtr<IStream> local_stream;
+
+		if(local_main_dialog->web_camera_dialog!=NULL)
+		{
+			CSingleLock lock(&local_main_dialog->delete_web_camera_dialog_critical_section);
+
+			lock.Lock();
+		
+			CaptureAudioSampleGetFromTheList(local_main_dialog->web_camera_dialog,&local_stream);
+		}
+
+		if(local_stream==NULL)
+		{
+			Sleep(10);
+			continue;
+		}
+
 		for(int peers_to_send_count_counter=0;peers_to_send_count_counter<peers_to_send_count;peers_to_send_count_counter++)
 		{
 			double local_data_size_send = 0.0;
@@ -10808,7 +10926,7 @@ UINT __cdecl datagram_send_audio_connection_thread_ip_6(LPVOID parameter)
 			}
 
 #ifdef use_istream_DEFINITION
-			IStream *local_stream = NULL;
+			//IStream *local_stream = NULL;
 #endif
 
 			CString peer_to_send;
@@ -10851,9 +10969,9 @@ UINT __cdecl datagram_send_audio_connection_thread_ip_6(LPVOID parameter)
 
 			//	Здесь делаем снимок экрана
 
-			CSingleLock local_image_lock(&local_main_dialog->draw_audio_image_critical_section);
+			//CSingleLock local_image_lock(&local_main_dialog->draw_audio_image_critical_section);
 
-			local_image_lock.Lock();
+			//local_image_lock.Lock();
 
 			if(network::ip_6::domain_name_to_internet_6_name(local_address,local_address_internet_address)==false)
 			{
@@ -10905,38 +11023,38 @@ UINT __cdecl datagram_send_audio_connection_thread_ip_6(LPVOID parameter)
 				continue;
 			}
 #ifdef use_istream_DEFINITION
-			if(local_main_dialog->web_camera_dialog!=NULL)
-			{
-				CSingleLock lock(&local_main_dialog->delete_web_camera_dialog_critical_section);
+			//if(local_main_dialog->web_camera_dialog!=NULL)
+			//{
+			//	CSingleLock lock(&local_main_dialog->delete_web_camera_dialog_critical_section);
 
-				lock.Lock();
+			//	lock.Lock();
 
-				local_stream = NULL;
+			//	local_stream = NULL;
 
-				//ULARGE_INTEGER zero_size = {0,0};
+			//	//ULARGE_INTEGER zero_size = {0,0};
 
-				//local_stream->SetSize(zero_size);
+			//	//local_stream->SetSize(zero_size);
 
-				//LARGE_INTEGER liBeggining = { 0 };
+			//	//LARGE_INTEGER liBeggining = { 0 };
 
-				//local_stream->Seek(liBeggining, STREAM_SEEK_SET, NULL);
+			//	//local_stream->Seek(liBeggining, STREAM_SEEK_SET, NULL);
 
-				//CaptureAudioSampleShot(local_main_dialog->web_camera_dialog,local_stream);
-				CaptureAudioSampleGetFromTheList(local_main_dialog->web_camera_dialog,&local_stream);
+			//	//CaptureAudioSampleShot(local_main_dialog->web_camera_dialog,local_stream);
+			//	CaptureAudioSampleGetFromTheList(local_main_dialog->web_camera_dialog,&local_stream);
 
-				if(local_stream==NULL)
-				{
-					continue;
-				}
-			}
+			//	if(local_stream==NULL)
+			//	{
+			//		continue;
+			//	}
+			//}
 
 #endif
-			local_image_lock.Unlock();
+			//local_image_lock.Unlock();
 
-			if(local_stream==NULL)
-			{
-				continue;
-			}
+			//if(local_stream==NULL)
+			//{
+			//	continue;
+			//}
 
 
 			ULONGLONG local_start_time = GetTickCount64();
@@ -11076,10 +11194,10 @@ UINT __cdecl datagram_send_audio_connection_thread_ip_6(LPVOID parameter)
 						}
 					}
 
-					if(local_stream!=NULL)
-					{
-						local_stream->Release();
-					}
+					//if(local_stream!=NULL)
+					//{
+					//	local_stream->Release();
+					//}
 
 					delete[] send_buffer;
 					delete[] send_buffer_this_time;
@@ -11328,10 +11446,10 @@ UINT __cdecl datagram_send_audio_connection_thread_ip_6(LPVOID parameter)
 				}
 			}
 
-			if(local_stream!=NULL)
-			{
-				local_stream->Release();
-			}
+			//if(local_stream!=NULL)
+			//{
+			//	local_stream->Release();
+			//}
 
 			ULONGLONG local_end_time = GetTickCount64();
 
@@ -14071,6 +14189,12 @@ UINT __cdecl datagram_retranslate_video_connection_thread_ip_4(LPVOID parameter)
 			local_main_dialog->retranslate_video_frames_ip_4.pop_front();
 		}
 
+		if(local_stream==NULL)
+		{
+			Sleep(10);
+			continue;
+		}
+
 		for(int peers_to_send_count_counter=0;peers_to_send_count_counter<peers_to_send_count;peers_to_send_count_counter++)
 		{
 			double local_data_size_send = 0.0;
@@ -14866,6 +14990,12 @@ UINT __cdecl datagram_retranslate_video_connection_thread_ip_6(LPVOID parameter)
 			local_frames_iterator->stream->Clone(&local_stream);
 
 			local_main_dialog->retranslate_video_frames_ip_6.pop_front();
+		}
+
+		if(local_stream==NULL)
+		{
+			Sleep(10);
+			continue;
 		}
 
 		for(int peers_to_send_count_counter=0;peers_to_send_count_counter<peers_to_send_count;peers_to_send_count_counter++)
@@ -15727,6 +15857,12 @@ UINT __cdecl datagram_retranslate_web_camera_video_connection_thread_ip_4(LPVOID
 			local_main_dialog->retranslate_web_camera_video_frames_ip_4.pop_front();
 		}
 
+		if(local_stream==NULL)
+		{
+			Sleep(10);
+			continue;
+		}
+
 		for(int peers_to_send_count_counter=0;peers_to_send_count_counter<peers_to_send_count;peers_to_send_count_counter++)
 		{
 			double local_data_size_send = 0.0;
@@ -16516,6 +16652,12 @@ UINT __cdecl datagram_retranslate_web_camera_video_connection_thread_ip_6(LPVOID
 			local_main_dialog->retranslate_web_camera_video_frames_ip_6.pop_front();
 		}
 
+		if(local_stream==NULL)
+		{
+			Sleep(10);
+			continue;
+		}
+
 		for(int peers_to_send_count_counter=0;peers_to_send_count_counter<peers_to_send_count;peers_to_send_count_counter++)
 		{
 			double local_data_size_send = 0.0;
@@ -17203,7 +17345,7 @@ UINT __cdecl datagram_retranslate_audio_connection_thread(LPVOID parameter)
 
 
 
-//	send audio
+//	retranslate audio
 
 UINT __cdecl datagram_retranslate_audio_connection_thread_ip_4(LPVOID parameter)
 {
@@ -17372,6 +17514,28 @@ UINT __cdecl datagram_retranslate_audio_connection_thread_ip_4(LPVOID parameter)
 
 		}
 
+		CComPtr<IStream> local_stream;
+
+		if(local_main_dialog->retranslate_microphone_frames_ip_4.size()==0)
+		{
+			Sleep(10);
+			continue;
+		}
+		else
+		{
+			std::list<STREAM_INFORMATION>::iterator local_frames_iterator = local_main_dialog->retranslate_microphone_frames_ip_4.begin();
+
+			local_frames_iterator->stream->Clone(&local_stream);
+
+			local_main_dialog->retranslate_microphone_frames_ip_4.pop_front();
+		}
+
+		if(local_stream==NULL)
+		{
+			Sleep(10);
+			continue;
+		}
+
 		for(int peers_to_send_count_counter=0;peers_to_send_count_counter<peers_to_send_count;peers_to_send_count_counter++)
 		{
 			double local_data_size_send = 0.0;
@@ -17382,7 +17546,7 @@ UINT __cdecl datagram_retranslate_audio_connection_thread_ip_4(LPVOID parameter)
 			}
 
 #ifdef use_istream_DEFINITION
-			IStream * local_stream = NULL;
+			//IStream * local_stream = NULL;
 #endif
 
 			CString peer_to_send;
@@ -17425,9 +17589,9 @@ UINT __cdecl datagram_retranslate_audio_connection_thread_ip_4(LPVOID parameter)
 
 			//	Здесь делаем снимок экрана
 
-			CSingleLock local_image_lock(&local_main_dialog->draw_audio_image_critical_section);
+			//CSingleLock local_image_lock(&local_main_dialog->draw_audio_image_critical_section);
 
-			local_image_lock.Lock();
+			//local_image_lock.Lock();
 #ifdef use_istream_DEFINITION
 #endif
 
@@ -17487,7 +17651,7 @@ UINT __cdecl datagram_retranslate_audio_connection_thread_ip_4(LPVOID parameter)
 
 			//	lock.Lock();
 
-				local_stream = NULL;
+			//	local_stream = NULL;
 
 			//	//ULARGE_INTEGER zero_size = {0,0};
 
@@ -17505,28 +17669,13 @@ UINT __cdecl datagram_retranslate_audio_connection_thread_ip_4(LPVOID parameter)
 			//		continue;
 			//	}
 			//}
-
-			if(local_main_dialog->retranslate_microphone_frames_ip_4.size()==0)
-			{
-				Sleep(10);
-				continue;
-			}
-			else
-			{
-				std::list<STREAM_INFORMATION>::iterator local_frames_iterator = local_main_dialog->retranslate_microphone_frames_ip_4.begin();
-
-				local_frames_iterator->stream->Clone(&local_stream);
-
-				local_main_dialog->retranslate_microphone_frames_ip_4.pop_front();
-			}
-
 #endif
-			local_image_lock.Unlock();
+			//local_image_lock.Unlock();
 
-			if(local_stream==NULL)
-			{
-				continue;
-			}
+			//if(local_stream==NULL)
+			//{
+			//	continue;
+			//}
 
 			/*/
 			//	Здесь воспроизводится аудио сампле
@@ -17698,10 +17847,10 @@ UINT __cdecl datagram_retranslate_audio_connection_thread_ip_4(LPVOID parameter)
 						}
 					}
 
-					if(local_stream!=NULL)
-					{
-						local_stream->Release();
-					}
+					//if(local_stream!=NULL)
+					//{
+					//	local_stream->Release();
+					//}
 
 					delete[] send_buffer;
 					delete[] send_buffer_this_time;
@@ -17950,10 +18099,10 @@ UINT __cdecl datagram_retranslate_audio_connection_thread_ip_4(LPVOID parameter)
 				}
 			}
 
-			if(local_stream!=NULL)
-			{
-				local_stream->Release();
-			}
+			//if(local_stream!=NULL)
+			//{
+			//	local_stream->Release();
+			//}
 
 			ULONGLONG local_end_time = GetTickCount64();
 
@@ -17965,6 +18114,9 @@ UINT __cdecl datagram_retranslate_audio_connection_thread_ip_4(LPVOID parameter)
 			}
 			else
 			{
+				Sleep(DWORD(1000.0/CONST_AUDIO_PACKETS_PER_SECOND));		//	CONST_AUDIO_PACKETS_PER_SECOND кадров в секунду
+
+				/*/
 				if(local_work_time>=1000)
 					Sleep(1);
 				else
@@ -18013,6 +18165,7 @@ UINT __cdecl datagram_retranslate_audio_connection_thread_ip_4(LPVOID parameter)
 							Sleep(DWORD(1000.0/CONST_AUDIO_PACKETS_PER_SECOND));		//	CONST_AUDIO_PACKETS_PER_SECOND кадров в секунду
 					}
 				}
+				/*/
 			}
 		}
 
@@ -18226,6 +18379,28 @@ UINT __cdecl datagram_retranslate_audio_connection_thread_ip_6(LPVOID parameter)
 
 		}
 
+		CComPtr<IStream> local_stream;
+
+		if(local_main_dialog->retranslate_microphone_frames_ip_6.size()==0)
+		{
+			Sleep(10);
+			continue;
+		}
+		else
+		{
+			std::list<STREAM_INFORMATION>::iterator local_frames_iterator = local_main_dialog->retranslate_microphone_frames_ip_6.begin();
+
+			local_frames_iterator->stream->Clone(&local_stream);
+
+			local_main_dialog->retranslate_microphone_frames_ip_6.pop_front();
+		}
+
+		if(local_stream==NULL)
+		{
+			Sleep(10);
+			continue;
+		}
+
 		for(int peers_to_send_count_counter=0;peers_to_send_count_counter<peers_to_send_count;peers_to_send_count_counter++)
 		{
 			double local_data_size_send = 0.0;
@@ -18236,7 +18411,7 @@ UINT __cdecl datagram_retranslate_audio_connection_thread_ip_6(LPVOID parameter)
 			}
 
 #ifdef use_istream_DEFINITION
-			IStream *local_stream = NULL;
+			//IStream *local_stream = NULL;
 #endif
 
 			CString peer_to_send;
@@ -18279,9 +18454,9 @@ UINT __cdecl datagram_retranslate_audio_connection_thread_ip_6(LPVOID parameter)
 
 			//	Здесь делаем снимок экрана
 
-			CSingleLock local_image_lock(&local_main_dialog->draw_audio_image_critical_section);
+			//CSingleLock local_image_lock(&local_main_dialog->draw_audio_image_critical_section);
 
-			local_image_lock.Lock();
+			//local_image_lock.Lock();
 
 			if(network::ip_6::domain_name_to_internet_6_name(local_address,local_address_internet_address)==false)
 			{
@@ -18339,7 +18514,7 @@ UINT __cdecl datagram_retranslate_audio_connection_thread_ip_6(LPVOID parameter)
 
 			//	lock.Lock();
 
-				local_stream = NULL;
+			//	local_stream = NULL;
 
 			//	//ULARGE_INTEGER zero_size = {0,0};
 
@@ -18357,28 +18532,13 @@ UINT __cdecl datagram_retranslate_audio_connection_thread_ip_6(LPVOID parameter)
 			//		continue;
 			//	}
 			//}
-
-			if(local_main_dialog->retranslate_microphone_frames_ip_6.size()==0)
-			{
-				Sleep(10);
-				continue;
-			}
-			else
-			{
-				std::list<STREAM_INFORMATION>::iterator local_frames_iterator = local_main_dialog->retranslate_microphone_frames_ip_6.begin();
-
-				local_frames_iterator->stream->Clone(&local_stream);
-
-				local_main_dialog->retranslate_microphone_frames_ip_6.pop_front();
-			}
-
 #endif
-			local_image_lock.Unlock();
+			//local_image_lock.Unlock();
 
-			if(local_stream==NULL)
-			{
-				continue;
-			}
+			//if(local_stream==NULL)
+			//{
+			//	continue;
+			//}
 
 
 			ULONGLONG local_start_time = GetTickCount64();
@@ -18518,10 +18678,10 @@ UINT __cdecl datagram_retranslate_audio_connection_thread_ip_6(LPVOID parameter)
 						}
 					}
 
-					if(local_stream!=NULL)
-					{
-						local_stream->Release();
-					}
+					//if(local_stream!=NULL)
+					//{
+					//	local_stream->Release();
+					//}
 
 					delete[] send_buffer;
 					delete[] send_buffer_this_time;
@@ -18770,10 +18930,10 @@ UINT __cdecl datagram_retranslate_audio_connection_thread_ip_6(LPVOID parameter)
 				}
 			}
 
-			if(local_stream!=NULL)
-			{
-				local_stream->Release();
-			}
+			//if(local_stream!=NULL)
+			//{
+			//	local_stream->Release();
+			//}
 
 			ULONGLONG local_end_time = GetTickCount64();
 
@@ -18785,6 +18945,9 @@ UINT __cdecl datagram_retranslate_audio_connection_thread_ip_6(LPVOID parameter)
 			}
 			else
 			{
+				Sleep(DWORD(1000.0/CONST_AUDIO_PACKETS_PER_SECOND));		//	CONST_AUDIO_PACKETS_PER_SECOND кадров в секунду
+
+				/*/
 				if(local_work_time>=1000)
 					Sleep(1);
 				else
@@ -18833,6 +18996,7 @@ UINT __cdecl datagram_retranslate_audio_connection_thread_ip_6(LPVOID parameter)
 							Sleep(DWORD(1000.0/CONST_AUDIO_PACKETS_PER_SECOND));		//	CONST_AUDIO_PACKETS_PER_SECOND кадров в секунду
 					}
 				}
+				/*/
 			}
 		}
 

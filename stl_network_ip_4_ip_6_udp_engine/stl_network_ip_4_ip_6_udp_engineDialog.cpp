@@ -2869,41 +2869,53 @@ UINT __cdecl stop_waiting_thread(LPVOID parameter)
 	{
 		CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
 
+		local_lock.Lock();
 
-		for
-			(
-			std::list<THREADS_INFORMATION>::iterator local_threads_iterator=local_main_dialog->threads_list.begin();
-		;
-		)
+		size_t local_list_size = local_main_dialog->threads_list.size();
+
+		local_lock.Unlock();
+
+		std::list<THREADS_INFORMATION>::iterator local_threads_iterator;
+
+		if(local_list_size!=0)
 		{
-			if(local_main_dialog->threads_list.size()==0)
+			for
+			(
+			;
+			;
+			)
 			{
-				Sleep(10);
-				break;
+				Sleep(1000);
+
+				local_lock.Lock();
+
+				if(local_main_dialog->threads_list.size()==0)
+				{
+					Sleep(10);
+					break;
+				}
+
+				local_threads_iterator = local_main_dialog->threads_list.begin();
+
+				CWinThread *local_thread = local_threads_iterator->WinThread;
+				CString local_thread_name = local_threads_iterator->thread_name;
+
+				local_lock.Unlock();
+
+				DWORD local_result = WaitForSingleObject(local_thread->m_hThread,INFINITE);
+
+				/*/
+				{
+				DWORD local_result = WaitForSingleObject(local_thread->m_hThread,10000);
+
+
+				if(local_result!=WAIT_OBJECT_0)
+				{
+				ExitProcess(0);
+				}
+				}
+				/*/
 			}
-
-			local_lock.Lock();
-
-			local_threads_iterator=local_main_dialog->threads_list.begin();
-
-			CWinThread *local_thread = local_threads_iterator->WinThread;
-			CString local_thread_name = local_threads_iterator->thread_name;
-
-			local_lock.Unlock();
-
-			DWORD local_result = WaitForSingleObject(local_thread->m_hThread,INFINITE);
-
-			/*/
-			{
-			DWORD local_result = WaitForSingleObject(local_thread->m_hThread,10000);
-
-
-			if(local_result!=WAIT_OBJECT_0)
-			{
-			ExitProcess(0);
-			}
-			}
-			/*/
 		}
 	}
 
@@ -4551,7 +4563,7 @@ void Cstl_network_ip_4_ip_6_udp_engineDialog::OnClose()
 	set_command_threads_audio_stop(true);
 	set_command_threads_stop(true);
 
-
+	/*/
 	{
 		button_enable_chat.SetCheck(0);
 		button_enable_draw_video.SetCheck(0);
@@ -4565,6 +4577,7 @@ void Cstl_network_ip_4_ip_6_udp_engineDialog::OnClose()
 
 		list_nodes.ResetContent();
 	}
+	/*/
 
 	ResetEvent(do_not_terminate_application_event);
 
@@ -5278,6 +5291,16 @@ void Cstl_network_ip_4_ip_6_udp_engineDialog::OnBnClickedButtonRegister()
 
 void Cstl_network_ip_4_ip_6_udp_engineDialog::PrepareVideo(CString parameter_string, BYTE* parameter_data, size_t parameter_data_length)
 {
+	if(get_command_terminate_application())
+	{
+		if(parameter_data!=NULL)
+		{
+			delete []parameter_data;
+		}
+
+		return;
+	}
+
 	CSingleLock local_lock(&draw_video_critical_section);
 
 	local_lock.Lock();
@@ -5354,6 +5377,16 @@ void Cstl_network_ip_4_ip_6_udp_engineDialog::PrepareVideo(CString parameter_str
 
 void Cstl_network_ip_4_ip_6_udp_engineDialog::DrawVideo(CString parameter_string, BYTE* parameter_data, size_t parameter_data_length)
 {
+	if(get_command_terminate_application())
+	{
+		if(parameter_data!=NULL)
+		{
+			delete []parameter_data;
+		}
+
+		return;
+	}
+
 	DWORD dwWaitResult;
 
 	dwWaitResult = WaitForSingleObject( 
@@ -5576,22 +5609,37 @@ void Cstl_network_ip_4_ip_6_udp_engineDialog::DrawVideo(CString parameter_string
 
 				lock.Lock();
 
-				if(get_command_terminate_application())
-				{
-					return;
-				}
+	if(get_command_terminate_application())
+	{
+		if(parameter_data!=NULL)
+		{
+			delete []parameter_data;
+		}
+
+		return;
+	}
 				received_video_dialog->static_image.GetClientRect(&local_window_rectangle);
 
-				if(get_command_terminate_application())
-				{
-					return;
-				}
+	if(get_command_terminate_application())
+	{
+		if(parameter_data!=NULL)
+		{
+			delete []parameter_data;
+		}
+
+		return;
+	}
 				HDC local_HDC = *received_video_dialog->static_image.GetDC();
 
-				if(get_command_terminate_application())
-				{
-					return;
-				}
+	if(get_command_terminate_application())
+	{
+		if(parameter_data!=NULL)
+		{
+			delete []parameter_data;
+		}
+
+		return;
+	}
 
 				try
 				{
@@ -5599,13 +5647,23 @@ void Cstl_network_ip_4_ip_6_udp_engineDialog::DrawVideo(CString parameter_string
 				}
 				catch(...)
 				{
-					return;
+		if(parameter_data!=NULL)
+		{
+			delete []parameter_data;
+		}
+
+		return;
 				}
 
-				if(get_command_terminate_application())
-				{
-					return;
-				}
+	if(get_command_terminate_application())
+	{
+		if(parameter_data!=NULL)
+		{
+			delete []parameter_data;
+		}
+
+		return;
+	}
 				received_video_dialog->SetWindowTextW(CString(L"Видео от ")+parameter_string);
 			}
 
@@ -5621,9 +5679,22 @@ void Cstl_network_ip_4_ip_6_udp_engineDialog::DrawVideo(CString parameter_string
 	}
 	else
 	{
-		if(get_command_terminate_application())
+	if(get_command_terminate_application())
+	{
+		if(parameter_data!=NULL)
 		{
-			return;
+			delete []parameter_data;
+		}
+
+		return;
+	}
+	}
+
+	if(get_command_terminate_application())
+	{
+		if(parameter_data!=NULL)
+		{
+			delete []parameter_data;
 		}
 	}
 }
@@ -5631,6 +5702,16 @@ void Cstl_network_ip_4_ip_6_udp_engineDialog::DrawVideo(CString parameter_string
 
 void Cstl_network_ip_4_ip_6_udp_engineDialog::PrepareAudio(CString parameter_string, BYTE* parameter_data, size_t parameter_data_length)
 {
+	if(get_command_terminate_application())
+	{
+		if(parameter_data!=NULL)
+		{
+			delete []parameter_data;
+		}
+
+		return;
+	}
+
 	CSingleLock local_lock(&play_audio_critical_section);
 
 	local_lock.Lock();
@@ -5716,6 +5797,16 @@ void Cstl_network_ip_4_ip_6_udp_engineDialog::PrepareAudio(CString parameter_str
 
 void Cstl_network_ip_4_ip_6_udp_engineDialog::PlayAudio(CString parameter_string, BYTE* parameter_data, size_t parameter_data_length)
 {
+	if(get_command_terminate_application())
+	{
+		if(parameter_data!=NULL)
+		{
+			delete []parameter_data;
+		}
+
+		return;
+	}
+
 	CSingleLock local_lock(&play_audio_critical_section);
 
 	local_lock.Lock();
@@ -5892,6 +5983,11 @@ void Cstl_network_ip_4_ip_6_udp_engineDialog::PlayAudio(CString parameter_string
 			}
 
 		}
+	}
+
+	if(parameter_data!=NULL)
+	{
+		delete []parameter_data;
 	}
 }
 
@@ -9571,6 +9667,16 @@ UINT __cdecl datagram_send_web_camera_video_connection_thread_ip_6(LPVOID parame
 
 void Cstl_network_ip_4_ip_6_udp_engineDialog::PrepareWebCameraVideo(CString parameter_string, BYTE* parameter_data, size_t parameter_data_length)
 {
+	if(get_command_terminate_application())
+	{
+		if(parameter_data!=NULL)
+		{
+			delete []parameter_data;
+		}
+
+		return;
+	}
+
 	CSingleLock local_lock(&draw_video_critical_section);
 
 	local_lock.Lock();
@@ -9656,6 +9762,16 @@ void Cstl_network_ip_4_ip_6_udp_engineDialog::PrepareWebCameraVideo(CString para
 
 void Cstl_network_ip_4_ip_6_udp_engineDialog::DrawWebCameraVideo(CString parameter_string, BYTE* parameter_data, size_t parameter_data_length)
 {
+	if(get_command_terminate_application())
+	{
+		if(parameter_data!=NULL)
+		{
+			delete []parameter_data;
+		}
+
+		return;
+	}
+
 	DWORD dwWaitResult;
 
 	dwWaitResult = WaitForSingleObject( 
@@ -9722,22 +9838,37 @@ void Cstl_network_ip_4_ip_6_udp_engineDialog::DrawWebCameraVideo(CString paramet
 
 				lock.Lock();
 
-				if(get_command_terminate_application())
-				{
-					return;
-				}
+	if(get_command_terminate_application())
+	{
+		if(parameter_data!=NULL)
+		{
+			delete []parameter_data;
+		}
+
+		return;
+	}
 				received_video_dialog->static_image.GetClientRect(&local_window_rectangle);
 
-				if(get_command_terminate_application())
-				{
-					return;
-				}
+	if(get_command_terminate_application())
+	{
+		if(parameter_data!=NULL)
+		{
+			delete []parameter_data;
+		}
+
+		return;
+	}
 				HDC local_HDC = *received_video_dialog->static_image.GetDC();
 
-				if(get_command_terminate_application())
-				{
-					return;
-				}
+	if(get_command_terminate_application())
+	{
+		if(parameter_data!=NULL)
+		{
+			delete []parameter_data;
+		}
+
+		return;
+	}
 
 
 				if(SUCCEEDED(local_load_result))
@@ -9859,13 +9990,23 @@ void Cstl_network_ip_4_ip_6_udp_engineDialog::DrawWebCameraVideo(CString paramet
 				}
 				catch(...)
 				{
-					return;
+		if(parameter_data!=NULL)
+		{
+			delete []parameter_data;
+		}
+
+		return;
 				}
 
-				if(get_command_terminate_application())
-				{
-					return;
-				}
+	if(get_command_terminate_application())
+	{
+		if(parameter_data!=NULL)
+		{
+			delete []parameter_data;
+		}
+
+		return;
+	}
 				received_video_dialog->SetWindowTextW(CString(L"Видео с веб камеры от ")+parameter_string);
 			}
 
@@ -9881,11 +10022,21 @@ void Cstl_network_ip_4_ip_6_udp_engineDialog::DrawWebCameraVideo(CString paramet
 	}
 	else
 	{
-		if(get_command_terminate_application())
+	if(get_command_terminate_application())
+	{
+		if(parameter_data!=NULL)
 		{
-			return;
+			delete []parameter_data;
 		}
+
+		return;
 	}
+	}
+
+		if(parameter_data!=NULL)
+		{
+			delete []parameter_data;
+		}
 }
 
 void Cstl_network_ip_4_ip_6_udp_engineDialog::OnBnClickedCheckEnableVideo()
@@ -12203,6 +12354,10 @@ void Cstl_network_ip_4_ip_6_udp_engineDialog::OnTimer(UINT_PTR nIDEvent)
 
 	if(Cstl_network_ip_4_ip_6_udp_engineDialog_timer_nIDEvent==nIDEvent)
 	{
+		if(get_command_terminate_application())
+		{
+			return;
+		}
 
 		CSingleLock lock(&GUI_update_critical_section);
 		lock.Lock();

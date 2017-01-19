@@ -5718,6 +5718,9 @@ void Cstl_network_ip_4_ip_6_udp_engineDialog::PrepareAudio(CString parameter_str
 
 	DWORD received_sequence = *(DWORD*)(parameter_data);
 
+	DWORD received_part = ((DWORD*)(parameter_data))[1];
+	DWORD received_total_parts = ((DWORD*)(parameter_data))[2];
+
 	std::list<STREAM_INFORMATION>::iterator current_received_microphone_stream = received_microphone_stream.begin();
 
 	for(;current_received_microphone_stream!=received_microphone_stream.end();current_received_microphone_stream++)
@@ -5746,7 +5749,7 @@ void Cstl_network_ip_4_ip_6_udp_engineDialog::PrepareAudio(CString parameter_str
 
 	if(SUCCEEDED(local_create_IStream_result))
 	{
-		HRESULT local_write_result = current_received_microphone_stream->stream->Write(parameter_data+sizeof(DWORD),parameter_data_length-sizeof(DWORD),&local_bytes_written);
+		HRESULT local_write_result = current_received_microphone_stream->stream->Write(parameter_data+sizeof(DWORD)+2*sizeof(DWORD),parameter_data_length-sizeof(DWORD)-2*sizeof(DWORD),&local_bytes_written);
 
 		if(SUCCEEDED(local_write_result))
 		{
@@ -8534,11 +8537,11 @@ UINT __cdecl datagram_send_web_camera_video_connection_thread_ip_4(LPVOID parame
 
 				encrypt::encrypt_xor(send_buffer+service_signature_definition_length,send_buffer_data_length-service_signature_definition_length,xor_code);
 
-				int local_header_length = service_signature_definition_length+send_data_string_length*sizeof(wchar_t);
+				int local_header_length = service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+2*sizeof(DWORD);
 
 				int local_part_counter = 0;
-				int local_parts_count = local_read/(CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t));
-				int local_last_part_size = local_read % (CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t));
+				int local_parts_count = local_read/(CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t)-2*sizeof(DWORD));
+				int local_last_part_size = local_read % (CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t)-2*sizeof(DWORD));
 
 				if(local_last_part_size!=0)
 				{
@@ -8553,7 +8556,7 @@ UINT __cdecl datagram_send_web_camera_video_connection_thread_ip_4(LPVOID parame
 					{
 						if(local_last_part_size!=0)
 						{
-							send_buffer_this_time_data_length = local_last_part_size+service_signature_definition_length+send_data_string_length*sizeof(wchar_t);
+							send_buffer_this_time_data_length = local_last_part_size+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+2*sizeof(DWORD);
 						}
 					}
 
@@ -8561,13 +8564,18 @@ UINT __cdecl datagram_send_web_camera_video_connection_thread_ip_4(LPVOID parame
 
 					memcpy(send_buffer_this_time,send_buffer,service_signature_definition_length+send_data_string_length*sizeof(wchar_t));
 
-					int local_this_time_data_offset = local_part_counter*(CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t));
+					((DWORD*)(send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)))[0] = DWORD(local_part_counter+1);
+					((DWORD*)(send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)))[1] = DWORD(local_parts_count);
+
+					encrypt::encrypt_xor(send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t),2*sizeof(DWORD),xor_code);
+
+					int local_this_time_data_offset = local_part_counter*(CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t)-2*sizeof(DWORD));
 
 					memcpy
 						(
-						send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t),
+						send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+2*sizeof(DWORD),
 						send_buffer+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+local_this_time_data_offset,
-						send_buffer_this_time_data_length-(service_signature_definition_length+send_data_string_length*sizeof(wchar_t))
+						send_buffer_this_time_data_length-(service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+2*sizeof(DWORD))
 						);
 
 					try
@@ -9376,11 +9384,11 @@ UINT __cdecl datagram_send_web_camera_video_connection_thread_ip_6(LPVOID parame
 
 				encrypt::encrypt_xor(send_buffer+service_signature_definition_length,send_buffer_data_length-service_signature_definition_length,xor_code);
 
-				int local_header_length = service_signature_definition_length+send_data_string_length*sizeof(wchar_t);
+				int local_header_length = service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+2*sizeof(DWORD);
 
 				int local_part_counter = 0;
-				int local_parts_count = local_read/(CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t));
-				int local_last_part_size = local_read % (CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t));
+				int local_parts_count = local_read/(CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t)-2*sizeof(DWORD));
+				int local_last_part_size = local_read % (CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t)-2*sizeof(DWORD));
 
 				if(local_last_part_size!=0)
 				{
@@ -9395,7 +9403,7 @@ UINT __cdecl datagram_send_web_camera_video_connection_thread_ip_6(LPVOID parame
 					{
 						if(local_last_part_size!=0)
 						{
-							send_buffer_this_time_data_length = local_last_part_size+service_signature_definition_length+send_data_string_length*sizeof(wchar_t);
+							send_buffer_this_time_data_length = local_last_part_size+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+2*sizeof(DWORD);
 						}
 					}
 
@@ -9403,13 +9411,18 @@ UINT __cdecl datagram_send_web_camera_video_connection_thread_ip_6(LPVOID parame
 
 					memcpy(send_buffer_this_time,send_buffer,service_signature_definition_length+send_data_string_length*sizeof(wchar_t));
 
-					int local_this_time_data_offset = local_part_counter*(CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t));
+					((DWORD*)(send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)))[0] = DWORD(local_part_counter+1);
+					((DWORD*)(send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)))[1] = DWORD(local_parts_count);
+
+					encrypt::encrypt_xor(send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t),2*sizeof(DWORD),xor_code);
+
+					int local_this_time_data_offset = local_part_counter*(CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t)-2*sizeof(DWORD));
 
 					memcpy
 						(
-						send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t),
+						send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+2*sizeof(DWORD),
 						send_buffer+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+local_this_time_data_offset,
-						send_buffer_this_time_data_length-(service_signature_definition_length+send_data_string_length*sizeof(wchar_t))
+						send_buffer_this_time_data_length-(service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+2*sizeof(DWORD))
 						);
 
 					try
@@ -9693,6 +9706,9 @@ void Cstl_network_ip_4_ip_6_udp_engineDialog::PrepareWebCameraVideo(CString para
 
 	DWORD received_sequence = *(DWORD*)(parameter_data);
 
+	DWORD received_part = ((DWORD*)(parameter_data))[1];
+	DWORD received_total_parts = ((DWORD*)(parameter_data))[2];
+
 	std::list<STREAM_INFORMATION>::iterator current_received_web_camera_stream = received_web_camera_stream.begin();
 
 	for(;current_received_web_camera_stream!=received_web_camera_stream.end();current_received_web_camera_stream++)
@@ -9721,7 +9737,7 @@ void Cstl_network_ip_4_ip_6_udp_engineDialog::PrepareWebCameraVideo(CString para
 
 	if(SUCCEEDED(local_create_IStream_result))
 	{
-		HRESULT local_write_result = current_received_web_camera_stream->stream->Write(parameter_data+sizeof(DWORD),parameter_data_length-sizeof(DWORD),&local_bytes_written);
+		HRESULT local_write_result = current_received_web_camera_stream->stream->Write(parameter_data+sizeof(DWORD)+2*sizeof(DWORD),parameter_data_length-sizeof(DWORD)-2*sizeof(DWORD),&local_bytes_written);
 
 		if(SUCCEEDED(local_write_result))
 		{
@@ -10790,11 +10806,11 @@ UINT __cdecl datagram_send_audio_connection_thread_ip_4(LPVOID parameter)
 
 				encrypt::encrypt_xor(send_buffer+service_signature_definition_length,send_buffer_data_length-service_signature_definition_length,xor_code);
 
-				int local_header_length = service_signature_definition_length+send_data_string_length*sizeof(wchar_t);
+				int local_header_length = service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+2*sizeof(DWORD);
 
 				int local_part_counter = 0;
-				int local_parts_count = local_read/(CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t));
-				int local_last_part_size = local_read % (CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t));
+				int local_parts_count = local_read/(CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t)-2*sizeof(DWORD));
+				int local_last_part_size = local_read % (CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t)-2*sizeof(DWORD));
 
 				if(local_last_part_size!=0)
 				{
@@ -10809,7 +10825,7 @@ UINT __cdecl datagram_send_audio_connection_thread_ip_4(LPVOID parameter)
 					{
 						if(local_last_part_size!=0)
 						{
-							send_buffer_this_time_data_length = local_last_part_size+service_signature_definition_length+send_data_string_length*sizeof(wchar_t);
+							send_buffer_this_time_data_length = local_last_part_size+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+2*sizeof(DWORD);
 						}
 					}
 
@@ -10817,13 +10833,18 @@ UINT __cdecl datagram_send_audio_connection_thread_ip_4(LPVOID parameter)
 
 					memcpy(send_buffer_this_time,send_buffer,service_signature_definition_length+send_data_string_length*sizeof(wchar_t));
 
-					int local_this_time_data_offset = local_part_counter*(CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t));
+					((DWORD*)(send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)))[0] = DWORD(local_part_counter+1);
+					((DWORD*)(send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)))[1] = DWORD(local_parts_count);
+
+					encrypt::encrypt_xor(send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t),2*sizeof(DWORD),xor_code);
+
+					int local_this_time_data_offset = local_part_counter*(CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t)-2*sizeof(DWORD));
 
 					memcpy
 						(
-						send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t),
+						send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+2*sizeof(DWORD),
 						send_buffer+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+local_this_time_data_offset,
-						send_buffer_this_time_data_length-(service_signature_definition_length+send_data_string_length*sizeof(wchar_t))
+						send_buffer_this_time_data_length-(service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+2*sizeof(DWORD))
 						);
 
 					try
@@ -11687,11 +11708,11 @@ UINT __cdecl datagram_send_audio_connection_thread_ip_6(LPVOID parameter)
 
 				encrypt::encrypt_xor(send_buffer+service_signature_definition_length,send_buffer_data_length-service_signature_definition_length,xor_code);
 
-				int local_header_length = service_signature_definition_length+send_data_string_length*sizeof(wchar_t);
+				int local_header_length = service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+2*sizeof(DWORD);
 
 				int local_part_counter = 0;
-				int local_parts_count = local_read/(CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t));
-				int local_last_part_size = local_read % (CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t));
+				int local_parts_count = local_read/(CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t)-2*sizeof(DWORD));
+				int local_last_part_size = local_read % (CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t)-2*sizeof(DWORD));
 
 				if(local_last_part_size!=0)
 				{
@@ -11706,7 +11727,7 @@ UINT __cdecl datagram_send_audio_connection_thread_ip_6(LPVOID parameter)
 					{
 						if(local_last_part_size!=0)
 						{
-							send_buffer_this_time_data_length = local_last_part_size+service_signature_definition_length+send_data_string_length*sizeof(wchar_t);
+							send_buffer_this_time_data_length = local_last_part_size+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+2*sizeof(DWORD);
 						}
 					}
 
@@ -11714,13 +11735,18 @@ UINT __cdecl datagram_send_audio_connection_thread_ip_6(LPVOID parameter)
 
 					memcpy(send_buffer_this_time,send_buffer,service_signature_definition_length+send_data_string_length*sizeof(wchar_t));
 
-					int local_this_time_data_offset = local_part_counter*(CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t));
+					((DWORD*)(send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)))[0] = DWORD(local_part_counter+1);
+					((DWORD*)(send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)))[1] = DWORD(local_parts_count);
+
+					encrypt::encrypt_xor(send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t),2*sizeof(DWORD),xor_code);
+
+					int local_this_time_data_offset = local_part_counter*(CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t)-2*sizeof(DWORD));
 
 					memcpy
 						(
-						send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t),
+						send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+2*sizeof(DWORD),
 						send_buffer+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+local_this_time_data_offset,
-						send_buffer_this_time_data_length-(service_signature_definition_length+send_data_string_length*sizeof(wchar_t))
+						send_buffer_this_time_data_length-(service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+2*sizeof(DWORD))
 						);
 
 					try
@@ -15130,11 +15156,11 @@ UINT __cdecl datagram_retranslate_video_connection_thread_ip_4(LPVOID parameter)
 
 				encrypt::encrypt_xor(send_buffer+service_signature_definition_length,send_buffer_data_length-service_signature_definition_length,xor_code);
 
-				int local_header_length = service_signature_definition_length+send_data_string_length*sizeof(wchar_t);
+				int local_header_length = service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+2*sizeof(DWORD);
 
 				int local_part_counter = 0;
-				int local_parts_count = local_read/(CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t));
-				int local_last_part_size = local_read % (CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t));
+				int local_parts_count = local_read/(CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t)-2*sizeof(DWORD));
+				int local_last_part_size = local_read % (CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t)-2*sizeof(DWORD));
 
 				if(local_last_part_size!=0)
 				{
@@ -15149,7 +15175,7 @@ UINT __cdecl datagram_retranslate_video_connection_thread_ip_4(LPVOID parameter)
 					{
 						if(local_last_part_size!=0)
 						{
-							send_buffer_this_time_data_length = local_last_part_size+service_signature_definition_length+send_data_string_length*sizeof(wchar_t);
+							send_buffer_this_time_data_length = local_last_part_size+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+2*sizeof(DWORD);
 						}
 					}
 
@@ -15157,13 +15183,18 @@ UINT __cdecl datagram_retranslate_video_connection_thread_ip_4(LPVOID parameter)
 
 					memcpy(send_buffer_this_time,send_buffer,service_signature_definition_length+send_data_string_length*sizeof(wchar_t));
 
-					int local_this_time_data_offset = local_part_counter*(CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t));
+					((DWORD*)(send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)))[0] = DWORD(local_part_counter+1);
+					((DWORD*)(send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)))[1] = DWORD(local_parts_count);
+
+					encrypt::encrypt_xor(send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t),2*sizeof(DWORD),xor_code);
+
+					int local_this_time_data_offset = local_part_counter*(CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t)-2*sizeof(DWORD));
 
 					memcpy
 						(
-						send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t),
+						send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+2*sizeof(DWORD),
 						send_buffer+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+local_this_time_data_offset,
-						send_buffer_this_time_data_length-(service_signature_definition_length+send_data_string_length*sizeof(wchar_t))
+						send_buffer_this_time_data_length-(service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+2*sizeof(DWORD))
 						);
 
 					try
@@ -15960,11 +15991,11 @@ UINT __cdecl datagram_retranslate_video_connection_thread_ip_6(LPVOID parameter)
 
 				encrypt::encrypt_xor(send_buffer+service_signature_definition_length,send_buffer_data_length-service_signature_definition_length,xor_code);
 
-				int local_header_length = service_signature_definition_length+send_data_string_length*sizeof(wchar_t);
+				int local_header_length = service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+2*sizeof(DWORD);
 
 				int local_part_counter = 0;
-				int local_parts_count = local_read/(CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t));
-				int local_last_part_size = local_read % (CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t));
+				int local_parts_count = local_read/(CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t)-2*sizeof(DWORD));
+				int local_last_part_size = local_read % (CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t)-2*sizeof(DWORD));
 
 				if(local_last_part_size!=0)
 				{
@@ -15979,7 +16010,7 @@ UINT __cdecl datagram_retranslate_video_connection_thread_ip_6(LPVOID parameter)
 					{
 						if(local_last_part_size!=0)
 						{
-							send_buffer_this_time_data_length = local_last_part_size+service_signature_definition_length+send_data_string_length*sizeof(wchar_t);
+							send_buffer_this_time_data_length = local_last_part_size+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+2*sizeof(DWORD);
 						}
 					}
 
@@ -15987,13 +16018,18 @@ UINT __cdecl datagram_retranslate_video_connection_thread_ip_6(LPVOID parameter)
 
 					memcpy(send_buffer_this_time,send_buffer,service_signature_definition_length+send_data_string_length*sizeof(wchar_t));
 
-					int local_this_time_data_offset = local_part_counter*(CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t));
+					((DWORD*)(send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)))[0] = DWORD(local_part_counter+1);
+					((DWORD*)(send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)))[1] = DWORD(local_parts_count);
+
+					encrypt::encrypt_xor(send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t),2*sizeof(DWORD),xor_code);
+
+					int local_this_time_data_offset = local_part_counter*(CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t)-2*sizeof(DWORD));
 
 					memcpy
 						(
-						send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t),
+						send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+2*sizeof(DWORD),
 						send_buffer+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+local_this_time_data_offset,
-						send_buffer_this_time_data_length-(service_signature_definition_length+send_data_string_length*sizeof(wchar_t))
+						send_buffer_this_time_data_length-(service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+2*sizeof(DWORD))
 						);
 
 					try
@@ -16881,11 +16917,11 @@ UINT __cdecl datagram_retranslate_web_camera_video_connection_thread_ip_4(LPVOID
 
 				encrypt::encrypt_xor(send_buffer+service_signature_definition_length,send_buffer_data_length-service_signature_definition_length,xor_code);
 
-				int local_header_length = service_signature_definition_length+send_data_string_length*sizeof(wchar_t);
+				int local_header_length = service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+2*sizeof(DWORD);
 
 				int local_part_counter = 0;
-				int local_parts_count = local_read/(CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t));
-				int local_last_part_size = local_read % (CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t));
+				int local_parts_count = local_read/(CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t)-2*sizeof(DWORD));
+				int local_last_part_size = local_read % (CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t)-2*sizeof(DWORD));
 
 				if(local_last_part_size!=0)
 				{
@@ -16900,7 +16936,7 @@ UINT __cdecl datagram_retranslate_web_camera_video_connection_thread_ip_4(LPVOID
 					{
 						if(local_last_part_size!=0)
 						{
-							send_buffer_this_time_data_length = local_last_part_size+service_signature_definition_length+send_data_string_length*sizeof(wchar_t);
+							send_buffer_this_time_data_length = local_last_part_size+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+2*sizeof(DWORD);
 						}
 					}
 
@@ -16908,13 +16944,18 @@ UINT __cdecl datagram_retranslate_web_camera_video_connection_thread_ip_4(LPVOID
 
 					memcpy(send_buffer_this_time,send_buffer,service_signature_definition_length+send_data_string_length*sizeof(wchar_t));
 
-					int local_this_time_data_offset = local_part_counter*(CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t));
+					((DWORD*)(send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)))[0] = DWORD(local_part_counter+1);
+					((DWORD*)(send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)))[1] = DWORD(local_parts_count);
+
+					encrypt::encrypt_xor(send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t),2*sizeof(DWORD),xor_code);
+
+					int local_this_time_data_offset = local_part_counter*(CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t)-2*sizeof(DWORD));
 
 					memcpy
 						(
-						send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t),
+						send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+2*sizeof(DWORD),
 						send_buffer+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+local_this_time_data_offset,
-						send_buffer_this_time_data_length-(service_signature_definition_length+send_data_string_length*sizeof(wchar_t))
+						send_buffer_this_time_data_length-(service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+2*sizeof(DWORD))
 						);
 
 					try
@@ -17720,11 +17761,11 @@ UINT __cdecl datagram_retranslate_web_camera_video_connection_thread_ip_6(LPVOID
 
 				encrypt::encrypt_xor(send_buffer+service_signature_definition_length,send_buffer_data_length-service_signature_definition_length,xor_code);
 
-				int local_header_length = service_signature_definition_length+send_data_string_length*sizeof(wchar_t);
+				int local_header_length = service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+2*sizeof(DWORD);
 
 				int local_part_counter = 0;
-				int local_parts_count = local_read/(CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t));
-				int local_last_part_size = local_read % (CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t));
+				int local_parts_count = local_read/(CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t)-2*sizeof(DWORD));
+				int local_last_part_size = local_read % (CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t)-2*sizeof(DWORD));
 
 				if(local_last_part_size!=0)
 				{
@@ -17739,7 +17780,7 @@ UINT __cdecl datagram_retranslate_web_camera_video_connection_thread_ip_6(LPVOID
 					{
 						if(local_last_part_size!=0)
 						{
-							send_buffer_this_time_data_length = local_last_part_size+service_signature_definition_length+send_data_string_length*sizeof(wchar_t);
+							send_buffer_this_time_data_length = local_last_part_size+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+2*sizeof(DWORD);
 						}
 					}
 
@@ -17747,13 +17788,18 @@ UINT __cdecl datagram_retranslate_web_camera_video_connection_thread_ip_6(LPVOID
 
 					memcpy(send_buffer_this_time,send_buffer,service_signature_definition_length+send_data_string_length*sizeof(wchar_t));
 
-					int local_this_time_data_offset = local_part_counter*(CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t));
+					((DWORD*)(send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)))[0] = DWORD(local_part_counter+1);
+					((DWORD*)(send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)))[1] = DWORD(local_parts_count);
+
+					encrypt::encrypt_xor(send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t),2*sizeof(DWORD),xor_code);
+
+					int local_this_time_data_offset = local_part_counter*(CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t)-2*sizeof(DWORD));
 
 					memcpy
 						(
-						send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t),
+						send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+2*sizeof(DWORD),
 						send_buffer+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+local_this_time_data_offset,
-						send_buffer_this_time_data_length-(service_signature_definition_length+send_data_string_length*sizeof(wchar_t))
+						send_buffer_this_time_data_length-(service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+2*sizeof(DWORD))
 						);
 
 					try
@@ -18682,11 +18728,11 @@ UINT __cdecl datagram_retranslate_audio_connection_thread_ip_4(LPVOID parameter)
 
 				encrypt::encrypt_xor(send_buffer+service_signature_definition_length,send_buffer_data_length-service_signature_definition_length,xor_code);
 
-				int local_header_length = service_signature_definition_length+send_data_string_length*sizeof(wchar_t);
+				int local_header_length = service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+2*sizeof(DWORD);
 
 				int local_part_counter = 0;
-				int local_parts_count = local_read/(CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t));
-				int local_last_part_size = local_read % (CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t));
+				int local_parts_count = local_read/(CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t)-2*sizeof(DWORD));
+				int local_last_part_size = local_read % (CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t)-2*sizeof(DWORD));
 
 				if(local_last_part_size!=0)
 				{
@@ -18701,7 +18747,7 @@ UINT __cdecl datagram_retranslate_audio_connection_thread_ip_4(LPVOID parameter)
 					{
 						if(local_last_part_size!=0)
 						{
-							send_buffer_this_time_data_length = local_last_part_size+service_signature_definition_length+send_data_string_length*sizeof(wchar_t);
+							send_buffer_this_time_data_length = local_last_part_size+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+2*sizeof(DWORD);
 						}
 					}
 
@@ -18709,13 +18755,18 @@ UINT __cdecl datagram_retranslate_audio_connection_thread_ip_4(LPVOID parameter)
 
 					memcpy(send_buffer_this_time,send_buffer,service_signature_definition_length+send_data_string_length*sizeof(wchar_t));
 
-					int local_this_time_data_offset = local_part_counter*(CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t));
+					((DWORD*)(send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)))[0] = DWORD(local_part_counter+1);
+					((DWORD*)(send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)))[1] = DWORD(local_parts_count);
+
+					encrypt::encrypt_xor(send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t),2*sizeof(DWORD),xor_code);
+
+					int local_this_time_data_offset = local_part_counter*(CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t)-2*sizeof(DWORD));
 
 					memcpy
 						(
-						send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t),
+						send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+2*sizeof(DWORD),
 						send_buffer+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+local_this_time_data_offset,
-						send_buffer_this_time_data_length-(service_signature_definition_length+send_data_string_length*sizeof(wchar_t))
+						send_buffer_this_time_data_length-(service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+2*sizeof(DWORD))
 						);
 
 					try
@@ -19591,11 +19642,11 @@ UINT __cdecl datagram_retranslate_audio_connection_thread_ip_6(LPVOID parameter)
 
 				encrypt::encrypt_xor(send_buffer+service_signature_definition_length,send_buffer_data_length-service_signature_definition_length,xor_code);
 
-				int local_header_length = service_signature_definition_length+send_data_string_length*sizeof(wchar_t);
+				int local_header_length = service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+2*sizeof(DWORD);
 
 				int local_part_counter = 0;
-				int local_parts_count = local_read/(CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t));
-				int local_last_part_size = local_read % (CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t));
+				int local_parts_count = local_read/(CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t)-2*sizeof(DWORD));
+				int local_last_part_size = local_read % (CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t)-2*sizeof(DWORD));
 
 				if(local_last_part_size!=0)
 				{
@@ -19610,7 +19661,7 @@ UINT __cdecl datagram_retranslate_audio_connection_thread_ip_6(LPVOID parameter)
 					{
 						if(local_last_part_size!=0)
 						{
-							send_buffer_this_time_data_length = local_last_part_size+service_signature_definition_length+send_data_string_length*sizeof(wchar_t);
+							send_buffer_this_time_data_length = local_last_part_size+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+2*sizeof(DWORD);
 						}
 					}
 
@@ -19618,13 +19669,18 @@ UINT __cdecl datagram_retranslate_audio_connection_thread_ip_6(LPVOID parameter)
 
 					memcpy(send_buffer_this_time,send_buffer,service_signature_definition_length+send_data_string_length*sizeof(wchar_t));
 
-					int local_this_time_data_offset = local_part_counter*(CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t));
+					((DWORD*)(send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)))[0] = DWORD(local_part_counter+1);
+					((DWORD*)(send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)))[1] = DWORD(local_parts_count);
+
+					encrypt::encrypt_xor(send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t),2*sizeof(DWORD),xor_code);
+
+					int local_this_time_data_offset = local_part_counter*(CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t)-2*sizeof(DWORD));
 
 					memcpy
 						(
-						send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t),
+						send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+2*sizeof(DWORD),
 						send_buffer+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+local_this_time_data_offset,
-						send_buffer_this_time_data_length-(service_signature_definition_length+send_data_string_length*sizeof(wchar_t))
+						send_buffer_this_time_data_length-(service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+2*sizeof(DWORD))
 						);
 
 					try

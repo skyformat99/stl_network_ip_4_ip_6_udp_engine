@@ -7552,7 +7552,7 @@ UINT __cdecl datagram_send_video_connection_thread_ip_6(LPVOID parameter)
 
 					memcpy
 						(
-						send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t),
+						send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+2*sizeof(DWORD),
 						send_buffer+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+local_this_time_data_offset,
 						send_buffer_this_time_data_length-(service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+2*sizeof(DWORD))
 						);

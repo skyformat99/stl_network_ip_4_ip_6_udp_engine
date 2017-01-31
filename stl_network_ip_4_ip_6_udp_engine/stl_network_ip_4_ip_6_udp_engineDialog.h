@@ -20,6 +20,26 @@ struct GUI_LIST_CONTROL
 	int is_checked;
 };
 
+struct FRAME_PART
+{
+	BYTE *frame_part_data;
+	UINT frame_part_data_size;
+	UINT frame_part_number;
+	DWORD sequence_frame_number;
+};
+
+struct FRAME
+{
+	std::list<FRAME_PART> frame_parts;
+	UINT frame_parts_number;
+};
+
+struct STREAM_FRAME_INFORMATION
+{
+	std::list<FRAME> frames;
+	DWORD sequence_source_number;
+};
+
 struct STREAM_INFORMATION
 {
 	CComPtr<IStream> stream;
@@ -276,9 +296,6 @@ public:
 
 	CCriticalSection list_nodes_critical_section;
 
-	std::list<STREAM_INFORMATION> received_video_stream;
-	CImage received_video_image;
-
 	CReceivedVideoDialog *received_video_dialog;
 	afx_msg void OnBnClickedButtonClearChat();
 
@@ -286,6 +303,11 @@ public:
 	afx_msg void OnBnClickedCheckSendWebCameraVideo();
 
 	CButton button_send_web_camera_video;
+	
+	std::list<STREAM_INFORMATION> received_video_stream;
+	CImage received_video_image;
+
+	std::list<STREAM_FRAME_INFORMATION> received_video_frame_stream;
 
 	std::list<STREAM_INFORMATION> received_web_camera_stream;
 	CImage received_web_camera_image;

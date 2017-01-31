@@ -60,9 +60,12 @@ const int CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME = 50000;
 const double CONST_ADSL_SPEED = 500000.0;
 const double CONST_ETHERNET_SPEED = 1000000000.0;
 
-const double CONST_VIDEO_WEB_CAMERA_SCREENS_PER_SECOND = CONST_ETHERNET_SPEED/8/((320*240)*(40.0/100.0));	//	CONST_ETHERNET_SPEED/8 - скорость передачи по сети CONST_ETHERNET_SPEED в байтах, 40.0/100.0 - аспект сжатия формата jpg
+const double CONST_VIDEO_SIZE = ((1920*1080)*(50.0/100.0));
+const double CONST_WEB_CAMERA_SIZE = ((320*240)*(40.0/100.0));
 
-const double CONST_VIDEO_SCREENS_PER_SECOND = CONST_ETHERNET_SPEED/8/((1920*1080)*(50.0/100.0));	//	CONST_ETHERNET_SPEED/8 - скорость передачи по сети CONST_ETHERNET_SPEED в байтах, 50.0/100.0 - аспект сжатия формата png
+const double CONST_VIDEO_WEB_CAMERA_SCREENS_PER_SECOND = CONST_ETHERNET_SPEED/8/CONST_WEB_CAMERA_SIZE;	//	CONST_ETHERNET_SPEED/8 - скорость передачи по сети CONST_ETHERNET_SPEED в байтах, 40.0/100.0 - аспект сжатия формата jpg
+
+const double CONST_VIDEO_SCREENS_PER_SECOND = CONST_ETHERNET_SPEED/8/CONST_VIDEO_SIZE;	//	CONST_ETHERNET_SPEED/8 - скорость передачи по сети CONST_ETHERNET_SPEED в байтах, 50.0/100.0 - аспект сжатия формата png
 
 const double CONST_AUDIO_PACKETS_PER_SECOND = 2.0*5;
 
@@ -2346,7 +2349,7 @@ UINT __cdecl datagram_send_connection_thread_ip_4(LPVOID parameter)
 			}
 			else
 			{
-				Sleep(1);
+				Sleep(10);
 			}
 		}
 		if(local_main_dialog->get_command_threads_stop())
@@ -2723,7 +2726,7 @@ UINT __cdecl datagram_send_connection_thread_ip_6(LPVOID parameter)
 			}
 			else
 			{
-				Sleep(1);
+				Sleep(10);
 			}
 		}
 		if(local_main_dialog->get_command_threads_stop())
@@ -2867,55 +2870,49 @@ UINT __cdecl stop_waiting_thread(LPVOID parameter)
 	}
 
 	{
-		CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
-
-		local_lock.Lock();
-
-		size_t local_list_size = local_main_dialog->threads_list.size();
-
-		local_lock.Unlock();
-
-		std::list<THREADS_INFORMATION>::iterator local_threads_iterator;
-
-		if(local_list_size!=0)
-		{
-			for
-				(
-				;
+		for
+			(
 			;
-			)
+		;
+		)
+		{
+			Sleep(1000);
+
+			CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
+
+			local_lock.Lock();
+
+			size_t local_list_size = local_main_dialog->threads_list.size();
+
+			std::list<THREADS_INFORMATION>::iterator local_threads_iterator;
+
+			if(local_main_dialog->threads_list.size()==0)
 			{
-				Sleep(1000);
+				Sleep(10);
+				break;
+			}
 
-				local_lock.Lock();
+			local_threads_iterator = local_main_dialog->threads_list.begin();
 
-				if(local_main_dialog->threads_list.size()==0)
-				{
-					Sleep(10);
-					break;
-				}
-
-				local_threads_iterator = local_main_dialog->threads_list.begin();
-
+			if(local_threads_iterator != local_main_dialog->threads_list.end())
+			{
 				CWinThread *local_thread = local_threads_iterator->WinThread;
 				CString local_thread_name = local_threads_iterator->thread_name;
 
 				local_lock.Unlock();
 
 				DWORD local_result = WaitForSingleObject(local_thread->m_hThread,INFINITE);
-
-				/*/
-				{
-				DWORD local_result = WaitForSingleObject(local_thread->m_hThread,10000);
-
-
-				if(local_result!=WAIT_OBJECT_0)
-				{
-				ExitProcess(0);
-				}
-				}
-				/*/
 			}
+			/*/
+			{
+			DWORD local_result = WaitForSingleObject(local_thread->m_hThread,10000);
+
+			if(local_result!=WAIT_OBJECT_0)
+			{
+			ExitProcess(0);
+			}
+			}
+			/*/
 		}
 	}
 
@@ -4945,7 +4942,7 @@ UINT __cdecl datagram_register_thread_ip_4(LPVOID parameter)
 		}
 		else
 		{
-			Sleep(1);
+			Sleep(10);
 		}
 	}
 
@@ -5235,7 +5232,7 @@ UINT __cdecl datagram_register_thread_ip_6(LPVOID parameter)
 		}
 		else
 		{
-			Sleep(1);
+			Sleep(10);
 		}
 	}
 
@@ -5310,6 +5307,352 @@ void Cstl_network_ip_4_ip_6_udp_engineDialog::PrepareVideo(CString parameter_str
 	DWORD received_part = ((DWORD*)(parameter_data))[1];
 	DWORD received_total_parts = ((DWORD*)(parameter_data))[2];
 
+	DWORD received_sequence_frame_number = ((DWORD*)(parameter_data))[3];
+
+
+	/*/==========/*/
+	std::list<STREAM_FRAME_INFORMATION>::iterator current_received_video_frame_stream = received_video_frame_stream.begin();
+
+	for(;current_received_video_frame_stream!=received_video_frame_stream.end();current_received_video_frame_stream++)
+	{
+		if(current_received_video_frame_stream->sequence_source_number==received_sequence)
+		{
+			break;
+		}
+	}
+
+	FRAME_PART local_frame_part;
+
+	BYTE *local_data = new BYTE[parameter_data_length-sizeof(DWORD)-3*sizeof(DWORD)];
+
+	if(local_data==NULL)
+	{
+		if(parameter_data!=NULL)
+		{
+			delete []parameter_data;
+		}
+
+		return;
+	}
+
+	memcpy(local_data, parameter_data+sizeof(DWORD)+3*sizeof(DWORD), parameter_data_length-sizeof(DWORD)-3*sizeof(DWORD));
+
+	local_frame_part.frame_part_data = local_data;
+
+	local_frame_part.frame_part_data_size = parameter_data_length-sizeof(DWORD)-3*sizeof(DWORD);
+
+	local_frame_part.frame_part_number = received_part;
+
+	local_frame_part.sequence_frame_number = received_sequence_frame_number;
+
+	if(current_received_video_frame_stream==received_video_frame_stream.end())
+	{
+		STREAM_FRAME_INFORMATION local_frame_information;
+
+		FRAME local_frame;
+
+		local_frame.frame_parts.push_back(local_frame_part);
+
+		local_frame.frame_parts_number = received_total_parts;
+
+		local_frame_information.frames.push_back(local_frame);
+
+		local_frame_information.sequence_source_number = received_sequence;
+
+		received_video_frame_stream.push_back(local_frame_information);
+	}
+	else
+	{
+		std::list<FRAME>::iterator local_frames_iterator = current_received_video_frame_stream->frames.begin();
+
+		std::list<FRAME_PART>::iterator local_frame_parts_iterator;
+
+		for
+			(
+			;
+		local_frames_iterator!=current_received_video_frame_stream->frames.end()
+			;
+		local_frames_iterator++
+			)
+		{
+			local_frame_parts_iterator = local_frames_iterator->frame_parts.begin();
+			for(;local_frame_parts_iterator!=local_frames_iterator->frame_parts.end();local_frame_parts_iterator++)
+			{
+				if(local_frame_parts_iterator->sequence_frame_number == received_sequence_frame_number)
+				{
+					local_frames_iterator->frame_parts.push_back(local_frame_part);
+					break;
+				}
+			}
+
+			if(local_frame_parts_iterator!=local_frames_iterator->frame_parts.end())
+			{
+				if(local_frame_parts_iterator->sequence_frame_number == received_sequence_frame_number)
+				{
+					break;
+				}
+			}
+		}
+
+		if(local_frames_iterator==current_received_video_frame_stream->frames.end())
+		{
+			FRAME local_frame;
+
+			local_frame.frame_parts.push_back(local_frame_part);
+
+			local_frame.frame_parts_number = received_total_parts;
+
+			current_received_video_frame_stream->frames.push_back(local_frame);
+		}
+	}
+	//	Складирование закончено
+
+
+	//	Сборка и отрисовка
+	current_received_video_frame_stream = received_video_frame_stream.begin();
+
+	for(;current_received_video_frame_stream!=received_video_frame_stream.end();current_received_video_frame_stream++)
+	{
+		if(received_video_frame_stream.size()!=0)
+		{
+			if(current_received_video_frame_stream->frames.size()!=0)
+			{
+				for
+					(
+					std::list<FRAME>::iterator current_received_video_frame = current_received_video_frame_stream->frames.begin()
+					;
+				current_received_video_frame!=current_received_video_frame_stream->frames.end()
+					;
+				current_received_video_frame++
+					)
+				{
+					if(current_received_video_frame->frame_parts_number == current_received_video_frame->frame_parts.size())
+					{
+						//	Количество частей равно ожидаемому количеству частей - собираем части и отрисовываем, очищаем память, первого кадра в очереди текущей последовательности.
+
+						CComPtr<IStream> frame_stream;
+
+						HRESULT local_create_frame_IStream_result = CreateStreamOnHGlobal ( 0 , TRUE , &frame_stream);
+
+						{
+							LARGE_INTEGER liBeggining = { 0 };
+
+							frame_stream->Seek(liBeggining, STREAM_SEEK_SET, NULL);
+						}
+
+						for
+							(
+							UINT local_parts_counter=1
+							;
+						local_parts_counter<=current_received_video_frame->frame_parts_number
+							;
+						local_parts_counter++
+							)
+						{
+							for(
+								std::list<FRAME_PART>::iterator local_frame_parts_iterator = current_received_video_frame->frame_parts.begin()
+								;
+							local_frame_parts_iterator!=current_received_video_frame->frame_parts.end()
+								;
+							local_frame_parts_iterator++
+								)
+							{
+								if(local_parts_counter==local_frame_parts_iterator->frame_part_number)
+								{
+									ULONG local_bytes_written = 0;
+									frame_stream->Write(local_frame_parts_iterator->frame_part_data, local_frame_parts_iterator->frame_part_data_size, &local_bytes_written);
+
+									delete []local_frame_parts_iterator->frame_part_data;
+
+									current_received_video_frame->frame_parts.erase(local_frame_parts_iterator);
+
+									break;
+								}
+							}
+						}
+
+						if(!received_video_image.IsNull())
+						{
+							received_video_image.Destroy();
+						}
+
+						LARGE_INTEGER liBeggining = { 0 };
+
+						frame_stream->Seek(liBeggining, STREAM_SEEK_SET, NULL);
+
+						STATSTG local_istream_statstg;
+						HRESULT local_stat_result = frame_stream->Stat(&local_istream_statstg,STATFLAG::STATFLAG_DEFAULT);
+
+						HRESULT local_load_result = received_video_image.Load(frame_stream);
+
+						if(SUCCEEDED(local_load_result))
+						{
+							int local_IDC_CHECK_SAVE_PICTURES_state = 0;
+
+							{
+								CSingleLock lock(&GUI_update_critical_section);
+								lock.Lock();
+
+								local_IDC_CHECK_SAVE_PICTURES_state = GUI_CONTROLS_STATE_data.IDC_CHECK_SAVE_PICTURES_state;
+							}
+
+							if(local_IDC_CHECK_SAVE_PICTURES_state!=0)
+							{
+								/*/
+								//	Добавить здесь код сохранения из local_main_dialog->received_video_image
+								//
+								/*/
+								CString new_picture_file_name;
+
+								SYSTEMTIME local_system_time;
+
+								GetLocalTime(&local_system_time);
+
+								new_picture_file_name.Format
+									(
+									L"%04d-%02d-%02d %02d-%02d-%02d.%03d.PNG", 
+									local_system_time.wYear,
+									local_system_time.wMonth, 
+									local_system_time.wDay,                      
+									local_system_time.wHour, 
+									local_system_time.wMinute, 
+									local_system_time.wSecond,
+									local_system_time.wMilliseconds
+									);
+
+								try
+								{
+									HRESULT local_save_result = received_video_image.Save(new_picture_file_name, Gdiplus::ImageFormatPNG);
+								}
+								catch(...)
+								{
+									CString local_fail(L"Fail");
+								}
+							}
+
+							int local_IDC_CHECK_RETRANSLATE_VIDEO_state = 0;
+
+							{
+								CSingleLock lock(&GUI_update_critical_section);
+								lock.Lock();
+
+								local_IDC_CHECK_RETRANSLATE_VIDEO_state = GUI_CONTROLS_STATE_data.IDC_CHECK_RETRANSLATE_VIDEO_state;
+							}
+
+							if(local_IDC_CHECK_RETRANSLATE_VIDEO_state!=0)
+							{
+								{
+									STREAM_INFORMATION local_retranslate_stream_information_ip_4;
+
+									LARGE_INTEGER liBeggining = { 0 };
+
+									frame_stream->Seek(liBeggining, STREAM_SEEK_SET, NULL);
+
+									ULONG local_read = 0;
+									HRESULT local_clone_IStream_result = frame_stream->Clone(&local_retranslate_stream_information_ip_4.stream);
+									local_retranslate_stream_information_ip_4.sequence_number = current_received_video_frame_stream->sequence_source_number;
+
+									retranslate_video_frames_ip_4.push_back(local_retranslate_stream_information_ip_4);
+								}
+
+								{
+									STREAM_INFORMATION local_retranslate_stream_information_ip_6;
+
+									LARGE_INTEGER liBeggining = { 0 };
+
+									frame_stream->Seek(liBeggining, STREAM_SEEK_SET, NULL);
+
+									ULONG local_read = 0;
+									HRESULT local_clone_IStream_result = frame_stream->Clone(&local_retranslate_stream_information_ip_6.stream);
+									local_retranslate_stream_information_ip_6.sequence_number = current_received_video_frame_stream->sequence_source_number;
+
+									retranslate_video_frames_ip_6.push_back(local_retranslate_stream_information_ip_6);
+								}
+
+							}
+
+							CRect local_window_rectangle;
+
+							if(received_video_dialog!=NULL)
+							{
+								CSingleLock lock(&delete_received_video_dialog_critical_section);
+
+								lock.Lock();
+
+								if(get_command_terminate_application())
+								{
+									if(parameter_data!=NULL)
+									{
+										delete []parameter_data;
+									}
+
+									return;
+								}
+								received_video_dialog->static_image.GetClientRect(&local_window_rectangle);
+
+								if(get_command_terminate_application())
+								{
+									if(parameter_data!=NULL)
+									{
+										delete []parameter_data;
+									}
+
+									return;
+								}
+								HDC local_HDC = *received_video_dialog->static_image.GetDC();
+
+								if(get_command_terminate_application())
+								{
+									if(parameter_data!=NULL)
+									{
+										delete []parameter_data;
+									}
+
+									return;
+								}
+
+								try
+								{
+									received_video_image.Draw(local_HDC,local_window_rectangle,Gdiplus::InterpolationMode::InterpolationModeDefault);
+								}
+								catch(...)
+								{
+									if(parameter_data!=NULL)
+									{
+										delete []parameter_data;
+									}
+
+									return;
+								}
+
+								if(get_command_terminate_application())
+								{
+									if(parameter_data!=NULL)
+									{
+										delete []parameter_data;
+									}
+
+									return;
+								}
+								received_video_dialog->SetWindowTextW(CString(L"Видео от ")+parameter_string);
+							}
+						}
+						current_received_video_frame_stream->frames.erase(current_received_video_frame);
+						break;
+					}
+				}
+			}
+		}
+	}
+
+	delete [] parameter_data;
+
+	local_lock.Unlock();
+
+	return;
+	/*/==========/*/
+
+
 	std::list<STREAM_INFORMATION>::iterator current_received_video_stream = received_video_stream.begin();
 
 	for(;current_received_video_stream!=received_video_stream.end();current_received_video_stream++)
@@ -5380,6 +5723,15 @@ void Cstl_network_ip_4_ip_6_udp_engineDialog::PrepareVideo(CString parameter_str
 
 void Cstl_network_ip_4_ip_6_udp_engineDialog::DrawVideo(CString parameter_string, BYTE* parameter_data, size_t parameter_data_length)
 {
+	{
+		if(parameter_data!=NULL)
+		{
+			delete []parameter_data;
+		}
+
+		return;
+	}
+
 	if(get_command_terminate_application())
 	{
 		if(parameter_data!=NULL)
@@ -6250,7 +6602,7 @@ UINT __cdecl datagram_send_video_connection_thread_ip_4(LPVOID parameter)
 
 	for(;;)
 	{
-		ULONGLONG local_start_time = GetTickCount64();
+		ULONGLONG local_start_capture_time = GetTickCount64();
 
 		if(local_main_dialog->get_command_threads_video_stop())
 		{
@@ -6353,6 +6705,10 @@ UINT __cdecl datagram_send_video_connection_thread_ip_4(LPVOID parameter)
 		HRESULT local_stat_result = local_stream->Stat(&local_istream_statstg,STATFLAG::STATFLAG_DEFAULT);
 
 		double local_data_size_send = 0.0;
+
+		ULONGLONG local_end_capture_time = GetTickCount64();
+
+		ULONGLONG local_capture_time = local_end_capture_time - local_start_capture_time;
 
 		for(int peers_to_send_count_counter=0;peers_to_send_count_counter<peers_to_send_count;peers_to_send_count_counter++)
 		{
@@ -6689,26 +7045,30 @@ UINT __cdecl datagram_send_video_connection_thread_ip_4(LPVOID parameter)
 
 				encrypt::encrypt_xor(send_buffer+service_signature_definition_length,send_buffer_data_length-service_signature_definition_length,xor_code);
 
-				int local_header_length = service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+2*sizeof(DWORD);
+				int local_header_length = service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+3*sizeof(DWORD);
 
 				int local_part_counter = 0;
-				int local_parts_count = local_read/(CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t)-2*sizeof(DWORD));
-				int local_last_part_size = local_read % (CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t)-2*sizeof(DWORD));
+				int local_parts_count = local_read/(CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t)-3*sizeof(DWORD));
+				int local_last_part_size = local_read % (CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t)-3*sizeof(DWORD));
 
 				if(local_last_part_size!=0)
 				{
 					local_parts_count++;
 				}
 
+				int local_sequence_frame_number = rand();
+
 				for(;local_part_counter<local_parts_count;local_part_counter++)
 				{
+					ULONGLONG local_start_time = GetTickCount64();
+
 					int send_buffer_this_time_data_length = CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME;
 
 					if(local_part_counter==local_parts_count-1)
 					{
 						if(local_last_part_size!=0)
 						{
-							send_buffer_this_time_data_length = local_last_part_size+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+2*sizeof(DWORD);
+							send_buffer_this_time_data_length = local_last_part_size+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+3*sizeof(DWORD);
 						}
 					}
 
@@ -6719,15 +7079,17 @@ UINT __cdecl datagram_send_video_connection_thread_ip_4(LPVOID parameter)
 					((DWORD*)(send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)))[0] = DWORD(local_part_counter+1);
 					((DWORD*)(send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)))[1] = DWORD(local_parts_count);
 
-					encrypt::encrypt_xor(send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t),2*sizeof(DWORD),xor_code);
+					((DWORD*)(send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)))[2] = DWORD(local_sequence_frame_number);
 
-					int local_this_time_data_offset = local_part_counter*(CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t)-2*sizeof(DWORD));
+					encrypt::encrypt_xor(send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t),3*sizeof(DWORD),xor_code);
+
+					int local_this_time_data_offset = local_part_counter*(CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t)-3*sizeof(DWORD));
 
 					memcpy
 						(
-						send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+2*sizeof(DWORD),
+						send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+3*sizeof(DWORD),
 						send_buffer+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+local_this_time_data_offset,
-						send_buffer_this_time_data_length-(service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+2*sizeof(DWORD))
+						send_buffer_this_time_data_length-(service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+3*sizeof(DWORD))
 						);
 
 					try
@@ -6767,7 +7129,65 @@ UINT __cdecl datagram_send_video_connection_thread_ip_4(LPVOID parameter)
 					//}
 					//else
 					{
-						Sleep(10);
+						ULONGLONG local_end_time = GetTickCount64();
+
+						ULONGLONG local_work_time = local_end_time - local_start_time;
+
+						CString local_string_speed;
+
+						if(local_main_dialog->get_command_terminate_application())
+						{
+							break;
+						}
+						{
+							local_string_speed = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_SPEED_state;
+						}
+						double local_double_speed = _wtof(local_string_speed);
+						if(local_data_size_send!=0.0)
+						{
+							double local_current_time_in_seconds = double(local_work_time+1)/1000.0;
+							double local_current_bits_send = (local_bytes_sent*8.0);
+							double local_current_speed = local_current_bits_send/local_current_time_in_seconds;
+
+							double local_test_rate_1 = double((local_double_speed/8)/(local_parts_count*local_bytes_sent));		//	Требуемая частота кадров
+							double local_test_rate_2 = double((local_current_speed/8)/(local_bytes_sent));						//	Текущая частота отдачи кадров
+							double local_test_rate_3 = 
+								double
+								(
+								1000.0
+								*
+								local_parts_count
+								*
+								port_count_const
+								*
+								peers_to_send_count
+								/
+								local_capture_time
+								);
+							//	Текущая частота съёма кадров на часть на порт на пару
+
+							double local_test_rate_4 = local_test_rate_3;
+
+							DWORD time_to_sleep = 0;
+
+							if(local_test_rate_1>=local_test_rate_4)
+							{
+								time_to_sleep = 0;
+							}
+							else
+							{
+								time_to_sleep = DWORD((1000.0/local_test_rate_1 - 1000.0/local_test_rate_4)/
+									(
+									local_parts_count
+									*
+									port_count_const
+									*
+									peers_to_send_count)
+									);
+							}
+
+							Sleep(time_to_sleep);
+						}
 					}
 
 				}
@@ -6868,84 +7288,8 @@ UINT __cdecl datagram_send_video_connection_thread_ip_4(LPVOID parameter)
 				}
 				else
 				{
-					Sleep(1);
+					Sleep(10);
 				}
-			}
-
-			//ULONGLONG local_end_time = GetTickCount64();
-
-			//ULONGLONG local_work_time = local_end_time - local_start_time;
-
-			//if(local_main_dialog->get_command_threads_video_stop())
-			//{
-			//	break;
-			//}
-			//else
-			//{
-			//	CString local_string_speed;
-
-			//	if(local_main_dialog->get_command_terminate_application())
-			//	{
-			//		break;
-			//	}
-			//	{
-			//		local_string_speed = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_SPEED_state;
-			//	}
-			//	double local_double_speed = _wtof(local_string_speed);
-			//	if(local_data_size_send!=0.0)
-			//	{
-			//		DWORD time_to_work = 1000;
-			//		double local_current_time_in_seconds = double(local_work_time)/1000.0;
-			//		double local_current_bits_send = (local_data_size_send*8.0);
-			//		double local_current_speed = local_current_bits_send/local_current_time_in_seconds;
-			//		double local_current_frame_rate = 1.0/local_current_time_in_seconds;
-			//		double local_speed_factor = local_double_speed/local_current_speed;
-			//		double local_common_factor = min(local_speed_factor,local_current_frame_rate);
-
-			//		time_to_work = DWORD(local_common_factor*local_work_time);
-
-			//		DWORD time_to_sleep = 1000 - time_to_work;
-
-			//		Sleep(time_to_sleep);
-			//	}
-			//}
-		}
-
-		ULONGLONG local_end_time = GetTickCount64();
-
-		ULONGLONG local_work_time = local_end_time - local_start_time;
-
-		if(local_main_dialog->get_command_threads_video_stop())
-		{
-			break;
-		}
-		else
-		{
-			CString local_string_speed;
-
-			if(local_main_dialog->get_command_terminate_application())
-			{
-				break;
-			}
-			{
-				local_string_speed = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_SPEED_state;
-			}
-			double local_double_speed = _wtof(local_string_speed);
-			if(local_data_size_send!=0.0)
-			{
-				DWORD time_to_work = 1000;
-				double local_current_time_in_seconds = double(local_work_time)/1000.0;
-				double local_current_bits_send = (local_data_size_send*8.0);
-				double local_current_speed = local_current_bits_send/local_current_time_in_seconds;
-				double local_current_frame_rate = 1.0/local_current_time_in_seconds;
-				double local_speed_factor = local_double_speed/local_current_speed;
-				double local_common_factor = min(local_speed_factor,local_current_frame_rate);
-
-				time_to_work = DWORD(local_common_factor*local_work_time);
-
-				DWORD time_to_sleep = 1000 - time_to_work;
-
-				Sleep(time_to_sleep);
 			}
 		}
 
@@ -7078,7 +7422,7 @@ UINT __cdecl datagram_send_video_connection_thread_ip_6(LPVOID parameter)
 
 	for(;;)
 	{
-		ULONGLONG local_start_time = GetTickCount64();
+		ULONGLONG local_start_capture_time = GetTickCount64();
 
 		if(local_main_dialog->get_command_threads_video_stop())
 		{
@@ -7182,6 +7526,10 @@ UINT __cdecl datagram_send_video_connection_thread_ip_6(LPVOID parameter)
 		HRESULT local_stat_result = local_stream->Stat(&local_istream_statstg,STATFLAG::STATFLAG_DEFAULT);
 
 		double local_data_size_send = 0.0;
+
+		ULONGLONG local_end_capture_time = GetTickCount64();
+
+		ULONGLONG local_capture_time = local_end_capture_time - local_start_capture_time;
 
 		for(int peers_to_send_count_counter=0;peers_to_send_count_counter<peers_to_send_count;peers_to_send_count_counter++)
 		{
@@ -7519,26 +7867,30 @@ UINT __cdecl datagram_send_video_connection_thread_ip_6(LPVOID parameter)
 
 				encrypt::encrypt_xor(send_buffer+service_signature_definition_length,send_buffer_data_length-service_signature_definition_length,xor_code);
 
-				int local_header_length = service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+2*sizeof(DWORD);
+				int local_header_length = service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+3*sizeof(DWORD);
 
 				int local_part_counter = 0;
-				int local_parts_count = local_read/(CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t)-2*sizeof(DWORD));
-				int local_last_part_size = local_read % (CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t)-2*sizeof(DWORD));
+				int local_parts_count = local_read/(CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t)-3*sizeof(DWORD));
+				int local_last_part_size = local_read % (CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t)-3*sizeof(DWORD));
 
 				if(local_last_part_size!=0)
 				{
 					local_parts_count++;
 				}
 
+				int local_sequence_frame_number = rand();
+
 				for(;local_part_counter<local_parts_count;local_part_counter++)
 				{
+					ULONGLONG local_start_time = GetTickCount64();
+
 					int send_buffer_this_time_data_length = CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME;
 
 					if(local_part_counter==local_parts_count-1)
 					{
 						if(local_last_part_size!=0)
 						{
-							send_buffer_this_time_data_length = local_last_part_size+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+2*sizeof(DWORD);
+							send_buffer_this_time_data_length = local_last_part_size+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+3*sizeof(DWORD);
 						}
 					}
 
@@ -7549,15 +7901,17 @@ UINT __cdecl datagram_send_video_connection_thread_ip_6(LPVOID parameter)
 					((DWORD*)(send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)))[0] = DWORD(local_part_counter+1);
 					((DWORD*)(send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)))[1] = DWORD(local_parts_count);
 
-					encrypt::encrypt_xor(send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t),2*sizeof(DWORD),xor_code);
+					((DWORD*)(send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)))[2] = DWORD(local_sequence_frame_number);
 
-					int local_this_time_data_offset = local_part_counter*(CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t)-2*sizeof(DWORD));
+					encrypt::encrypt_xor(send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t),3*sizeof(DWORD),xor_code);
+
+					int local_this_time_data_offset = local_part_counter*(CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t)-3*sizeof(DWORD));
 
 					memcpy
 						(
-						send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+2*sizeof(DWORD),
+						send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+3*sizeof(DWORD),
 						send_buffer+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+local_this_time_data_offset,
-						send_buffer_this_time_data_length-(service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+2*sizeof(DWORD))
+						send_buffer_this_time_data_length-(service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+3*sizeof(DWORD))
 						);
 
 					try
@@ -7597,7 +7951,65 @@ UINT __cdecl datagram_send_video_connection_thread_ip_6(LPVOID parameter)
 					//}
 					//else
 					{
-						Sleep(10);
+						ULONGLONG local_end_time = GetTickCount64();
+
+						ULONGLONG local_work_time = local_end_time - local_start_time;
+
+						CString local_string_speed;
+
+						if(local_main_dialog->get_command_terminate_application())
+						{
+							break;
+						}
+						{
+							local_string_speed = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_SPEED_state;
+						}
+						double local_double_speed = _wtof(local_string_speed);
+						if(local_data_size_send!=0.0)
+						{
+							double local_current_time_in_seconds = double(local_work_time+1)/1000.0;
+							double local_current_bits_send = (local_bytes_sent*8.0);
+							double local_current_speed = local_current_bits_send/local_current_time_in_seconds;
+
+							double local_test_rate_1 = double((local_double_speed/8)/(local_parts_count*local_bytes_sent));		//	Требуемая частота кадров
+							double local_test_rate_2 = double((local_current_speed/8)/(local_bytes_sent));						//	Текущая частота отдачи кадров
+							double local_test_rate_3 = 
+								double
+								(
+								1000.0
+								*
+								local_parts_count
+								*
+								port_count_const
+								*
+								peers_to_send_count
+								/
+								local_capture_time
+								);
+							//	Текущая частота съёма кадров на часть на порт на пару
+
+							double local_test_rate_4 = local_test_rate_3;
+
+							DWORD time_to_sleep = 0;
+
+							if(local_test_rate_1>=local_test_rate_4)
+							{
+								time_to_sleep = 0;
+							}
+							else
+							{
+								time_to_sleep = DWORD((1000.0/local_test_rate_1 - 1000.0/local_test_rate_4)/
+									(
+									local_parts_count
+									*
+									port_count_const
+									*
+									peers_to_send_count)
+									);
+							}
+
+							Sleep(time_to_sleep);
+						}
 					}
 
 				}
@@ -7697,52 +8109,10 @@ UINT __cdecl datagram_send_video_connection_thread_ip_6(LPVOID parameter)
 				}
 				else
 				{
-					Sleep(1);
+					Sleep(10);
 				}
 			}
-
-			//ULONGLONG local_end_time = GetTickCount64();
-
-			//ULONGLONG local_work_time = local_end_time - local_start_time;
-
-			//if(local_main_dialog->get_command_threads_video_stop())
-			//{
-			//	break;
-			//}
-			//else
-			//{
-			//	CString local_string_speed;
-
-			//	if(local_main_dialog->get_command_terminate_application())
-			//	{
-			//		break;
-			//	}
-			//	{
-			//		local_string_speed = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_SPEED_state;					
-			//	}
-			//	double local_double_speed = _wtof(local_string_speed);
-			//	if(local_data_size_send!=0.0)
-			//	{
-			//		DWORD time_to_work = 1000;
-			//		double local_current_time_in_seconds = double(local_work_time)/1000.0;
-			//		double local_current_bits_send = (local_data_size_send*8.0);
-			//		double local_current_speed = local_current_bits_send/local_current_time_in_seconds;
-			//		double local_current_frame_rate = 1.0/local_current_time_in_seconds;
-			//		double local_speed_factor = local_double_speed/local_current_speed;
-			//		double local_common_factor = min(local_speed_factor,local_current_frame_rate);
-
-			//		time_to_work = DWORD(local_common_factor*local_work_time);
-
-			//		DWORD time_to_sleep = 1000 - time_to_work;
-
-			//		Sleep(time_to_sleep);
-			//	}
-			//}
 		}
-
-		ULONGLONG local_end_time = GetTickCount64();
-
-		ULONGLONG local_work_time = local_end_time - local_start_time;
 
 		if(local_main_dialog->get_command_threads_video_stop())
 		{
@@ -7750,32 +8120,7 @@ UINT __cdecl datagram_send_video_connection_thread_ip_6(LPVOID parameter)
 		}
 		else
 		{
-			CString local_string_speed;
-
-			if(local_main_dialog->get_command_terminate_application())
-			{
-				break;
-			}
-			{
-				local_string_speed = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_SPEED_state;					
-			}
-			double local_double_speed = _wtof(local_string_speed);
-			if(local_data_size_send!=0.0)
-			{
-				DWORD time_to_work = 1000;
-				double local_current_time_in_seconds = double(local_work_time)/1000.0;
-				double local_current_bits_send = (local_data_size_send*8.0);
-				double local_current_speed = local_current_bits_send/local_current_time_in_seconds;
-				double local_current_frame_rate = 1.0/local_current_time_in_seconds;
-				double local_speed_factor = local_double_speed/local_current_speed;
-				double local_common_factor = min(local_speed_factor,local_current_frame_rate);
-
-				time_to_work = DWORD(local_common_factor*local_work_time);
-
-				DWORD time_to_sleep = 1000 - time_to_work;
-
-				Sleep(time_to_sleep);
-			}
+			Sleep(10);
 		}
 
 		if(local_main_dialog->get_command_threads_video_stop())
@@ -8615,7 +8960,44 @@ UINT __cdecl datagram_send_web_camera_video_connection_thread_ip_4(LPVOID parame
 					//}
 					//else
 					{
-						Sleep(10);
+						ULONGLONG local_end_time = GetTickCount64();
+
+						ULONGLONG local_work_time = local_end_time - local_start_time;
+
+						if(local_main_dialog->get_command_threads_web_camera_video_stop())
+						{
+							break;
+						}
+						else
+						{
+							CString local_string_speed;
+
+							if(local_main_dialog->get_command_terminate_application())
+							{
+								break;
+							}
+							{
+								local_string_speed = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_SPEED_state;
+							}
+							double local_double_speed = _wtof(local_string_speed);
+							if(local_data_size_send!=0.0)
+							{
+								DWORD time_to_work = 1000;
+								double local_current_time_in_seconds = double(local_work_time)/1000.0;
+								double local_current_bits_send = (local_data_size_send*8.0);
+								double local_current_speed = local_current_bits_send/local_current_time_in_seconds;
+								double local_current_frame_rate = 1.0/local_current_time_in_seconds;
+								double local_speed_factor = local_double_speed/local_current_speed;
+								double local_common_factor = min(local_speed_factor,local_current_frame_rate);
+
+								time_to_work = DWORD(local_common_factor*local_work_time);
+
+								DWORD time_to_sleep = 1000 - time_to_work;
+
+								//Sleep(time_to_sleep);
+								Sleep(10);
+							}
+						}
 					}
 
 				}
@@ -8716,7 +9098,7 @@ UINT __cdecl datagram_send_web_camera_video_connection_thread_ip_4(LPVOID parame
 				}
 				else
 				{
-					Sleep(1);
+					Sleep(10);
 				}
 			}
 
@@ -8759,43 +9141,43 @@ UINT __cdecl datagram_send_web_camera_video_connection_thread_ip_4(LPVOID parame
 			//}
 		}
 
-		ULONGLONG local_end_time = GetTickCount64();
+		//ULONGLONG local_end_time = GetTickCount64();
 
-		ULONGLONG local_work_time = local_end_time - local_start_time;
+		//ULONGLONG local_work_time = local_end_time - local_start_time;
 
-		if(local_main_dialog->get_command_threads_web_camera_video_stop())
-		{
-			break;
-		}
-		else
-		{
-			CString local_string_speed;
+		//if(local_main_dialog->get_command_threads_web_camera_video_stop())
+		//{
+		//	break;
+		//}
+		//else
+		//{
+		//	CString local_string_speed;
 
-			if(local_main_dialog->get_command_terminate_application())
-			{
-				break;
-			}
-			{
-				local_string_speed = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_SPEED_state;
-			}
-			double local_double_speed = _wtof(local_string_speed);
-			if(local_data_size_send!=0.0)
-			{
-				DWORD time_to_work = 1000;
-				double local_current_time_in_seconds = double(local_work_time)/1000.0;
-				double local_current_bits_send = (local_data_size_send*8.0);
-				double local_current_speed = local_current_bits_send/local_current_time_in_seconds;
-				double local_current_frame_rate = 1.0/local_current_time_in_seconds;
-				double local_speed_factor = local_double_speed/local_current_speed;
-				double local_common_factor = min(local_speed_factor,local_current_frame_rate);
+		//	if(local_main_dialog->get_command_terminate_application())
+		//	{
+		//		break;
+		//	}
+		//	{
+		//		local_string_speed = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_SPEED_state;
+		//	}
+		//	double local_double_speed = _wtof(local_string_speed);
+		//	if(local_data_size_send!=0.0)
+		//	{
+		//		DWORD time_to_work = 1000;
+		//		double local_current_time_in_seconds = double(local_work_time)/1000.0;
+		//		double local_current_bits_send = (local_data_size_send*8.0);
+		//		double local_current_speed = local_current_bits_send/local_current_time_in_seconds;
+		//		double local_current_frame_rate = 1.0/local_current_time_in_seconds;
+		//		double local_speed_factor = local_double_speed/local_current_speed;
+		//		double local_common_factor = min(local_speed_factor,local_current_frame_rate);
 
-				time_to_work = DWORD(local_common_factor*local_work_time);
+		//		time_to_work = DWORD(local_common_factor*local_work_time);
 
-				DWORD time_to_sleep = 1000 - time_to_work;
+		//		DWORD time_to_sleep = 1000 - time_to_work;
 
-				Sleep(time_to_sleep);
-			}
-		}
+		//		Sleep(time_to_sleep);
+		//	}
+		//}
 
 		if(local_main_dialog->get_command_threads_web_camera_video_stop())
 		{
@@ -9462,7 +9844,44 @@ UINT __cdecl datagram_send_web_camera_video_connection_thread_ip_6(LPVOID parame
 					//}
 					//else
 					{
-						Sleep(10);
+						ULONGLONG local_end_time = GetTickCount64();
+
+						ULONGLONG local_work_time = local_end_time - local_start_time;
+
+						if(local_main_dialog->get_command_threads_web_camera_video_stop())
+						{
+							break;
+						}
+						else
+						{
+							CString local_string_speed;
+
+							if(local_main_dialog->get_command_terminate_application())
+							{
+								break;
+							}
+							{
+								local_string_speed = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_SPEED_state;				
+							}
+							double local_double_speed = _wtof(local_string_speed);
+							if(local_data_size_send!=0.0)
+							{
+								DWORD time_to_work = 1000;
+								double local_current_time_in_seconds = double(local_work_time)/1000.0;
+								double local_current_bits_send = (local_data_size_send*8.0);
+								double local_current_speed = local_current_bits_send/local_current_time_in_seconds;
+								double local_current_frame_rate = 1.0/local_current_time_in_seconds;
+								double local_speed_factor = local_double_speed/local_current_speed;
+								double local_common_factor = min(local_speed_factor,local_current_frame_rate);
+
+								time_to_work = DWORD(local_common_factor*local_work_time);
+
+								DWORD time_to_sleep = 1000 - time_to_work;
+
+								//Sleep(time_to_sleep);
+								Sleep(10);
+							}
+						}
 					}
 
 				}
@@ -9563,7 +9982,7 @@ UINT __cdecl datagram_send_web_camera_video_connection_thread_ip_6(LPVOID parame
 				}
 				else
 				{
-					Sleep(1);
+					Sleep(10);
 				}
 			}
 
@@ -9606,43 +10025,43 @@ UINT __cdecl datagram_send_web_camera_video_connection_thread_ip_6(LPVOID parame
 			//}
 		}
 
-		ULONGLONG local_end_time = GetTickCount64();
+		//ULONGLONG local_end_time = GetTickCount64();
 
-		ULONGLONG local_work_time = local_end_time - local_start_time;
+		//ULONGLONG local_work_time = local_end_time - local_start_time;
 
-		if(local_main_dialog->get_command_threads_web_camera_video_stop())
-		{
-			break;
-		}
-		else
-		{
-			CString local_string_speed;
+		//if(local_main_dialog->get_command_threads_web_camera_video_stop())
+		//{
+		//	break;
+		//}
+		//else
+		//{
+		//	CString local_string_speed;
 
-			if(local_main_dialog->get_command_terminate_application())
-			{
-				break;
-			}
-			{
-				local_string_speed = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_SPEED_state;				
-			}
-			double local_double_speed = _wtof(local_string_speed);
-			if(local_data_size_send!=0.0)
-			{
-				DWORD time_to_work = 1000;
-				double local_current_time_in_seconds = double(local_work_time)/1000.0;
-				double local_current_bits_send = (local_data_size_send*8.0);
-				double local_current_speed = local_current_bits_send/local_current_time_in_seconds;
-				double local_current_frame_rate = 1.0/local_current_time_in_seconds;
-				double local_speed_factor = local_double_speed/local_current_speed;
-				double local_common_factor = min(local_speed_factor,local_current_frame_rate);
+		//	if(local_main_dialog->get_command_terminate_application())
+		//	{
+		//		break;
+		//	}
+		//	{
+		//		local_string_speed = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_SPEED_state;				
+		//	}
+		//	double local_double_speed = _wtof(local_string_speed);
+		//	if(local_data_size_send!=0.0)
+		//	{
+		//		DWORD time_to_work = 1000;
+		//		double local_current_time_in_seconds = double(local_work_time)/1000.0;
+		//		double local_current_bits_send = (local_data_size_send*8.0);
+		//		double local_current_speed = local_current_bits_send/local_current_time_in_seconds;
+		//		double local_current_frame_rate = 1.0/local_current_time_in_seconds;
+		//		double local_speed_factor = local_double_speed/local_current_speed;
+		//		double local_common_factor = min(local_speed_factor,local_current_frame_rate);
 
-				time_to_work = DWORD(local_common_factor*local_work_time);
+		//		time_to_work = DWORD(local_common_factor*local_work_time);
 
-				DWORD time_to_sleep = 1000 - time_to_work;
+		//		DWORD time_to_sleep = 1000 - time_to_work;
 
-				Sleep(time_to_sleep);
-			}
-		}
+		//		Sleep(time_to_sleep);
+		//	}
+		//}
 
 
 		if(local_main_dialog->get_command_threads_web_camera_video_stop())
@@ -10080,6 +10499,40 @@ void Cstl_network_ip_4_ip_6_udp_engineDialog::OnBnClickedCheckEnableVideo()
 			received_video_dialog->main_dialog = this;
 			received_video_dialog->Create(CReceivedVideoDialog::IDD);
 			received_video_dialog->ShowWindow(SW_SHOWNORMAL);
+		}
+
+		{
+			CSingleLock local_lock(&draw_video_critical_section);
+
+			local_lock.Lock();
+
+			std::list<STREAM_FRAME_INFORMATION>::iterator current_received_video_frame_stream = received_video_frame_stream.begin();
+
+			for(;current_received_video_frame_stream!=received_video_frame_stream.end();current_received_video_frame_stream++)
+			{
+				for
+					(
+					std::list<FRAME>::iterator current_received_video_frame = current_received_video_frame_stream->frames.begin()
+					;
+				current_received_video_frame!=current_received_video_frame_stream->frames.end()
+					;
+				current_received_video_frame++
+					)
+				{
+					for(
+						std::list<FRAME_PART>::iterator local_frame_parts_iterator = current_received_video_frame->frame_parts.begin()
+						;
+					local_frame_parts_iterator!=current_received_video_frame->frame_parts.end()
+						;
+					local_frame_parts_iterator++
+						)
+					{
+						delete []local_frame_parts_iterator->frame_part_data;
+					}
+				}
+			}
+
+			received_video_frame_stream.clear();
 		}
 	}
 	else
@@ -10985,7 +11438,7 @@ UINT __cdecl datagram_send_audio_connection_thread_ip_4(LPVOID parameter)
 				}
 				else
 				{
-					Sleep(1);
+					Sleep(10);
 				}
 			}
 
@@ -11887,7 +12340,7 @@ UINT __cdecl datagram_send_audio_connection_thread_ip_6(LPVOID parameter)
 				}
 				else
 				{
-					Sleep(1);
+					Sleep(10);
 				}
 			}
 
@@ -14693,7 +15146,7 @@ UINT __cdecl datagram_retranslate_video_connection_thread_ip_4(LPVOID parameter)
 
 	for(;;)
 	{
-		ULONGLONG local_start_time = GetTickCount64();
+		ULONGLONG local_start_capture_time = GetTickCount64();
 
 		if(local_main_dialog->get_command_threads_retranslate_video_stop())
 		{
@@ -14801,6 +15254,10 @@ UINT __cdecl datagram_retranslate_video_connection_thread_ip_4(LPVOID parameter)
 		HRESULT local_stat_result = local_stream->Stat(&local_istream_statstg,STATFLAG::STATFLAG_DEFAULT);
 
 		double local_data_size_send = 0.0;
+
+		ULONGLONG local_end_capture_time = GetTickCount64();
+
+		ULONGLONG local_capture_time = local_end_capture_time - local_start_capture_time;
 
 		for(int peers_to_send_count_counter=0;peers_to_send_count_counter<peers_to_send_count;peers_to_send_count_counter++)
 		{
@@ -15156,26 +15613,30 @@ UINT __cdecl datagram_retranslate_video_connection_thread_ip_4(LPVOID parameter)
 
 				encrypt::encrypt_xor(send_buffer+service_signature_definition_length,send_buffer_data_length-service_signature_definition_length,xor_code);
 
-				int local_header_length = service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+2*sizeof(DWORD);
+				int local_header_length = service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+3*sizeof(DWORD);
 
 				int local_part_counter = 0;
-				int local_parts_count = local_read/(CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t)-2*sizeof(DWORD));
-				int local_last_part_size = local_read % (CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t)-2*sizeof(DWORD));
+				int local_parts_count = local_read/(CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t)-3*sizeof(DWORD));
+				int local_last_part_size = local_read % (CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t)-3*sizeof(DWORD));
 
 				if(local_last_part_size!=0)
 				{
 					local_parts_count++;
 				}
 
+				int local_sequence_frame_number = rand();
+
 				for(;local_part_counter<local_parts_count;local_part_counter++)
 				{
+					ULONGLONG local_start_time = GetTickCount64();
+
 					int send_buffer_this_time_data_length = CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME;
 
 					if(local_part_counter==local_parts_count-1)
 					{
 						if(local_last_part_size!=0)
 						{
-							send_buffer_this_time_data_length = local_last_part_size+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+2*sizeof(DWORD);
+							send_buffer_this_time_data_length = local_last_part_size+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+3*sizeof(DWORD);
 						}
 					}
 
@@ -15186,15 +15647,17 @@ UINT __cdecl datagram_retranslate_video_connection_thread_ip_4(LPVOID parameter)
 					((DWORD*)(send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)))[0] = DWORD(local_part_counter+1);
 					((DWORD*)(send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)))[1] = DWORD(local_parts_count);
 
-					encrypt::encrypt_xor(send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t),2*sizeof(DWORD),xor_code);
+					((DWORD*)(send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)))[2] = DWORD(local_sequence_frame_number);
 
-					int local_this_time_data_offset = local_part_counter*(CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t)-2*sizeof(DWORD));
+					encrypt::encrypt_xor(send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t),3*sizeof(DWORD),xor_code);
+
+					int local_this_time_data_offset = local_part_counter*(CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t)-3*sizeof(DWORD));
 
 					memcpy
 						(
-						send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+2*sizeof(DWORD),
+						send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+3*sizeof(DWORD),
 						send_buffer+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+local_this_time_data_offset,
-						send_buffer_this_time_data_length-(service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+2*sizeof(DWORD))
+						send_buffer_this_time_data_length-(service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+3*sizeof(DWORD))
 						);
 
 					try
@@ -15234,7 +15697,65 @@ UINT __cdecl datagram_retranslate_video_connection_thread_ip_4(LPVOID parameter)
 					//}
 					//else
 					{
-						Sleep(10);
+						ULONGLONG local_end_time = GetTickCount64();
+
+						ULONGLONG local_work_time = local_end_time - local_start_time;
+
+						CString local_string_speed;
+
+						if(local_main_dialog->get_command_terminate_application())
+						{
+							break;
+						}
+						{
+							local_string_speed = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_SPEED_state;
+						}
+						double local_double_speed = _wtof(local_string_speed);
+						if(local_data_size_send!=0.0)
+						{
+							double local_current_time_in_seconds = double(local_work_time+1)/1000.0;
+							double local_current_bits_send = (local_bytes_sent*8.0);
+							double local_current_speed = local_current_bits_send/local_current_time_in_seconds;
+
+							double local_test_rate_1 = double((local_double_speed/8)/(local_parts_count*local_bytes_sent));		//	Требуемая частота кадров
+							double local_test_rate_2 = double((local_current_speed/8)/(local_bytes_sent));						//	Текущая частота отдачи кадров
+							double local_test_rate_3 = 
+								double
+								(
+								1000.0
+								*
+								local_parts_count
+								*
+								port_count_const
+								*
+								peers_to_send_count
+								/
+								local_capture_time
+								);
+							//	Текущая частота съёма кадров на часть на порт на пару
+
+							double local_test_rate_4 = local_test_rate_3;
+
+							DWORD time_to_sleep = 0;
+
+							if(local_test_rate_1>=local_test_rate_4)
+							{
+								time_to_sleep = 0;
+							}
+							else
+							{
+								time_to_sleep = DWORD((1000.0/local_test_rate_1 - 1000.0/local_test_rate_4)/
+									(
+									local_parts_count
+									*
+									port_count_const
+									*
+									peers_to_send_count)
+									);
+							}
+
+							Sleep(time_to_sleep);
+						}
 					}
 
 				}
@@ -15335,84 +15856,8 @@ UINT __cdecl datagram_retranslate_video_connection_thread_ip_4(LPVOID parameter)
 				}
 				else
 				{
-					Sleep(1);
+					Sleep(10);
 				}
-			}
-
-			//ULONGLONG local_end_time = GetTickCount64();
-
-			//ULONGLONG local_work_time = local_end_time - local_start_time;
-
-			//if(local_main_dialog->get_command_threads_retranslate_video_stop())
-			//{
-			//	break;
-			//}
-			//else
-			//{
-			//	CString local_string_speed;
-
-			//	if(local_main_dialog->get_command_terminate_application())
-			//	{
-			//		break;
-			//	}
-			//	{
-			//		local_string_speed = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_SPEED_state;
-			//	}
-			//	double local_double_speed = _wtof(local_string_speed);
-			//	if(local_data_size_send!=0.0)
-			//	{
-			//		DWORD time_to_work = 1000;
-			//		double local_current_time_in_seconds = double(local_work_time)/1000.0;
-			//		double local_current_bits_send = (local_data_size_send*8.0);
-			//		double local_current_speed = local_current_bits_send/local_current_time_in_seconds;
-			//		double local_current_frame_rate = 1.0/local_current_time_in_seconds;
-			//		double local_speed_factor = local_double_speed/local_current_speed;
-			//		double local_common_factor = min(local_speed_factor,local_current_frame_rate);
-
-			//		time_to_work = DWORD(local_common_factor*local_work_time);
-
-			//		DWORD time_to_sleep = 1000 - time_to_work;
-
-			//		Sleep(time_to_sleep);
-			//	}
-			//}
-		}
-
-		ULONGLONG local_end_time = GetTickCount64();
-
-		ULONGLONG local_work_time = local_end_time - local_start_time;
-
-		if(local_main_dialog->get_command_threads_retranslate_video_stop())
-		{
-			break;
-		}
-		else
-		{
-			CString local_string_speed;
-
-			if(local_main_dialog->get_command_terminate_application())
-			{
-				break;
-			}
-			{
-				local_string_speed = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_SPEED_state;
-			}
-			double local_double_speed = _wtof(local_string_speed);
-			if(local_data_size_send!=0.0)
-			{
-				DWORD time_to_work = 1000;
-				double local_current_time_in_seconds = double(local_work_time)/1000.0;
-				double local_current_bits_send = (local_data_size_send*8.0);
-				double local_current_speed = local_current_bits_send/local_current_time_in_seconds;
-				double local_current_frame_rate = 1.0/local_current_time_in_seconds;
-				double local_speed_factor = local_double_speed/local_current_speed;
-				double local_common_factor = min(local_speed_factor,local_current_frame_rate);
-
-				time_to_work = DWORD(local_common_factor*local_work_time);
-
-				DWORD time_to_sleep = 1000 - time_to_work;
-
-				Sleep(time_to_sleep);
 			}
 		}
 
@@ -15545,7 +15990,7 @@ UINT __cdecl datagram_retranslate_video_connection_thread_ip_6(LPVOID parameter)
 
 	for(;;)
 	{
-		ULONGLONG local_start_time = GetTickCount64();
+		ULONGLONG local_start_capture_time = GetTickCount64();
 
 		if(local_main_dialog->get_command_threads_retranslate_video_stop())
 		{
@@ -15654,6 +16099,10 @@ UINT __cdecl datagram_retranslate_video_connection_thread_ip_6(LPVOID parameter)
 		HRESULT local_stat_result = local_stream->Stat(&local_istream_statstg,STATFLAG::STATFLAG_DEFAULT);
 
 		double local_data_size_send = 0.0;
+
+		ULONGLONG local_end_capture_time = GetTickCount64();
+
+		ULONGLONG local_capture_time = local_end_capture_time - local_start_capture_time;
 
 		for(int peers_to_send_count_counter=0;peers_to_send_count_counter<peers_to_send_count;peers_to_send_count_counter++)
 		{
@@ -15991,26 +16440,30 @@ UINT __cdecl datagram_retranslate_video_connection_thread_ip_6(LPVOID parameter)
 
 				encrypt::encrypt_xor(send_buffer+service_signature_definition_length,send_buffer_data_length-service_signature_definition_length,xor_code);
 
-				int local_header_length = service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+2*sizeof(DWORD);
+				int local_header_length = service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+3*sizeof(DWORD);
 
 				int local_part_counter = 0;
-				int local_parts_count = local_read/(CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t)-2*sizeof(DWORD));
-				int local_last_part_size = local_read % (CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t)-2*sizeof(DWORD));
+				int local_parts_count = local_read/(CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t)-3*sizeof(DWORD));
+				int local_last_part_size = local_read % (CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t)-3*sizeof(DWORD));
 
 				if(local_last_part_size!=0)
 				{
 					local_parts_count++;
 				}
 
+				int local_sequence_frame_number = rand();
+
 				for(;local_part_counter<local_parts_count;local_part_counter++)
 				{
+					ULONGLONG local_start_time = GetTickCount64();
+
 					int send_buffer_this_time_data_length = CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME;
 
 					if(local_part_counter==local_parts_count-1)
 					{
 						if(local_last_part_size!=0)
 						{
-							send_buffer_this_time_data_length = local_last_part_size+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+2*sizeof(DWORD);
+							send_buffer_this_time_data_length = local_last_part_size+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+3*sizeof(DWORD);
 						}
 					}
 
@@ -16021,15 +16474,17 @@ UINT __cdecl datagram_retranslate_video_connection_thread_ip_6(LPVOID parameter)
 					((DWORD*)(send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)))[0] = DWORD(local_part_counter+1);
 					((DWORD*)(send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)))[1] = DWORD(local_parts_count);
 
-					encrypt::encrypt_xor(send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t),2*sizeof(DWORD),xor_code);
+					((DWORD*)(send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)))[2] = DWORD(local_sequence_frame_number);
 
-					int local_this_time_data_offset = local_part_counter*(CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t)-2*sizeof(DWORD));
+					encrypt::encrypt_xor(send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t),3*sizeof(DWORD),xor_code);
+
+					int local_this_time_data_offset = local_part_counter*(CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t)-3*sizeof(DWORD));
 
 					memcpy
 						(
-						send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+2*sizeof(DWORD),
+						send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+3*sizeof(DWORD),
 						send_buffer+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+local_this_time_data_offset,
-						send_buffer_this_time_data_length-(service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+2*sizeof(DWORD))
+						send_buffer_this_time_data_length-(service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+3*sizeof(DWORD))
 						);
 
 					try
@@ -16069,7 +16524,65 @@ UINT __cdecl datagram_retranslate_video_connection_thread_ip_6(LPVOID parameter)
 					//}
 					//else
 					{
-						Sleep(10);
+						ULONGLONG local_end_time = GetTickCount64();
+
+						ULONGLONG local_work_time = local_end_time - local_start_time;
+
+						CString local_string_speed;
+
+						if(local_main_dialog->get_command_terminate_application())
+						{
+							break;
+						}
+						{
+							local_string_speed = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_SPEED_state;
+						}
+						double local_double_speed = _wtof(local_string_speed);
+						if(local_data_size_send!=0.0)
+						{
+							double local_current_time_in_seconds = double(local_work_time+1)/1000.0;
+							double local_current_bits_send = (local_bytes_sent*8.0);
+							double local_current_speed = local_current_bits_send/local_current_time_in_seconds;
+
+							double local_test_rate_1 = double((local_double_speed/8)/(local_parts_count*local_bytes_sent));		//	Требуемая частота кадров
+							double local_test_rate_2 = double((local_current_speed/8)/(local_bytes_sent));						//	Текущая частота отдачи кадров
+							double local_test_rate_3 = 
+								double
+								(
+								1000.0
+								*
+								local_parts_count
+								*
+								port_count_const
+								*
+								peers_to_send_count
+								/
+								local_capture_time
+								);
+							//	Текущая частота съёма кадров на часть на порт на пару
+
+							double local_test_rate_4 = local_test_rate_3;
+
+							DWORD time_to_sleep = 0;
+
+							if(local_test_rate_1>=local_test_rate_4)
+							{
+								time_to_sleep = 0;
+							}
+							else
+							{
+								time_to_sleep = DWORD((1000.0/local_test_rate_1 - 1000.0/local_test_rate_4)/
+									(
+									local_parts_count
+									*
+									port_count_const
+									*
+									peers_to_send_count)
+									);
+							}
+
+							Sleep(time_to_sleep);
+						}
 					}
 
 				}
@@ -16169,86 +16682,11 @@ UINT __cdecl datagram_retranslate_video_connection_thread_ip_6(LPVOID parameter)
 				}
 				else
 				{
-					Sleep(1);
+					Sleep(10);
 				}
 			}
-
-			//ULONGLONG local_end_time = GetTickCount64();
-
-			//ULONGLONG local_work_time = local_end_time - local_start_time;
-
-			//if(local_main_dialog->get_command_threads_retranslate_video_stop())
-			//{
-			//	break;
-			//}
-			//else
-			//{
-			//	CString local_string_speed;
-
-			//	if(local_main_dialog->get_command_terminate_application())
-			//	{
-			//		break;
-			//	}
-			//	{
-			//		local_string_speed = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_SPEED_state;					
-			//	}
-			//	double local_double_speed = _wtof(local_string_speed);
-			//	if(local_data_size_send!=0.0)
-			//	{
-			//		DWORD time_to_work = 1000;
-			//		double local_current_time_in_seconds = double(local_work_time)/1000.0;
-			//		double local_current_bits_send = (local_data_size_send*8.0);
-			//		double local_current_speed = local_current_bits_send/local_current_time_in_seconds;
-			//		double local_current_frame_rate = 1.0/local_current_time_in_seconds;
-			//		double local_speed_factor = local_double_speed/local_current_speed;
-			//		double local_common_factor = min(local_speed_factor,local_current_frame_rate);
-
-			//		time_to_work = DWORD(local_common_factor*local_work_time);
-
-			//		DWORD time_to_sleep = 1000 - time_to_work;
-
-			//		Sleep(time_to_sleep);
-			//	}
-			//}
 		}
 
-		ULONGLONG local_end_time = GetTickCount64();
-
-		ULONGLONG local_work_time = local_end_time - local_start_time;
-
-		if(local_main_dialog->get_command_threads_retranslate_video_stop())
-		{
-			break;
-		}
-		else
-		{
-			CString local_string_speed;
-
-			if(local_main_dialog->get_command_terminate_application())
-			{
-				break;
-			}
-			{
-				local_string_speed = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_SPEED_state;					
-			}
-			double local_double_speed = _wtof(local_string_speed);
-			if(local_data_size_send!=0.0)
-			{
-				DWORD time_to_work = 1000;
-				double local_current_time_in_seconds = double(local_work_time)/1000.0;
-				double local_current_bits_send = (local_data_size_send*8.0);
-				double local_current_speed = local_current_bits_send/local_current_time_in_seconds;
-				double local_current_frame_rate = 1.0/local_current_time_in_seconds;
-				double local_speed_factor = local_double_speed/local_current_speed;
-				double local_common_factor = min(local_speed_factor,local_current_frame_rate);
-
-				time_to_work = DWORD(local_common_factor*local_work_time);
-
-				DWORD time_to_sleep = 1000 - time_to_work;
-
-				Sleep(time_to_sleep);
-			}
-		}
 
 		if(local_main_dialog->get_command_threads_retranslate_video_stop())
 		{
@@ -16995,7 +17433,44 @@ UINT __cdecl datagram_retranslate_web_camera_video_connection_thread_ip_4(LPVOID
 					//}
 					//else
 					{
-						Sleep(10);
+						ULONGLONG local_end_time = GetTickCount64();
+
+						ULONGLONG local_work_time = local_end_time - local_start_time;
+
+						if(local_main_dialog->get_command_threads_retranslate_web_camera_video_stop())
+						{
+							break;
+						}
+						else
+						{
+							CString local_string_speed;
+
+							if(local_main_dialog->get_command_terminate_application())
+							{
+								break;
+							}
+							{
+								local_string_speed = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_SPEED_state;
+							}
+							double local_double_speed = _wtof(local_string_speed);
+							if(local_data_size_send!=0.0)
+							{
+								DWORD time_to_work = 1000;
+								double local_current_time_in_seconds = double(local_work_time)/1000.0;
+								double local_current_bits_send = (local_data_size_send*8.0);
+								double local_current_speed = local_current_bits_send/local_current_time_in_seconds;
+								double local_current_frame_rate = 1.0/local_current_time_in_seconds;
+								double local_speed_factor = local_double_speed/local_current_speed;
+								double local_common_factor = min(local_speed_factor,local_current_frame_rate);
+
+								time_to_work = DWORD(local_common_factor*local_work_time);
+
+								DWORD time_to_sleep = 1000 - time_to_work;
+
+								//Sleep(time_to_sleep);
+								Sleep(10);
+							}
+						}
 					}
 
 				}
@@ -17096,7 +17571,7 @@ UINT __cdecl datagram_retranslate_web_camera_video_connection_thread_ip_4(LPVOID
 				}
 				else
 				{
-					Sleep(1);
+					Sleep(10);
 				}
 			}
 
@@ -17139,43 +17614,43 @@ UINT __cdecl datagram_retranslate_web_camera_video_connection_thread_ip_4(LPVOID
 			//}
 		}
 
-		ULONGLONG local_end_time = GetTickCount64();
+		//ULONGLONG local_end_time = GetTickCount64();
 
-		ULONGLONG local_work_time = local_end_time - local_start_time;
+		//ULONGLONG local_work_time = local_end_time - local_start_time;
 
-		if(local_main_dialog->get_command_threads_retranslate_web_camera_video_stop())
-		{
-			break;
-		}
-		else
-		{
-			CString local_string_speed;
+		//if(local_main_dialog->get_command_threads_retranslate_web_camera_video_stop())
+		//{
+		//	break;
+		//}
+		//else
+		//{
+		//	CString local_string_speed;
 
-			if(local_main_dialog->get_command_terminate_application())
-			{
-				break;
-			}
-			{
-				local_string_speed = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_SPEED_state;
-			}
-			double local_double_speed = _wtof(local_string_speed);
-			if(local_data_size_send!=0.0)
-			{
-				DWORD time_to_work = 1000;
-				double local_current_time_in_seconds = double(local_work_time)/1000.0;
-				double local_current_bits_send = (local_data_size_send*8.0);
-				double local_current_speed = local_current_bits_send/local_current_time_in_seconds;
-				double local_current_frame_rate = 1.0/local_current_time_in_seconds;
-				double local_speed_factor = local_double_speed/local_current_speed;
-				double local_common_factor = min(local_speed_factor,local_current_frame_rate);
+		//	if(local_main_dialog->get_command_terminate_application())
+		//	{
+		//		break;
+		//	}
+		//	{
+		//		local_string_speed = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_SPEED_state;
+		//	}
+		//	double local_double_speed = _wtof(local_string_speed);
+		//	if(local_data_size_send!=0.0)
+		//	{
+		//		DWORD time_to_work = 1000;
+		//		double local_current_time_in_seconds = double(local_work_time)/1000.0;
+		//		double local_current_bits_send = (local_data_size_send*8.0);
+		//		double local_current_speed = local_current_bits_send/local_current_time_in_seconds;
+		//		double local_current_frame_rate = 1.0/local_current_time_in_seconds;
+		//		double local_speed_factor = local_double_speed/local_current_speed;
+		//		double local_common_factor = min(local_speed_factor,local_current_frame_rate);
 
-				time_to_work = DWORD(local_common_factor*local_work_time);
+		//		time_to_work = DWORD(local_common_factor*local_work_time);
 
-				DWORD time_to_sleep = 1000 - time_to_work;
+		//		DWORD time_to_sleep = 1000 - time_to_work;
 
-				Sleep(time_to_sleep);
-			}
-		}
+		//		Sleep(time_to_sleep);
+		//	}
+		//}
 
 		if(local_main_dialog->get_command_threads_retranslate_web_camera_video_stop())
 		{
@@ -17839,7 +18314,44 @@ UINT __cdecl datagram_retranslate_web_camera_video_connection_thread_ip_6(LPVOID
 					//}
 					//else
 					{
-						Sleep(10);
+						ULONGLONG local_end_time = GetTickCount64();
+
+						ULONGLONG local_work_time = local_end_time - local_start_time;
+
+						if(local_main_dialog->get_command_threads_retranslate_web_camera_video_stop())
+						{
+							break;
+						}
+						else
+						{
+							CString local_string_speed;
+
+							if(local_main_dialog->get_command_terminate_application())
+							{
+								break;
+							}
+							{
+								local_string_speed = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_SPEED_state;				
+							}
+							double local_double_speed = _wtof(local_string_speed);
+							if(local_data_size_send!=0.0)
+							{
+								DWORD time_to_work = 1000;
+								double local_current_time_in_seconds = double(local_work_time)/1000.0;
+								double local_current_bits_send = (local_data_size_send*8.0);
+								double local_current_speed = local_current_bits_send/local_current_time_in_seconds;
+								double local_current_frame_rate = 1.0/local_current_time_in_seconds;
+								double local_speed_factor = local_double_speed/local_current_speed;
+								double local_common_factor = min(local_speed_factor,local_current_frame_rate);
+
+								time_to_work = DWORD(local_common_factor*local_work_time);
+
+								DWORD time_to_sleep = 1000 - time_to_work;
+
+								//Sleep(time_to_sleep);
+								Sleep(10);
+							}
+						}
 					}
 
 				}
@@ -17940,7 +18452,7 @@ UINT __cdecl datagram_retranslate_web_camera_video_connection_thread_ip_6(LPVOID
 				}
 				else
 				{
-					Sleep(1);
+					Sleep(10);
 				}
 			}
 
@@ -17983,43 +18495,43 @@ UINT __cdecl datagram_retranslate_web_camera_video_connection_thread_ip_6(LPVOID
 			//}
 		}
 
-		ULONGLONG local_end_time = GetTickCount64();
+		//ULONGLONG local_end_time = GetTickCount64();
 
-		ULONGLONG local_work_time = local_end_time - local_start_time;
+		//ULONGLONG local_work_time = local_end_time - local_start_time;
 
-		if(local_main_dialog->get_command_threads_retranslate_web_camera_video_stop())
-		{
-			break;
-		}
-		else
-		{
-			CString local_string_speed;
+		//if(local_main_dialog->get_command_threads_retranslate_web_camera_video_stop())
+		//{
+		//	break;
+		//}
+		//else
+		//{
+		//	CString local_string_speed;
 
-			if(local_main_dialog->get_command_terminate_application())
-			{
-				break;
-			}
-			{
-				local_string_speed = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_SPEED_state;				
-			}
-			double local_double_speed = _wtof(local_string_speed);
-			if(local_data_size_send!=0.0)
-			{
-				DWORD time_to_work = 1000;
-				double local_current_time_in_seconds = double(local_work_time)/1000.0;
-				double local_current_bits_send = (local_data_size_send*8.0);
-				double local_current_speed = local_current_bits_send/local_current_time_in_seconds;
-				double local_current_frame_rate = 1.0/local_current_time_in_seconds;
-				double local_speed_factor = local_double_speed/local_current_speed;
-				double local_common_factor = min(local_speed_factor,local_current_frame_rate);
+		//	if(local_main_dialog->get_command_terminate_application())
+		//	{
+		//		break;
+		//	}
+		//	{
+		//		local_string_speed = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_SPEED_state;				
+		//	}
+		//	double local_double_speed = _wtof(local_string_speed);
+		//	if(local_data_size_send!=0.0)
+		//	{
+		//		DWORD time_to_work = 1000;
+		//		double local_current_time_in_seconds = double(local_work_time)/1000.0;
+		//		double local_current_bits_send = (local_data_size_send*8.0);
+		//		double local_current_speed = local_current_bits_send/local_current_time_in_seconds;
+		//		double local_current_frame_rate = 1.0/local_current_time_in_seconds;
+		//		double local_speed_factor = local_double_speed/local_current_speed;
+		//		double local_common_factor = min(local_speed_factor,local_current_frame_rate);
 
-				time_to_work = DWORD(local_common_factor*local_work_time);
+		//		time_to_work = DWORD(local_common_factor*local_work_time);
 
-				DWORD time_to_sleep = 1000 - time_to_work;
+		//		DWORD time_to_sleep = 1000 - time_to_work;
 
-				Sleep(time_to_sleep);
-			}
-		}
+		//		Sleep(time_to_sleep);
+		//	}
+		//}
 
 
 		if(local_main_dialog->get_command_threads_retranslate_web_camera_video_stop())
@@ -18907,7 +19419,7 @@ UINT __cdecl datagram_retranslate_audio_connection_thread_ip_4(LPVOID parameter)
 				}
 				else
 				{
-					Sleep(1);
+					Sleep(10);
 				}
 			}
 
@@ -19821,7 +20333,7 @@ UINT __cdecl datagram_retranslate_audio_connection_thread_ip_6(LPVOID parameter)
 				}
 				else
 				{
-					Sleep(1);
+					Sleep(10);
 				}
 			}
 

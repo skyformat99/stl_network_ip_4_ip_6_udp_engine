@@ -774,7 +774,7 @@ UINT __cdecl datagram_listen_connection_thread_ip_4(LPVOID parameter)
 
 				if(local_thread->m_hThread==local_current_thread->m_hThread)
 				{
-					local_main_dialog->threads_list.erase(local_threads_iterator);
+					local_threads_iterator = local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 					break;
 				}
 			}
@@ -839,7 +839,7 @@ looking_udp_port:
 
 			//		if(local_thread->m_hThread==local_current_thread->m_hThread)
 			//		{
-			//			local_main_dialog->threads_list.erase(local_threads_iterator);
+			//			local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 			//			break;
 			//		}
 			//	}
@@ -887,7 +887,7 @@ looking_udp_port:
 
 					if(local_thread->m_hThread==local_current_thread->m_hThread)
 					{
-						local_main_dialog->threads_list.erase(local_threads_iterator);
+						local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 						break;
 					}
 				}
@@ -916,7 +916,7 @@ looking_udp_port:
 
 					if(local_thread->m_hThread==local_current_thread->m_hThread)
 					{
-						local_main_dialog->threads_list.erase(local_threads_iterator);
+						local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 						break;
 					}
 				}
@@ -975,7 +975,7 @@ looking_udp_port:
 
 				if(local_thread->m_hThread==local_current_thread->m_hThread)
 				{
-					local_main_dialog->threads_list.erase(local_threads_iterator);
+					local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 					break;
 				}
 			}
@@ -1409,7 +1409,7 @@ looking_udp_port:
 
 				if(local_thread->m_hThread==local_current_thread->m_hThread)
 				{
-					local_main_dialog->threads_list.erase(local_threads_iterator);
+					local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 					break;
 				}
 			}
@@ -1476,7 +1476,7 @@ UINT __cdecl datagram_listen_connection_thread_ip_6(LPVOID parameter)
 
 				if(local_thread->m_hThread==local_current_thread->m_hThread)
 				{
-					local_main_dialog->threads_list.erase(local_threads_iterator);
+					local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 					break;
 				}
 			}
@@ -1539,7 +1539,7 @@ UINT __cdecl datagram_listen_connection_thread_ip_6(LPVOID parameter)
 
 			//		if(local_thread->m_hThread==local_current_thread->m_hThread)
 			//		{
-			//			local_main_dialog->threads_list.erase(local_threads_iterator);
+			//			local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 			//			break;
 			//		}
 			//	}
@@ -1574,7 +1574,7 @@ UINT __cdecl datagram_listen_connection_thread_ip_6(LPVOID parameter)
 
 				if(local_thread->m_hThread==local_current_thread->m_hThread)
 				{
-					local_main_dialog->threads_list.erase(local_threads_iterator);
+					local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 					break;
 				}
 			}
@@ -1631,7 +1631,7 @@ UINT __cdecl datagram_listen_connection_thread_ip_6(LPVOID parameter)
 
 				if(local_thread->m_hThread==local_current_thread->m_hThread)
 				{
-					local_main_dialog->threads_list.erase(local_threads_iterator);
+					local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 					break;
 				}
 			}
@@ -1740,7 +1740,7 @@ UINT __cdecl datagram_listen_connection_thread_ip_6(LPVOID parameter)
 
 				if(local_thread->m_hThread==local_current_thread->m_hThread)
 				{
-					local_main_dialog->threads_list.erase(local_threads_iterator);
+					local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 					break;
 				}
 			}
@@ -1879,7 +1879,7 @@ UINT __cdecl datagram_connect_connection_thread_ip_4(LPVOID parameter)
 
 				if(local_thread->m_hThread==local_current_thread->m_hThread)
 				{
-					local_main_dialog->threads_list.erase(local_threads_iterator);
+					local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 					break;
 				}
 			}
@@ -2001,7 +2001,7 @@ UINT __cdecl datagram_connect_connection_thread_ip_6(LPVOID parameter)
 
 				if(local_thread->m_hThread==local_current_thread->m_hThread)
 				{
-					local_main_dialog->threads_list.erase(local_threads_iterator);
+					local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 					break;
 				}
 			}
@@ -2056,7 +2056,7 @@ UINT __cdecl datagram_send_connection_thread_ip_4(LPVOID parameter)
 
 				if(local_thread->m_hThread==local_current_thread->m_hThread)
 				{
-					local_main_dialog->threads_list.erase(local_threads_iterator);
+					local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 					break;
 				}
 			}
@@ -2098,7 +2098,7 @@ UINT __cdecl datagram_send_connection_thread_ip_4(LPVOID parameter)
 
 						if(local_thread->m_hThread==local_current_thread->m_hThread)
 						{
-							local_main_dialog->threads_list.erase(local_threads_iterator);
+							local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 							break;
 						}
 					}
@@ -2246,7 +2246,7 @@ UINT __cdecl datagram_send_connection_thread_ip_4(LPVOID parameter)
 
 						if(local_thread->m_hThread==local_current_thread->m_hThread)
 						{
-							local_main_dialog->threads_list.erase(local_threads_iterator);
+							local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 							break;
 						}
 					}
@@ -2381,7 +2381,7 @@ UINT __cdecl datagram_send_connection_thread_ip_4(LPVOID parameter)
 
 				if(local_thread->m_hThread==local_current_thread->m_hThread)
 				{
-					local_main_dialog->threads_list.erase(local_threads_iterator);
+					local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 					break;
 				}
 			}
@@ -2433,7 +2433,7 @@ UINT __cdecl datagram_send_connection_thread_ip_6(LPVOID parameter)
 
 				if(local_thread->m_hThread==local_current_thread->m_hThread)
 				{
-					local_main_dialog->threads_list.erase(local_threads_iterator);
+					local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 					break;
 				}
 			}
@@ -2475,7 +2475,7 @@ UINT __cdecl datagram_send_connection_thread_ip_6(LPVOID parameter)
 
 						if(local_thread->m_hThread==local_current_thread->m_hThread)
 						{
-							local_main_dialog->threads_list.erase(local_threads_iterator);
+							local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 							break;
 						}
 					}
@@ -2623,7 +2623,7 @@ UINT __cdecl datagram_send_connection_thread_ip_6(LPVOID parameter)
 
 						if(local_thread->m_hThread==local_current_thread->m_hThread)
 						{
-							local_main_dialog->threads_list.erase(local_threads_iterator);
+							local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 							break;
 						}
 					}
@@ -2758,7 +2758,7 @@ UINT __cdecl datagram_send_connection_thread_ip_6(LPVOID parameter)
 
 				if(local_thread->m_hThread==local_current_thread->m_hThread)
 				{
-					local_main_dialog->threads_list.erase(local_threads_iterator);
+					local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 					break;
 				}
 			}
@@ -2870,13 +2870,15 @@ UINT __cdecl stop_waiting_thread(LPVOID parameter)
 	}
 
 	{
+		Sleep(1000);
+
 		for
 			(
 			;
 		;
 		)
 		{
-			Sleep(1000);
+			Sleep(1);
 
 			CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
 
@@ -2995,7 +2997,7 @@ UINT __cdecl datagram_listen_connection_thread(LPVOID parameter)
 
 			if(local_thread->m_hThread==local_current_thread->m_hThread)
 			{
-				local_main_dialog->threads_list.erase(local_threads_iterator);
+				local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 				break;
 			}
 		}
@@ -3072,7 +3074,7 @@ UINT __cdecl datagram_connect_connection_thread(LPVOID parameter)
 
 			if(local_thread->m_hThread==local_current_thread->m_hThread)
 			{
-				local_main_dialog->threads_list.erase(local_threads_iterator);
+				local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 				break;
 			}
 		}
@@ -3149,7 +3151,7 @@ UINT __cdecl datagram_send_connection_thread(LPVOID parameter)
 
 			if(local_thread->m_hThread==local_current_thread->m_hThread)
 			{
-				local_main_dialog->threads_list.erase(local_threads_iterator);
+				local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 				break;
 			}
 		}
@@ -3633,7 +3635,7 @@ UINT __cdecl datagram_listen_answer_connection_thread_ip_4(LPVOID parameter)
 
 				if(local_thread->m_hThread==local_current_thread->m_hThread)
 				{
-					local_main_dialog->threads_list.erase(local_threads_iterator);
+					local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 					break;
 				}
 			}
@@ -4118,7 +4120,7 @@ UINT __cdecl datagram_listen_answer_connection_thread_ip_6(LPVOID parameter)
 
 				if(local_thread->m_hThread==local_current_thread->m_hThread)
 				{
-					local_main_dialog->threads_list.erase(local_threads_iterator);
+					local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 					break;
 				}
 			}
@@ -4185,7 +4187,7 @@ UINT __cdecl datagram_connect_connection_thread_loop_ip_4(LPVOID parameter)
 
 				if(local_thread->m_hThread==local_current_thread->m_hThread)
 				{
-					local_main_dialog->threads_list.erase(local_threads_iterator);
+					local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 					break;
 				}
 			}
@@ -4258,7 +4260,7 @@ UINT __cdecl datagram_connect_connection_thread_loop_ip_4(LPVOID parameter)
 
 				if(local_thread->m_hThread==local_current_thread->m_hThread)
 				{
-					local_main_dialog->threads_list.erase(local_threads_iterator);
+					local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 					break;
 				}
 			}
@@ -4327,7 +4329,7 @@ UINT __cdecl datagram_connect_connection_thread_loop_ip_4(LPVOID parameter)
 
 				if(local_thread->m_hThread==local_current_thread->m_hThread)
 				{
-					local_main_dialog->threads_list.erase(local_threads_iterator);
+					local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 					break;
 				}
 			}
@@ -4393,7 +4395,7 @@ UINT __cdecl datagram_connect_connection_thread_loop_ip_6(LPVOID parameter)
 
 				if(local_thread->m_hThread==local_current_thread->m_hThread)
 				{
-					local_main_dialog->threads_list.erase(local_threads_iterator);
+					local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 					break;
 				}
 			}
@@ -4466,7 +4468,7 @@ UINT __cdecl datagram_connect_connection_thread_loop_ip_6(LPVOID parameter)
 
 				if(local_thread->m_hThread==local_current_thread->m_hThread)
 				{
-					local_main_dialog->threads_list.erase(local_threads_iterator);
+					local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 					break;
 				}
 			}
@@ -4534,7 +4536,7 @@ UINT __cdecl datagram_connect_connection_thread_loop_ip_6(LPVOID parameter)
 
 				if(local_thread->m_hThread==local_current_thread->m_hThread)
 				{
-					local_main_dialog->threads_list.erase(local_threads_iterator);
+					local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 					break;
 				}
 			}
@@ -4675,7 +4677,7 @@ UINT __cdecl datagram_register_thread(LPVOID parameter)
 
 			if(local_thread->m_hThread==local_current_thread->m_hThread)
 			{
-				local_main_dialog->threads_list.erase(local_threads_iterator);
+				local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 				break;
 			}
 		}
@@ -4730,7 +4732,7 @@ UINT __cdecl datagram_register_thread_ip_4(LPVOID parameter)
 
 				if(local_thread->m_hThread==local_current_thread->m_hThread)
 				{
-					local_main_dialog->threads_list.erase(local_threads_iterator);
+					local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 					break;
 				}
 			}
@@ -4786,7 +4788,7 @@ UINT __cdecl datagram_register_thread_ip_4(LPVOID parameter)
 
 					if(local_thread->m_hThread==local_current_thread->m_hThread)
 					{
-						local_main_dialog->threads_list.erase(local_threads_iterator);
+						local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 						break;
 					}
 				}
@@ -4841,7 +4843,7 @@ UINT __cdecl datagram_register_thread_ip_4(LPVOID parameter)
 
 					if(local_thread->m_hThread==local_current_thread->m_hThread)
 					{
-						local_main_dialog->threads_list.erase(local_threads_iterator);
+						local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 						break;
 					}
 				}
@@ -4965,7 +4967,7 @@ UINT __cdecl datagram_register_thread_ip_4(LPVOID parameter)
 
 				if(local_thread->m_hThread==local_current_thread->m_hThread)
 				{
-					local_main_dialog->threads_list.erase(local_threads_iterator);
+					local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 					break;
 				}
 			}
@@ -5020,7 +5022,7 @@ UINT __cdecl datagram_register_thread_ip_6(LPVOID parameter)
 
 				if(local_thread->m_hThread==local_current_thread->m_hThread)
 				{
-					local_main_dialog->threads_list.erase(local_threads_iterator);
+					local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 					break;
 				}
 			}
@@ -5076,7 +5078,7 @@ UINT __cdecl datagram_register_thread_ip_6(LPVOID parameter)
 
 					if(local_thread->m_hThread==local_current_thread->m_hThread)
 					{
-						local_main_dialog->threads_list.erase(local_threads_iterator);
+						local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 						break;
 					}
 				}
@@ -5131,7 +5133,7 @@ UINT __cdecl datagram_register_thread_ip_6(LPVOID parameter)
 
 					if(local_thread->m_hThread==local_current_thread->m_hThread)
 					{
-						local_main_dialog->threads_list.erase(local_threads_iterator);
+						local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 						break;
 					}
 				}
@@ -5255,7 +5257,7 @@ UINT __cdecl datagram_register_thread_ip_6(LPVOID parameter)
 
 				if(local_thread->m_hThread==local_current_thread->m_hThread)
 				{
-					local_main_dialog->threads_list.erase(local_threads_iterator);
+					local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 					break;
 				}
 			}
@@ -5311,122 +5313,125 @@ void Cstl_network_ip_4_ip_6_udp_engineDialog::PrepareVideo(CString parameter_str
 
 
 	/*/==========/*/
-	std::list<STREAM_FRAME_INFORMATION>::iterator current_received_video_frame_stream = received_video_frame_stream.begin();
-
-	for(;current_received_video_frame_stream!=received_video_frame_stream.end();current_received_video_frame_stream++)
 	{
-		if(current_received_video_frame_stream->sequence_source_number==received_sequence)
+		std::list<STREAM_FRAME_INFORMATION>::iterator current_received_video_frame_stream = received_video_frame_stream.begin();
+
+		for(;current_received_video_frame_stream!=received_video_frame_stream.end();current_received_video_frame_stream++)
 		{
-			break;
-		}
-	}
-
-	FRAME_PART local_frame_part;
-
-	BYTE *local_data = new BYTE[parameter_data_length-sizeof(DWORD)-3*sizeof(DWORD)];
-
-	if(local_data==NULL)
-	{
-		if(parameter_data!=NULL)
-		{
-			delete []parameter_data;
-		}
-
-		return;
-	}
-
-	memcpy(local_data, parameter_data+sizeof(DWORD)+3*sizeof(DWORD), parameter_data_length-sizeof(DWORD)-3*sizeof(DWORD));
-
-	local_frame_part.frame_part_data = local_data;
-
-	local_frame_part.frame_part_data_size = parameter_data_length-sizeof(DWORD)-3*sizeof(DWORD);
-
-	local_frame_part.frame_part_number = received_part;
-
-	local_frame_part.sequence_frame_number = received_sequence_frame_number;
-
-	if(current_received_video_frame_stream==received_video_frame_stream.end())
-	{
-		STREAM_FRAME_INFORMATION local_frame_information;
-
-		FRAME local_frame;
-
-		local_frame.frame_parts.push_back(local_frame_part);
-
-		local_frame.frame_parts_number = received_total_parts;
-
-		local_frame_information.frames.push_back(local_frame);
-
-		local_frame_information.sequence_source_number = received_sequence;
-
-		received_video_frame_stream.push_back(local_frame_information);
-	}
-	else
-	{
-		std::list<FRAME>::iterator local_frames_iterator = current_received_video_frame_stream->frames.begin();
-
-		std::list<FRAME_PART>::iterator local_frame_parts_iterator;
-
-		for
-			(
-			;
-		local_frames_iterator!=current_received_video_frame_stream->frames.end()
-			;
-		local_frames_iterator++
-			)
-		{
-			local_frame_parts_iterator = local_frames_iterator->frame_parts.begin();
-			for(;local_frame_parts_iterator!=local_frames_iterator->frame_parts.end();local_frame_parts_iterator++)
+			if(current_received_video_frame_stream->sequence_source_number==received_sequence)
 			{
-				if(local_frame_parts_iterator->sequence_frame_number == received_sequence_frame_number)
-				{
-					local_frames_iterator->frame_parts.push_back(local_frame_part);
-					break;
-				}
-			}
-
-			if(local_frame_parts_iterator!=local_frames_iterator->frame_parts.end())
-			{
-				if(local_frame_parts_iterator->sequence_frame_number == received_sequence_frame_number)
-				{
-					break;
-				}
+				break;
 			}
 		}
 
-		if(local_frames_iterator==current_received_video_frame_stream->frames.end())
+		FRAME_PART local_frame_part;
+
+		BYTE *local_data = new BYTE[parameter_data_length-sizeof(DWORD)-3*sizeof(DWORD)];
+
+		if(local_data==NULL)
 		{
+			if(parameter_data!=NULL)
+			{
+				delete []parameter_data;
+			}
+
+			return;
+		}
+
+		ZeroMemory(local_data,parameter_data_length-sizeof(DWORD)-3*sizeof(DWORD));
+
+		memcpy(local_data, parameter_data+sizeof(DWORD)+3*sizeof(DWORD), parameter_data_length-sizeof(DWORD)-3*sizeof(DWORD));
+
+		local_frame_part.frame_part_data = local_data;
+
+		local_frame_part.frame_part_data_size = parameter_data_length-sizeof(DWORD)-3*sizeof(DWORD);
+
+		local_frame_part.frame_part_number = received_part;
+
+		local_frame_part.sequence_frame_number = received_sequence_frame_number;
+
+		if(current_received_video_frame_stream==received_video_frame_stream.end())
+		{
+			STREAM_FRAME_INFORMATION local_frame_information;
+
 			FRAME local_frame;
 
 			local_frame.frame_parts.push_back(local_frame_part);
 
 			local_frame.frame_parts_number = received_total_parts;
 
-			current_received_video_frame_stream->frames.push_back(local_frame);
+			local_frame_information.frames.push_back(local_frame);
+
+			local_frame_information.sequence_source_number = received_sequence;
+
+			received_video_frame_stream.push_back(local_frame_information);
 		}
+		else
+		{
+			std::list<FRAME>::iterator local_frames_iterator = current_received_video_frame_stream->frames.begin();
+
+			std::list<FRAME_PART>::iterator local_frame_parts_iterator;
+
+			for
+				(
+				;
+			local_frames_iterator!=current_received_video_frame_stream->frames.end()
+				;
+			local_frames_iterator++
+				)
+			{
+				local_frame_parts_iterator = local_frames_iterator->frame_parts.begin();
+				for(;local_frame_parts_iterator!=local_frames_iterator->frame_parts.end();local_frame_parts_iterator++)
+				{
+					if(local_frame_parts_iterator->sequence_frame_number == received_sequence_frame_number)
+					{
+						local_frames_iterator->frame_parts.push_back(local_frame_part);
+						break;
+					}
+				}
+
+				if(local_frame_parts_iterator!=local_frames_iterator->frame_parts.end())
+				{
+					if(local_frame_parts_iterator->sequence_frame_number == received_sequence_frame_number)
+					{
+						break;
+					}
+				}
+			}
+
+			if(local_frames_iterator==current_received_video_frame_stream->frames.end())
+			{
+				FRAME local_frame;
+
+				local_frame.frame_parts.push_back(local_frame_part);
+
+				local_frame.frame_parts_number = received_total_parts;
+
+				current_received_video_frame_stream->frames.push_back(local_frame);
+			}
+		}
+		//	Складирование закончено
 	}
-	//	Складирование закончено
 
 
 	//	Сборка и отрисовка
-	current_received_video_frame_stream = received_video_frame_stream.begin();
+	std::list<STREAM_FRAME_INFORMATION>::iterator current_video_frame_stream = received_video_frame_stream.begin();
 
-	for(;current_received_video_frame_stream!=received_video_frame_stream.end();current_received_video_frame_stream++)
+	for(;current_video_frame_stream!=received_video_frame_stream.end();current_video_frame_stream++)
 	{
 		if(received_video_frame_stream.size()!=0)
 		{
-			if(current_received_video_frame_stream->frames.size()!=0)
+			if(current_video_frame_stream->frames.size()!=0)
 			{
 				for
 					(
-					std::list<FRAME>::iterator current_received_video_frame = current_received_video_frame_stream->frames.begin()
+					std::list<FRAME>::iterator current_video_frame = current_video_frame_stream->frames.begin()
 					;
-				current_received_video_frame!=current_received_video_frame_stream->frames.end()
+				current_video_frame!=current_video_frame_stream->frames.end()
 					;
-				current_received_video_frame++
-					)
+				)
 				{
-					if(current_received_video_frame->frame_parts_number == current_received_video_frame->frame_parts.size())
+					if(current_video_frame->frame_parts_number == current_video_frame->frame_parts.size())
 					{
 						//	Количество частей равно ожидаемому количеству частей - собираем части и отрисовываем, очищаем память, первого кадра в очереди текущей последовательности.
 
@@ -5444,15 +5449,15 @@ void Cstl_network_ip_4_ip_6_udp_engineDialog::PrepareVideo(CString parameter_str
 							(
 							UINT local_parts_counter=1
 							;
-						local_parts_counter<=current_received_video_frame->frame_parts_number
+						local_parts_counter<=current_video_frame->frame_parts_number
 							;
 						local_parts_counter++
 							)
 						{
 							for(
-								std::list<FRAME_PART>::iterator local_frame_parts_iterator = current_received_video_frame->frame_parts.begin()
+								std::list<FRAME_PART>::iterator local_frame_parts_iterator = current_video_frame->frame_parts.begin()
 								;
-							local_frame_parts_iterator!=current_received_video_frame->frame_parts.end()
+							local_frame_parts_iterator!=current_video_frame->frame_parts.end()
 								;
 							local_frame_parts_iterator++
 								)
@@ -5464,7 +5469,10 @@ void Cstl_network_ip_4_ip_6_udp_engineDialog::PrepareVideo(CString parameter_str
 
 									delete []local_frame_parts_iterator->frame_part_data;
 
-									current_received_video_frame->frame_parts.erase(local_frame_parts_iterator);
+									local_frame_parts_iterator->frame_part_data = NULL;
+									local_frame_parts_iterator->frame_part_data_size = 0;
+
+									local_frame_parts_iterator = current_video_frame->frame_parts.erase(local_frame_parts_iterator);
 
 									break;
 								}
@@ -5550,7 +5558,7 @@ void Cstl_network_ip_4_ip_6_udp_engineDialog::PrepareVideo(CString parameter_str
 
 									ULONG local_read = 0;
 									HRESULT local_clone_IStream_result = frame_stream->Clone(&local_retranslate_stream_information_ip_4.stream);
-									local_retranslate_stream_information_ip_4.sequence_number = current_received_video_frame_stream->sequence_source_number;
+									local_retranslate_stream_information_ip_4.sequence_number = current_video_frame_stream->sequence_source_number;
 
 									retranslate_video_frames_ip_4.push_back(local_retranslate_stream_information_ip_4);
 								}
@@ -5564,7 +5572,7 @@ void Cstl_network_ip_4_ip_6_udp_engineDialog::PrepareVideo(CString parameter_str
 
 									ULONG local_read = 0;
 									HRESULT local_clone_IStream_result = frame_stream->Clone(&local_retranslate_stream_information_ip_6.stream);
-									local_retranslate_stream_information_ip_6.sequence_number = current_received_video_frame_stream->sequence_source_number;
+									local_retranslate_stream_information_ip_6.sequence_number = current_video_frame_stream->sequence_source_number;
 
 									retranslate_video_frames_ip_6.push_back(local_retranslate_stream_information_ip_6);
 								}
@@ -5637,9 +5645,10 @@ void Cstl_network_ip_4_ip_6_udp_engineDialog::PrepareVideo(CString parameter_str
 								received_video_dialog->SetWindowTextW(CString(L"Видео от ")+parameter_string);
 							}
 						}
-						current_received_video_frame_stream->frames.erase(current_received_video_frame);
-						break;
+						current_video_frame = current_video_frame_stream->frames.erase(current_video_frame);
+						continue;
 					}
+					current_video_frame++;
 				}
 			}
 		}
@@ -6501,7 +6510,7 @@ UINT __cdecl datagram_send_video_connection_thread(LPVOID parameter)
 
 			if(local_thread->m_hThread==local_current_thread->m_hThread)
 			{
-				local_main_dialog->threads_list.erase(local_threads_iterator);
+				local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 				break;
 			}
 		}
@@ -6557,7 +6566,7 @@ UINT __cdecl datagram_send_video_connection_thread_ip_4(LPVOID parameter)
 
 				if(local_thread->m_hThread==local_current_thread->m_hThread)
 				{
-					local_main_dialog->threads_list.erase(local_threads_iterator);
+					local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 					break;
 				}
 			}
@@ -6589,7 +6598,7 @@ UINT __cdecl datagram_send_video_connection_thread_ip_4(LPVOID parameter)
 
 				if(local_thread->m_hThread==local_current_thread->m_hThread)
 				{
-					local_main_dialog->threads_list.erase(local_threads_iterator);
+					local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 					break;
 				}
 			}
@@ -6650,7 +6659,7 @@ UINT __cdecl datagram_send_video_connection_thread_ip_4(LPVOID parameter)
 
 							if(local_thread->m_hThread==local_current_thread->m_hThread)
 							{
-								local_main_dialog->threads_list.erase(local_threads_iterator);
+								local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 								break;
 							}
 						}
@@ -6810,7 +6819,7 @@ UINT __cdecl datagram_send_video_connection_thread_ip_4(LPVOID parameter)
 
 				//		if(local_thread->m_hThread==local_current_thread->m_hThread)
 				//		{
-				//			local_main_dialog->threads_list.erase(local_threads_iterator);
+				//			local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 				//			break;
 				//		}
 				//	}
@@ -6914,7 +6923,7 @@ UINT __cdecl datagram_send_video_connection_thread_ip_4(LPVOID parameter)
 
 					//		if(local_thread->m_hThread==local_current_thread->m_hThread)
 					//		{
-					//			local_main_dialog->threads_list.erase(local_threads_iterator);
+					//			local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 					//			break;
 					//		}
 					//	}
@@ -6971,7 +6980,7 @@ UINT __cdecl datagram_send_video_connection_thread_ip_4(LPVOID parameter)
 
 							if(local_thread->m_hThread==local_current_thread->m_hThread)
 							{
-								local_main_dialog->threads_list.erase(local_threads_iterator);
+								local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 								break;
 							}
 						}
@@ -7322,7 +7331,7 @@ UINT __cdecl datagram_send_video_connection_thread_ip_4(LPVOID parameter)
 
 				if(local_thread->m_hThread==local_current_thread->m_hThread)
 				{
-					local_main_dialog->threads_list.erase(local_threads_iterator);
+					local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 					break;
 				}
 			}
@@ -7377,7 +7386,7 @@ UINT __cdecl datagram_send_video_connection_thread_ip_6(LPVOID parameter)
 
 				if(local_thread->m_hThread==local_current_thread->m_hThread)
 				{
-					local_main_dialog->threads_list.erase(local_threads_iterator);
+					local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 					break;
 				}
 			}
@@ -7409,7 +7418,7 @@ UINT __cdecl datagram_send_video_connection_thread_ip_6(LPVOID parameter)
 
 				if(local_thread->m_hThread==local_current_thread->m_hThread)
 				{
-					local_main_dialog->threads_list.erase(local_threads_iterator);
+					local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 					break;
 				}
 			}
@@ -7470,7 +7479,7 @@ UINT __cdecl datagram_send_video_connection_thread_ip_6(LPVOID parameter)
 
 							if(local_thread->m_hThread==local_current_thread->m_hThread)
 							{
-								local_main_dialog->threads_list.erase(local_threads_iterator);
+								local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 								break;
 							}
 						}
@@ -7631,7 +7640,7 @@ UINT __cdecl datagram_send_video_connection_thread_ip_6(LPVOID parameter)
 
 				//		if(local_thread->m_hThread==local_current_thread->m_hThread)
 				//		{
-				//			local_main_dialog->threads_list.erase(local_threads_iterator);
+				//			local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 				//			break;
 				//		}
 				//	}
@@ -7735,7 +7744,7 @@ UINT __cdecl datagram_send_video_connection_thread_ip_6(LPVOID parameter)
 
 					//		if(local_thread->m_hThread==local_current_thread->m_hThread)
 					//		{
-					//			local_main_dialog->threads_list.erase(local_threads_iterator);
+					//			local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 					//			break;
 					//		}
 					//	}
@@ -7792,7 +7801,7 @@ UINT __cdecl datagram_send_video_connection_thread_ip_6(LPVOID parameter)
 
 							if(local_thread->m_hThread==local_current_thread->m_hThread)
 							{
-								local_main_dialog->threads_list.erase(local_threads_iterator);
+								local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 								break;
 							}
 						}
@@ -8152,7 +8161,7 @@ UINT __cdecl datagram_send_video_connection_thread_ip_6(LPVOID parameter)
 
 				if(local_thread->m_hThread==local_current_thread->m_hThread)
 				{
-					local_main_dialog->threads_list.erase(local_threads_iterator);
+					local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 					break;
 				}
 			}
@@ -8321,7 +8330,7 @@ UINT __cdecl datagram_send_web_camera_video_connection_thread(LPVOID parameter)
 
 			if(local_thread->m_hThread==local_current_thread->m_hThread)
 			{
-				local_main_dialog->threads_list.erase(local_threads_iterator);
+				local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 				break;
 			}
 		}
@@ -8377,7 +8386,7 @@ UINT __cdecl datagram_send_web_camera_video_connection_thread_ip_4(LPVOID parame
 
 				if(local_thread->m_hThread==local_current_thread->m_hThread)
 				{
-					local_main_dialog->threads_list.erase(local_threads_iterator);
+					local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 					break;
 				}
 			}
@@ -8409,7 +8418,7 @@ UINT __cdecl datagram_send_web_camera_video_connection_thread_ip_4(LPVOID parame
 
 				if(local_thread->m_hThread==local_current_thread->m_hThread)
 				{
-					local_main_dialog->threads_list.erase(local_threads_iterator);
+					local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 					break;
 				}
 			}
@@ -8470,7 +8479,7 @@ UINT __cdecl datagram_send_web_camera_video_connection_thread_ip_4(LPVOID parame
 
 							if(local_thread->m_hThread==local_current_thread->m_hThread)
 							{
-								local_main_dialog->threads_list.erase(local_threads_iterator);
+								local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 								break;
 							}
 						}
@@ -8636,7 +8645,7 @@ UINT __cdecl datagram_send_web_camera_video_connection_thread_ip_4(LPVOID parame
 
 				//		if(local_thread->m_hThread==local_current_thread->m_hThread)
 				//		{
-				//			local_main_dialog->threads_list.erase(local_threads_iterator);
+				//			local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 				//			break;
 				//		}
 				//	}
@@ -8750,7 +8759,7 @@ UINT __cdecl datagram_send_web_camera_video_connection_thread_ip_4(LPVOID parame
 
 					//		if(local_thread->m_hThread==local_current_thread->m_hThread)
 					//		{
-					//			local_main_dialog->threads_list.erase(local_threads_iterator);
+					//			local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 					//			break;
 					//		}
 					//	}
@@ -8807,7 +8816,7 @@ UINT __cdecl datagram_send_web_camera_video_connection_thread_ip_4(LPVOID parame
 
 							if(local_thread->m_hThread==local_current_thread->m_hThread)
 							{
-								local_main_dialog->threads_list.erase(local_threads_iterator);
+								local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 								break;
 							}
 						}
@@ -9208,7 +9217,7 @@ UINT __cdecl datagram_send_web_camera_video_connection_thread_ip_4(LPVOID parame
 
 				if(local_thread->m_hThread==local_current_thread->m_hThread)
 				{
-					local_main_dialog->threads_list.erase(local_threads_iterator);
+					local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 					break;
 				}
 			}
@@ -9263,7 +9272,7 @@ UINT __cdecl datagram_send_web_camera_video_connection_thread_ip_6(LPVOID parame
 
 				if(local_thread->m_hThread==local_current_thread->m_hThread)
 				{
-					local_main_dialog->threads_list.erase(local_threads_iterator);
+					local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 					break;
 				}
 			}
@@ -9295,7 +9304,7 @@ UINT __cdecl datagram_send_web_camera_video_connection_thread_ip_6(LPVOID parame
 
 				if(local_thread->m_hThread==local_current_thread->m_hThread)
 				{
-					local_main_dialog->threads_list.erase(local_threads_iterator);
+					local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 					break;
 				}
 			}
@@ -9355,7 +9364,7 @@ UINT __cdecl datagram_send_web_camera_video_connection_thread_ip_6(LPVOID parame
 
 							if(local_thread->m_hThread==local_current_thread->m_hThread)
 							{
-								local_main_dialog->threads_list.erase(local_threads_iterator);
+								local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 								break;
 							}
 						}
@@ -9520,7 +9529,7 @@ UINT __cdecl datagram_send_web_camera_video_connection_thread_ip_6(LPVOID parame
 
 				//		if(local_thread->m_hThread==local_current_thread->m_hThread)
 				//		{
-				//			local_main_dialog->threads_list.erase(local_threads_iterator);
+				//			local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 				//			break;
 				//		}
 				//	}
@@ -9634,7 +9643,7 @@ UINT __cdecl datagram_send_web_camera_video_connection_thread_ip_6(LPVOID parame
 
 					//		if(local_thread->m_hThread==local_current_thread->m_hThread)
 					//		{
-					//			local_main_dialog->threads_list.erase(local_threads_iterator);
+					//			local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 					//			break;
 					//		}
 					//	}
@@ -9691,7 +9700,7 @@ UINT __cdecl datagram_send_web_camera_video_connection_thread_ip_6(LPVOID parame
 
 							if(local_thread->m_hThread==local_current_thread->m_hThread)
 							{
-								local_main_dialog->threads_list.erase(local_threads_iterator);
+								local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 								break;
 							}
 						}
@@ -10093,7 +10102,7 @@ UINT __cdecl datagram_send_web_camera_video_connection_thread_ip_6(LPVOID parame
 
 				if(local_thread->m_hThread==local_current_thread->m_hThread)
 				{
-					local_main_dialog->threads_list.erase(local_threads_iterator);
+					local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 					break;
 				}
 			}
@@ -10669,7 +10678,7 @@ UINT __cdecl datagram_send_audio_connection_thread(LPVOID parameter)
 
 			if(local_thread->m_hThread==local_current_thread->m_hThread)
 			{
-				local_main_dialog->threads_list.erase(local_threads_iterator);
+				local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 				break;
 			}
 		}
@@ -10725,7 +10734,7 @@ UINT __cdecl datagram_send_audio_connection_thread_ip_4(LPVOID parameter)
 
 				if(local_thread->m_hThread==local_current_thread->m_hThread)
 				{
-					local_main_dialog->threads_list.erase(local_threads_iterator);
+					local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 					break;
 				}
 			}
@@ -10757,7 +10766,7 @@ UINT __cdecl datagram_send_audio_connection_thread_ip_4(LPVOID parameter)
 
 				if(local_thread->m_hThread==local_current_thread->m_hThread)
 				{
-					local_main_dialog->threads_list.erase(local_threads_iterator);
+					local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 					break;
 				}
 			}
@@ -10818,7 +10827,7 @@ UINT __cdecl datagram_send_audio_connection_thread_ip_4(LPVOID parameter)
 
 							if(local_thread->m_hThread==local_current_thread->m_hThread)
 							{
-								local_main_dialog->threads_list.erase(local_threads_iterator);
+								local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 								break;
 							}
 						}
@@ -10971,7 +10980,7 @@ UINT __cdecl datagram_send_audio_connection_thread_ip_4(LPVOID parameter)
 
 				//		if(local_thread->m_hThread==local_current_thread->m_hThread)
 				//		{
-				//			local_main_dialog->threads_list.erase(local_threads_iterator);
+				//			local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 				//			break;
 				//		}
 				//	}
@@ -11122,7 +11131,7 @@ UINT __cdecl datagram_send_audio_connection_thread_ip_4(LPVOID parameter)
 
 					//		if(local_thread->m_hThread==local_current_thread->m_hThread)
 					//		{
-					//			local_main_dialog->threads_list.erase(local_threads_iterator);
+					//			local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 					//			break;
 					//		}
 					//	}
@@ -11179,7 +11188,7 @@ UINT __cdecl datagram_send_audio_connection_thread_ip_4(LPVOID parameter)
 
 							if(local_thread->m_hThread==local_current_thread->m_hThread)
 							{
-								local_main_dialog->threads_list.erase(local_threads_iterator);
+								local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 								break;
 							}
 						}
@@ -11604,7 +11613,7 @@ UINT __cdecl datagram_send_audio_connection_thread_ip_4(LPVOID parameter)
 
 				if(local_thread->m_hThread==local_current_thread->m_hThread)
 				{
-					local_main_dialog->threads_list.erase(local_threads_iterator);
+					local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 					break;
 				}
 			}
@@ -11659,7 +11668,7 @@ UINT __cdecl datagram_send_audio_connection_thread_ip_6(LPVOID parameter)
 
 				if(local_thread->m_hThread==local_current_thread->m_hThread)
 				{
-					local_main_dialog->threads_list.erase(local_threads_iterator);
+					local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 					break;
 				}
 			}
@@ -11691,7 +11700,7 @@ UINT __cdecl datagram_send_audio_connection_thread_ip_6(LPVOID parameter)
 
 				if(local_thread->m_hThread==local_current_thread->m_hThread)
 				{
-					local_main_dialog->threads_list.erase(local_threads_iterator);
+					local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 					break;
 				}
 			}
@@ -11752,7 +11761,7 @@ UINT __cdecl datagram_send_audio_connection_thread_ip_6(LPVOID parameter)
 
 							if(local_thread->m_hThread==local_current_thread->m_hThread)
 							{
-								local_main_dialog->threads_list.erase(local_threads_iterator);
+								local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 								break;
 							}
 						}
@@ -11903,7 +11912,7 @@ UINT __cdecl datagram_send_audio_connection_thread_ip_6(LPVOID parameter)
 
 				//		if(local_thread->m_hThread==local_current_thread->m_hThread)
 				//		{
-				//			local_main_dialog->threads_list.erase(local_threads_iterator);
+				//			local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 				//			break;
 				//		}
 				//	}
@@ -12024,7 +12033,7 @@ UINT __cdecl datagram_send_audio_connection_thread_ip_6(LPVOID parameter)
 
 					//		if(local_thread->m_hThread==local_current_thread->m_hThread)
 					//		{
-					//			local_main_dialog->threads_list.erase(local_threads_iterator);
+					//			local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 					//			break;
 					//		}
 					//	}
@@ -12081,7 +12090,7 @@ UINT __cdecl datagram_send_audio_connection_thread_ip_6(LPVOID parameter)
 
 							if(local_thread->m_hThread==local_current_thread->m_hThread)
 							{
-								local_main_dialog->threads_list.erase(local_threads_iterator);
+								local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 								break;
 							}
 						}
@@ -12506,7 +12515,7 @@ UINT __cdecl datagram_send_audio_connection_thread_ip_6(LPVOID parameter)
 
 				if(local_thread->m_hThread==local_current_thread->m_hThread)
 				{
-					local_main_dialog->threads_list.erase(local_threads_iterator);
+					local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 					break;
 				}
 			}
@@ -12635,7 +12644,7 @@ UINT __cdecl datagram_play_audio_connection_thread(LPVOID parameter)
 
 				if(local_thread->m_hThread==local_current_thread->m_hThread)
 				{
-					local_main_dialog->threads_list.erase(local_threads_iterator);
+					local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 					break;
 				}
 			}
@@ -12665,7 +12674,7 @@ UINT __cdecl datagram_play_audio_connection_thread(LPVOID parameter)
 
 				if(local_thread->m_hThread==local_current_thread->m_hThread)
 				{
-					local_main_dialog->threads_list.erase(local_threads_iterator);
+					local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 					break;
 				}
 			}
@@ -12711,7 +12720,7 @@ UINT __cdecl datagram_play_audio_connection_thread(LPVOID parameter)
 
 						if(local_thread->m_hThread==local_current_thread->m_hThread)
 						{
-							local_main_dialog->threads_list.erase(local_threads_iterator);
+							local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 							break;
 						}
 					}
@@ -12774,7 +12783,7 @@ UINT __cdecl datagram_play_audio_connection_thread(LPVOID parameter)
 
 			if(local_thread->m_hThread==local_current_thread->m_hThread)
 			{
-				local_main_dialog->threads_list.erase(local_threads_iterator);
+				local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 				break;
 			}
 		}
@@ -13193,7 +13202,7 @@ UINT _cdecl upnp_external_ipv4_detection_thread(LPVOID parameter)
 
 			if(local_thread->m_hThread==local_current_thread->m_hThread)
 			{
-				local_main_dialog->threads_list.erase(local_threads_iterator);
+				local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 				break;
 			}
 		}
@@ -13424,7 +13433,7 @@ CWinThread *local_thread = local_threads_iterator->WinThread;
 
 if(local_thread->m_hThread==local_current_thread->m_hThread)
 {
-local_main_dialog->threads_list.erase(local_threads_iterator);
+local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 break;
 }
 }
@@ -13488,7 +13497,7 @@ CWinThread *local_thread = local_threads_iterator->WinThread;
 
 if(local_thread->m_hThread==local_current_thread->m_hThread)
 {
-local_main_dialog->threads_list.erase(local_threads_iterator);
+local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 break;
 }
 }
@@ -13522,7 +13531,7 @@ CWinThread *local_thread = local_threads_iterator->WinThread;
 
 if(local_thread->m_hThread==local_current_thread->m_hThread)
 {
-local_main_dialog->threads_list.erase(local_threads_iterator);
+local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 break;
 }
 }
@@ -13584,7 +13593,7 @@ CWinThread *local_thread = local_threads_iterator->WinThread;
 
 if(local_thread->m_hThread==local_current_thread->m_hThread)
 {
-local_main_dialog->threads_list.erase(local_threads_iterator);
+local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 break;
 }
 }
@@ -13706,7 +13715,7 @@ wsprintf((wchar_t*)local_error_message, L"Сетевая ошибка -- %s -- %s\r\n", local
 
 //		if(local_thread->m_hThread==local_current_thread->m_hThread)
 //		{
-//			local_main_dialog->threads_list.erase(local_threads_iterator);
+//			local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 //			break;
 //		}
 //	}
@@ -13762,7 +13771,7 @@ wsprintf((wchar_t*)local_error_message, L"Сетевая ошибка -- %s -- %s\r\n", local
 
 //		if(local_thread->m_hThread==local_current_thread->m_hThread)
 //		{
-//			local_main_dialog->threads_list.erase(local_threads_iterator);
+//			local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 //			break;
 //		}
 //	}
@@ -13819,7 +13828,7 @@ CWinThread *local_thread = local_threads_iterator->WinThread;
 
 if(local_thread->m_hThread==local_current_thread->m_hThread)
 {
-local_main_dialog->threads_list.erase(local_threads_iterator);
+local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 break;
 }
 }
@@ -14188,7 +14197,7 @@ CWinThread *local_thread = local_threads_iterator->WinThread;
 
 if(local_thread->m_hThread==local_current_thread->m_hThread)
 {
-local_main_dialog->threads_list.erase(local_threads_iterator);
+local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 break;
 }
 }
@@ -14254,7 +14263,7 @@ CWinThread *local_thread = local_threads_iterator->WinThread;
 
 if(local_thread->m_hThread==local_current_thread->m_hThread)
 {
-local_main_dialog->threads_list.erase(local_threads_iterator);
+local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 break;
 }
 }
@@ -14287,7 +14296,7 @@ CWinThread *local_thread = local_threads_iterator->WinThread;
 
 if(local_thread->m_hThread==local_current_thread->m_hThread)
 {
-local_main_dialog->threads_list.erase(local_threads_iterator);
+local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 break;
 }
 }
@@ -14349,7 +14358,7 @@ CWinThread *local_thread = local_threads_iterator->WinThread;
 
 if(local_thread->m_hThread==local_current_thread->m_hThread)
 {
-local_main_dialog->threads_list.erase(local_threads_iterator);
+local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 break;
 }
 }
@@ -14477,7 +14486,7 @@ wsprintf((wchar_t*)local_error_message, L"Сетевая ошибка -- %s -- %s\r\n", local
 
 //		if(local_thread->m_hThread==local_current_thread->m_hThread)
 //		{
-//			local_main_dialog->threads_list.erase(local_threads_iterator);
+//			local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 //			break;
 //		}
 //	}
@@ -14538,7 +14547,7 @@ wsprintf((wchar_t*)local_error_message, L"Сетевая ошибка -- %s -- %s\r\n", local
 
 //		if(local_thread->m_hThread==local_current_thread->m_hThread)
 //		{
-//			local_main_dialog->threads_list.erase(local_threads_iterator);
+//			local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 //			break;
 //		}
 //	}
@@ -14595,7 +14604,7 @@ CWinThread *local_thread = local_threads_iterator->WinThread;
 
 if(local_thread->m_hThread==local_current_thread->m_hThread)
 {
-local_main_dialog->threads_list.erase(local_threads_iterator);
+local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 break;
 }
 }
@@ -14963,7 +14972,7 @@ CWinThread *local_thread = local_threads_iterator->WinThread;
 
 if(local_thread->m_hThread==local_current_thread->m_hThread)
 {
-local_main_dialog->threads_list.erase(local_threads_iterator);
+local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 break;
 }
 }
@@ -15046,7 +15055,7 @@ UINT __cdecl datagram_retranslate_video_connection_thread(LPVOID parameter)
 
 			if(local_thread->m_hThread==local_current_thread->m_hThread)
 			{
-				local_main_dialog->threads_list.erase(local_threads_iterator);
+				local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 				break;
 			}
 		}
@@ -15101,7 +15110,7 @@ UINT __cdecl datagram_retranslate_video_connection_thread_ip_4(LPVOID parameter)
 
 				if(local_thread->m_hThread==local_current_thread->m_hThread)
 				{
-					local_main_dialog->threads_list.erase(local_threads_iterator);
+					local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 					break;
 				}
 			}
@@ -15133,7 +15142,7 @@ UINT __cdecl datagram_retranslate_video_connection_thread_ip_4(LPVOID parameter)
 
 				if(local_thread->m_hThread==local_current_thread->m_hThread)
 				{
-					local_main_dialog->threads_list.erase(local_threads_iterator);
+					local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 					break;
 				}
 			}
@@ -15194,7 +15203,7 @@ UINT __cdecl datagram_retranslate_video_connection_thread_ip_4(LPVOID parameter)
 
 							if(local_thread->m_hThread==local_current_thread->m_hThread)
 							{
-								local_main_dialog->threads_list.erase(local_threads_iterator);
+								local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 								break;
 							}
 						}
@@ -15359,7 +15368,7 @@ UINT __cdecl datagram_retranslate_video_connection_thread_ip_4(LPVOID parameter)
 
 				//		if(local_thread->m_hThread==local_current_thread->m_hThread)
 				//		{
-				//			local_main_dialog->threads_list.erase(local_threads_iterator);
+				//			local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 				//			break;
 				//		}
 				//	}
@@ -15482,7 +15491,7 @@ UINT __cdecl datagram_retranslate_video_connection_thread_ip_4(LPVOID parameter)
 
 					//		if(local_thread->m_hThread==local_current_thread->m_hThread)
 					//		{
-					//			local_main_dialog->threads_list.erase(local_threads_iterator);
+					//			local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 					//			break;
 					//		}
 					//	}
@@ -15539,7 +15548,7 @@ UINT __cdecl datagram_retranslate_video_connection_thread_ip_4(LPVOID parameter)
 
 							if(local_thread->m_hThread==local_current_thread->m_hThread)
 							{
-								local_main_dialog->threads_list.erase(local_threads_iterator);
+								local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 								break;
 							}
 						}
@@ -15890,7 +15899,7 @@ UINT __cdecl datagram_retranslate_video_connection_thread_ip_4(LPVOID parameter)
 
 				if(local_thread->m_hThread==local_current_thread->m_hThread)
 				{
-					local_main_dialog->threads_list.erase(local_threads_iterator);
+					local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 					break;
 				}
 			}
@@ -15945,7 +15954,7 @@ UINT __cdecl datagram_retranslate_video_connection_thread_ip_6(LPVOID parameter)
 
 				if(local_thread->m_hThread==local_current_thread->m_hThread)
 				{
-					local_main_dialog->threads_list.erase(local_threads_iterator);
+					local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 					break;
 				}
 			}
@@ -15977,7 +15986,7 @@ UINT __cdecl datagram_retranslate_video_connection_thread_ip_6(LPVOID parameter)
 
 				if(local_thread->m_hThread==local_current_thread->m_hThread)
 				{
-					local_main_dialog->threads_list.erase(local_threads_iterator);
+					local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 					break;
 				}
 			}
@@ -16038,7 +16047,7 @@ UINT __cdecl datagram_retranslate_video_connection_thread_ip_6(LPVOID parameter)
 
 							if(local_thread->m_hThread==local_current_thread->m_hThread)
 							{
-								local_main_dialog->threads_list.erase(local_threads_iterator);
+								local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 								break;
 							}
 						}
@@ -16204,7 +16213,7 @@ UINT __cdecl datagram_retranslate_video_connection_thread_ip_6(LPVOID parameter)
 
 				//		if(local_thread->m_hThread==local_current_thread->m_hThread)
 				//		{
-				//			local_main_dialog->threads_list.erase(local_threads_iterator);
+				//			local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 				//			break;
 				//		}
 				//	}
@@ -16308,7 +16317,7 @@ UINT __cdecl datagram_retranslate_video_connection_thread_ip_6(LPVOID parameter)
 
 					//		if(local_thread->m_hThread==local_current_thread->m_hThread)
 					//		{
-					//			local_main_dialog->threads_list.erase(local_threads_iterator);
+					//			local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 					//			break;
 					//		}
 					//	}
@@ -16365,7 +16374,7 @@ UINT __cdecl datagram_retranslate_video_connection_thread_ip_6(LPVOID parameter)
 
 							if(local_thread->m_hThread==local_current_thread->m_hThread)
 							{
-								local_main_dialog->threads_list.erase(local_threads_iterator);
+								local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 								break;
 							}
 						}
@@ -16717,7 +16726,7 @@ UINT __cdecl datagram_retranslate_video_connection_thread_ip_6(LPVOID parameter)
 
 				if(local_thread->m_hThread==local_current_thread->m_hThread)
 				{
-					local_main_dialog->threads_list.erase(local_threads_iterator);
+					local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 					break;
 				}
 			}
@@ -16799,7 +16808,7 @@ UINT __cdecl datagram_retranslate_web_camera_video_connection_thread(LPVOID para
 
 			if(local_thread->m_hThread==local_current_thread->m_hThread)
 			{
-				local_main_dialog->threads_list.erase(local_threads_iterator);
+				local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 				break;
 			}
 		}
@@ -16853,7 +16862,7 @@ UINT __cdecl datagram_retranslate_web_camera_video_connection_thread_ip_4(LPVOID
 
 				if(local_thread->m_hThread==local_current_thread->m_hThread)
 				{
-					local_main_dialog->threads_list.erase(local_threads_iterator);
+					local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 					break;
 				}
 			}
@@ -16885,7 +16894,7 @@ UINT __cdecl datagram_retranslate_web_camera_video_connection_thread_ip_4(LPVOID
 
 				if(local_thread->m_hThread==local_current_thread->m_hThread)
 				{
-					local_main_dialog->threads_list.erase(local_threads_iterator);
+					local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 					break;
 				}
 			}
@@ -16946,7 +16955,7 @@ UINT __cdecl datagram_retranslate_web_camera_video_connection_thread_ip_4(LPVOID
 
 							if(local_thread->m_hThread==local_current_thread->m_hThread)
 							{
-								local_main_dialog->threads_list.erase(local_threads_iterator);
+								local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 								break;
 							}
 						}
@@ -17109,7 +17118,7 @@ UINT __cdecl datagram_retranslate_web_camera_video_connection_thread_ip_4(LPVOID
 
 				//		if(local_thread->m_hThread==local_current_thread->m_hThread)
 				//		{
-				//			local_main_dialog->threads_list.erase(local_threads_iterator);
+				//			local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 				//			break;
 				//		}
 				//	}
@@ -17223,7 +17232,7 @@ UINT __cdecl datagram_retranslate_web_camera_video_connection_thread_ip_4(LPVOID
 
 					//		if(local_thread->m_hThread==local_current_thread->m_hThread)
 					//		{
-					//			local_main_dialog->threads_list.erase(local_threads_iterator);
+					//			local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 					//			break;
 					//		}
 					//	}
@@ -17280,7 +17289,7 @@ UINT __cdecl datagram_retranslate_web_camera_video_connection_thread_ip_4(LPVOID
 
 							if(local_thread->m_hThread==local_current_thread->m_hThread)
 							{
-								local_main_dialog->threads_list.erase(local_threads_iterator);
+								local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 								break;
 							}
 						}
@@ -17681,7 +17690,7 @@ UINT __cdecl datagram_retranslate_web_camera_video_connection_thread_ip_4(LPVOID
 
 				if(local_thread->m_hThread==local_current_thread->m_hThread)
 				{
-					local_main_dialog->threads_list.erase(local_threads_iterator);
+					local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 					break;
 				}
 			}
@@ -17736,7 +17745,7 @@ UINT __cdecl datagram_retranslate_web_camera_video_connection_thread_ip_6(LPVOID
 
 				if(local_thread->m_hThread==local_current_thread->m_hThread)
 				{
-					local_main_dialog->threads_list.erase(local_threads_iterator);
+					local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 					break;
 				}
 			}
@@ -17768,7 +17777,7 @@ UINT __cdecl datagram_retranslate_web_camera_video_connection_thread_ip_6(LPVOID
 
 				if(local_thread->m_hThread==local_current_thread->m_hThread)
 				{
-					local_main_dialog->threads_list.erase(local_threads_iterator);
+					local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 					break;
 				}
 			}
@@ -17828,7 +17837,7 @@ UINT __cdecl datagram_retranslate_web_camera_video_connection_thread_ip_6(LPVOID
 
 							if(local_thread->m_hThread==local_current_thread->m_hThread)
 							{
-								local_main_dialog->threads_list.erase(local_threads_iterator);
+								local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 								break;
 							}
 						}
@@ -17990,7 +17999,7 @@ UINT __cdecl datagram_retranslate_web_camera_video_connection_thread_ip_6(LPVOID
 
 				//		if(local_thread->m_hThread==local_current_thread->m_hThread)
 				//		{
-				//			local_main_dialog->threads_list.erase(local_threads_iterator);
+				//			local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 				//			break;
 				//		}
 				//	}
@@ -18104,7 +18113,7 @@ UINT __cdecl datagram_retranslate_web_camera_video_connection_thread_ip_6(LPVOID
 
 					//		if(local_thread->m_hThread==local_current_thread->m_hThread)
 					//		{
-					//			local_main_dialog->threads_list.erase(local_threads_iterator);
+					//			local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 					//			break;
 					//		}
 					//	}
@@ -18161,7 +18170,7 @@ UINT __cdecl datagram_retranslate_web_camera_video_connection_thread_ip_6(LPVOID
 
 							if(local_thread->m_hThread==local_current_thread->m_hThread)
 							{
-								local_main_dialog->threads_list.erase(local_threads_iterator);
+								local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 								break;
 							}
 						}
@@ -18563,7 +18572,7 @@ UINT __cdecl datagram_retranslate_web_camera_video_connection_thread_ip_6(LPVOID
 
 				if(local_thread->m_hThread==local_current_thread->m_hThread)
 				{
-					local_main_dialog->threads_list.erase(local_threads_iterator);
+					local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 					break;
 				}
 			}
@@ -18644,7 +18653,7 @@ UINT __cdecl datagram_retranslate_audio_connection_thread(LPVOID parameter)
 
 			if(local_thread->m_hThread==local_current_thread->m_hThread)
 			{
-				local_main_dialog->threads_list.erase(local_threads_iterator);
+				local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 				break;
 			}
 		}
@@ -18700,7 +18709,7 @@ UINT __cdecl datagram_retranslate_audio_connection_thread_ip_4(LPVOID parameter)
 
 				if(local_thread->m_hThread==local_current_thread->m_hThread)
 				{
-					local_main_dialog->threads_list.erase(local_threads_iterator);
+					local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 					break;
 				}
 			}
@@ -18732,7 +18741,7 @@ UINT __cdecl datagram_retranslate_audio_connection_thread_ip_4(LPVOID parameter)
 
 				if(local_thread->m_hThread==local_current_thread->m_hThread)
 				{
-					local_main_dialog->threads_list.erase(local_threads_iterator);
+					local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 					break;
 				}
 			}
@@ -18793,7 +18802,7 @@ UINT __cdecl datagram_retranslate_audio_connection_thread_ip_4(LPVOID parameter)
 
 							if(local_thread->m_hThread==local_current_thread->m_hThread)
 							{
-								local_main_dialog->threads_list.erase(local_threads_iterator);
+								local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 								break;
 							}
 						}
@@ -18951,7 +18960,7 @@ UINT __cdecl datagram_retranslate_audio_connection_thread_ip_4(LPVOID parameter)
 
 				//		if(local_thread->m_hThread==local_current_thread->m_hThread)
 				//		{
-				//			local_main_dialog->threads_list.erase(local_threads_iterator);
+				//			local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 				//			break;
 				//		}
 				//	}
@@ -19103,7 +19112,7 @@ UINT __cdecl datagram_retranslate_audio_connection_thread_ip_4(LPVOID parameter)
 
 					//		if(local_thread->m_hThread==local_current_thread->m_hThread)
 					//		{
-					//			local_main_dialog->threads_list.erase(local_threads_iterator);
+					//			local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 					//			break;
 					//		}
 					//	}
@@ -19160,7 +19169,7 @@ UINT __cdecl datagram_retranslate_audio_connection_thread_ip_4(LPVOID parameter)
 
 							if(local_thread->m_hThread==local_current_thread->m_hThread)
 							{
-								local_main_dialog->threads_list.erase(local_threads_iterator);
+								local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 								break;
 							}
 						}
@@ -19593,7 +19602,7 @@ UINT __cdecl datagram_retranslate_audio_connection_thread_ip_4(LPVOID parameter)
 
 				if(local_thread->m_hThread==local_current_thread->m_hThread)
 				{
-					local_main_dialog->threads_list.erase(local_threads_iterator);
+					local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 					break;
 				}
 			}
@@ -19648,7 +19657,7 @@ UINT __cdecl datagram_retranslate_audio_connection_thread_ip_6(LPVOID parameter)
 
 				if(local_thread->m_hThread==local_current_thread->m_hThread)
 				{
-					local_main_dialog->threads_list.erase(local_threads_iterator);
+					local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 					break;
 				}
 			}
@@ -19680,7 +19689,7 @@ UINT __cdecl datagram_retranslate_audio_connection_thread_ip_6(LPVOID parameter)
 
 				if(local_thread->m_hThread==local_current_thread->m_hThread)
 				{
-					local_main_dialog->threads_list.erase(local_threads_iterator);
+					local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 					break;
 				}
 			}
@@ -19741,7 +19750,7 @@ UINT __cdecl datagram_retranslate_audio_connection_thread_ip_6(LPVOID parameter)
 
 							if(local_thread->m_hThread==local_current_thread->m_hThread)
 							{
-								local_main_dialog->threads_list.erase(local_threads_iterator);
+								local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 								break;
 							}
 						}
@@ -19897,7 +19906,7 @@ UINT __cdecl datagram_retranslate_audio_connection_thread_ip_6(LPVOID parameter)
 
 				//		if(local_thread->m_hThread==local_current_thread->m_hThread)
 				//		{
-				//			local_main_dialog->threads_list.erase(local_threads_iterator);
+				//			local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 				//			break;
 				//		}
 				//	}
@@ -20017,7 +20026,7 @@ UINT __cdecl datagram_retranslate_audio_connection_thread_ip_6(LPVOID parameter)
 
 					//		if(local_thread->m_hThread==local_current_thread->m_hThread)
 					//		{
-					//			local_main_dialog->threads_list.erase(local_threads_iterator);
+					//			local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 					//			break;
 					//		}
 					//	}
@@ -20074,7 +20083,7 @@ UINT __cdecl datagram_retranslate_audio_connection_thread_ip_6(LPVOID parameter)
 
 							if(local_thread->m_hThread==local_current_thread->m_hThread)
 							{
-								local_main_dialog->threads_list.erase(local_threads_iterator);
+								local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 								break;
 							}
 						}
@@ -20507,7 +20516,7 @@ UINT __cdecl datagram_retranslate_audio_connection_thread_ip_6(LPVOID parameter)
 
 				if(local_thread->m_hThread==local_current_thread->m_hThread)
 				{
-					local_main_dialog->threads_list.erase(local_threads_iterator);
+					local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
 					break;
 				}
 			}

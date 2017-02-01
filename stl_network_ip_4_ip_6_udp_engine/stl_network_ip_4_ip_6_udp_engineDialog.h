@@ -26,6 +26,7 @@ struct FRAME_PART
 	UINT frame_part_data_size;
 	UINT frame_part_number;
 	DWORD sequence_frame_number;
+	CTime arrival_time;
 };
 
 struct FRAME

@@ -53,6 +53,8 @@ const CString command_web_camera_video_end(L"/web_camera_video_end");
 #define use_istream_DEFINITION
 
 
+const LONGLONG CONST_EXPIRATION_DATA_LIMIT_SECONDS = 10;
+
 void CaptureScreenShot(CImage *parameter_image);
 
 const int CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME = 50000;
@@ -5350,6 +5352,10 @@ void Cstl_network_ip_4_ip_6_udp_engineDialog::PrepareVideo(CString parameter_str
 
 		local_frame_part.sequence_frame_number = received_sequence_frame_number;
 
+		CTime local_current_time = CTime::GetCurrentTime();
+
+		local_frame_part.arrival_time = local_current_time;
+
 		if(current_received_video_frame_stream==received_video_frame_stream.end())
 		{
 			STREAM_FRAME_INFORMATION local_frame_information;
@@ -5445,6 +5451,24 @@ void Cstl_network_ip_4_ip_6_udp_engineDialog::PrepareVideo(CString parameter_str
 							frame_stream->Seek(liBeggining, STREAM_SEEK_SET, NULL);
 						}
 
+
+						UINT frame_size = 0;
+
+						for(
+								std::list<FRAME_PART>::iterator local_frame_parts_iterator = current_video_frame->frame_parts.begin()
+								;
+							local_frame_parts_iterator!=current_video_frame->frame_parts.end()
+								;
+							local_frame_parts_iterator++
+								)
+							{
+								frame_size += local_frame_parts_iterator->frame_part_data_size;
+							}
+
+						BYTE *local_frame_buffer = new BYTE[frame_size];
+
+						UINT current_buffer_offset = 0;
+
 						for
 							(
 							UINT local_parts_counter=1
@@ -5464,19 +5488,37 @@ void Cstl_network_ip_4_ip_6_udp_engineDialog::PrepareVideo(CString parameter_str
 							{
 								if(local_parts_counter==local_frame_parts_iterator->frame_part_number)
 								{
-									ULONG local_bytes_written = 0;
-									frame_stream->Write(local_frame_parts_iterator->frame_part_data, local_frame_parts_iterator->frame_part_data_size, &local_bytes_written);
+									if(local_frame_buffer!=NULL)
+									{
+										memcpy(local_frame_buffer+current_buffer_offset,local_frame_parts_iterator->frame_part_data,local_frame_parts_iterator->frame_part_data_size);
+										current_buffer_offset += local_frame_parts_iterator->frame_part_data_size;
+									}
 
 									delete []local_frame_parts_iterator->frame_part_data;
 
 									local_frame_parts_iterator->frame_part_data = NULL;
 									local_frame_parts_iterator->frame_part_data_size = 0;
 
-									local_frame_parts_iterator = current_video_frame->frame_parts.erase(local_frame_parts_iterator);
+									//local_frame_parts_iterator = current_video_frame->frame_parts.erase(local_frame_parts_iterator);
 
 									break;
 								}
 							}
+						}
+
+						if(local_frame_buffer!=NULL)
+						{
+							ULONG local_bytes_written = 0;
+							frame_stream->Write(local_frame_buffer, frame_size, &local_bytes_written);
+
+							if(frame_size!=local_bytes_written)
+							{
+								CString local_error(L"Error");
+							}
+
+							delete []local_frame_buffer;
+
+							local_frame_buffer = NULL;
 						}
 
 						if(!received_video_image.IsNull())
@@ -5648,7 +5690,49 @@ void Cstl_network_ip_4_ip_6_udp_engineDialog::PrepareVideo(CString parameter_str
 						current_video_frame = current_video_frame_stream->frames.erase(current_video_frame);
 						continue;
 					}
-					current_video_frame++;
+					else
+					{
+						bool local_data_has_expired = false;
+
+						CTime local_current_time_to_check_if_expired_frame = CTime::GetCurrentTime();
+
+						for(
+								std::list<FRAME_PART>::iterator local_frame_parts_iterator = current_video_frame->frame_parts.begin()
+								;
+							local_frame_parts_iterator!=current_video_frame->frame_parts.end()
+								;
+							local_frame_parts_iterator++
+								)
+							{
+								CTime local_current_time = CTime::GetCurrentTime();
+
+								CTime local_arrival_time = local_frame_parts_iterator->arrival_time;
+
+								CTimeSpan local_time_difference = local_current_time - local_arrival_time;
+
+								if(local_time_difference.GetTotalSeconds()>=CONST_EXPIRATION_DATA_LIMIT_SECONDS)
+								{
+									local_data_has_expired = true;
+
+									delete []local_frame_parts_iterator->frame_part_data;
+
+									local_frame_parts_iterator->frame_part_data = NULL;
+									local_frame_parts_iterator->frame_part_data_size = 0;
+
+									//local_frame_parts_iterator = current_video_frame->frame_parts.erase(local_frame_parts_iterator);
+								}
+							}
+
+							if(local_data_has_expired)
+							{
+								current_video_frame = current_video_frame_stream->frames.erase(current_video_frame);
+								continue;
+							}
+							else
+							{
+								current_video_frame++;
+							}
+					}
 				}
 			}
 		}

@@ -52,6 +52,7 @@ const CString command_web_camera_video_end(L"/web_camera_video_end");
 
 #define use_istream_DEFINITION
 
+const LONGLONG CONST_TERMINATION_WAIT_SECONDS = 10;
 
 const LONGLONG CONST_EXPIRATION_DATA_LIMIT_SECONDS = 10;
 
@@ -261,16 +262,23 @@ struct thread_enable_save_video_parameters_structure_type
 };
 
 
-void list_chat_AddString(Cstl_network_ip_4_ip_6_udp_engineDialog *local_main_dialog, CString local_chat)
+void list_chat_AddString(Cstl_network_ip_4_ip_6_udp_engineDialog *local_main_dialog, CString local_chat, bool local_service_information=true)
 {
 	if(local_main_dialog!=NULL)
 	{
 		if(local_main_dialog->GUI_CONTROLS_STATE_data.IDC_CHECK_ENABLE_CHAT_state!=0)
 		{
-			GUI_LIST_CONTROL local_chat_state;
-			local_chat_state.label = local_chat;
-			local_chat_state.is_checked = FALSE;
-			local_main_dialog->GUI_CONTROLS_STATE_data.IDC_LIST_CHAT_state.push_back(local_chat_state);
+			if(
+				(local_service_information && local_main_dialog->GUI_CONTROLS_STATE_data.IDC_CHECK_ENABLE_CHAT_SERVICE_INFORMATION_state!=0)
+				||
+				(!local_service_information)
+				)
+			{
+				GUI_LIST_CONTROL local_chat_state;
+				local_chat_state.label = local_chat;
+				local_chat_state.is_checked = FALSE;
+				local_main_dialog->GUI_CONTROLS_STATE_data.IDC_LIST_CHAT_state.push_back(local_chat_state);
+			}
 		}
 	}
 };
@@ -346,6 +354,7 @@ void Cstl_network_ip_4_ip_6_udp_engineDialog::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_CHECK_RETRANSLATE_VIDEO, button_retranslate_video);
 	DDX_Control(pDX, IDC_CHECK_RETRANSLATE_WEB_CAMERA, button_retranslate_web_camera);
 	DDX_Control(pDX, IDC_CHECK_RETRANSLATE_MICROPHONE, button_retranslate_microphone);
+	DDX_Control(pDX, IDC_CHECK_ENABLE_CHAT_SERVICE_INFORMATION, button_enable_showing_service_information_in_chat);
 }
 
 BEGIN_MESSAGE_MAP(Cstl_network_ip_4_ip_6_udp_engineDialog, CDialogEx)
@@ -380,6 +389,7 @@ BEGIN_MESSAGE_MAP(Cstl_network_ip_4_ip_6_udp_engineDialog, CDialogEx)
 	ON_BN_CLICKED(IDC_CHECK_RETRANSLATE_VIDEO, &Cstl_network_ip_4_ip_6_udp_engineDialog::OnBnClickedCheckRetranslateVideo)
 	ON_BN_CLICKED(IDC_CHECK_RETRANSLATE_WEB_CAMERA, &Cstl_network_ip_4_ip_6_udp_engineDialog::OnBnClickedCheckRetranslateWebCamera)
 	ON_BN_CLICKED(IDC_CHECK_RETRANSLATE_MICROPHONE, &Cstl_network_ip_4_ip_6_udp_engineDialog::OnBnClickedCheckRetranslateMicrophone)
+	ON_BN_CLICKED(IDC_CHECK_ENABLE_CHAT_SERVICE_INFORMATION, &Cstl_network_ip_4_ip_6_udp_engineDialog::OnBnClickedCheckEnableChatServiceInformation)
 END_MESSAGE_MAP()
 
 
@@ -453,6 +463,8 @@ BOOL Cstl_network_ip_4_ip_6_udp_engineDialog::OnInitDialog()
 	button_enable_web_camera.SetCheck(1);
 
 	button_enable_save_video.SetCheck(0);
+
+	button_enable_showing_service_information_in_chat.SetCheck(0);
 
 	CString local_edit_speed_string;
 	local_edit_speed_string.Format(L"%0.4f", CONST_ETHERNET_SPEED);
@@ -563,6 +575,7 @@ BOOL Cstl_network_ip_4_ip_6_udp_engineDialog::OnInitDialog()
 		GUI_CONTROLS_STATE_data.IDC_CHECK_RETRANSLATE_VIDEO_state = button_retranslate_video.GetCheck();			//DDX_Control(pDX, IDC_CHECK_RETRANSLATE_VIDEO, button_retranslate_video);
 		GUI_CONTROLS_STATE_data.IDC_CHECK_RETRANSLATE_WEB_CAMERA_state = button_retranslate_web_camera.GetCheck();	//DDX_Control(pDX, IDC_CHECK_RETRANSLATE_WEB_CAMERA, button_retranslate_web_camera);
 		GUI_CONTROLS_STATE_data.IDC_CHECK_RETRANSLATE_MICROPHONE_state = button_retranslate_microphone.GetCheck();	//DDX_Control(pDX, IDC_CHECK_RETRANSLATE_MICROPHONE, button_retranslate_microphone);
+		GUI_CONTROLS_STATE_data.IDC_CHECK_ENABLE_CHAT_SERVICE_INFORMATION_state = button_enable_showing_service_information_in_chat.GetCheck();		//DDX_Control(pDX, IDC_CHECK_ENABLE_CHAT_SERVICE_INFORMATION, button_enable_showing_service_information_in_chat);
 
 	}
 
@@ -2124,6 +2137,30 @@ UINT __cdecl datagram_send_connection_thread_ip_4(LPVOID parameter)
 		}
 		else
 		{
+			{
+				CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
+
+				local_lock.Lock();
+
+				CWinThread *local_current_thread = AfxGetThread();
+
+				for
+					(
+					std::list<THREADS_INFORMATION>::iterator local_threads_iterator=local_main_dialog->threads_list.begin();
+				local_threads_iterator!=local_main_dialog->threads_list.end();
+				local_threads_iterator++
+					)
+				{		
+					CWinThread *local_thread = local_threads_iterator->WinThread;
+
+					if(local_thread->m_hThread==local_current_thread->m_hThread)
+					{
+						local_threads_iterator = local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
+						break;
+					}
+				}
+			}
+
 			if(local_main_dialog->get_command_terminate_application())
 			{
 				delete local_send_thread_parameters_structure;
@@ -2503,6 +2540,30 @@ UINT __cdecl datagram_send_connection_thread_ip_6(LPVOID parameter)
 		{
 			if(local_main_dialog->get_command_terminate_application())
 			{
+				{
+					CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
+
+					local_lock.Lock();
+
+					CWinThread *local_current_thread = AfxGetThread();
+
+					for
+						(
+						std::list<THREADS_INFORMATION>::iterator local_threads_iterator=local_main_dialog->threads_list.begin();
+					local_threads_iterator!=local_main_dialog->threads_list.end();
+					local_threads_iterator++
+						)
+					{		
+						CWinThread *local_thread = local_threads_iterator->WinThread;
+
+						if(local_thread->m_hThread==local_current_thread->m_hThread)
+						{
+							local_threads_iterator = local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
+							break;
+						}
+					}
+				}
+
 				delete local_send_thread_parameters_structure;
 				return 0;
 			}
@@ -2874,13 +2935,24 @@ UINT __cdecl stop_waiting_thread(LPVOID parameter)
 	{
 		Sleep(1000);
 
+		CTime local_start_time = CTime::GetCurrentTime();
+
 		for
 			(
 			;
 		;
 		)
 		{
-			Sleep(1);
+			CTime local_current_time = CTime::GetCurrentTime();
+
+			CTimeSpan local_time_span = local_current_time - local_start_time;
+
+			if(local_time_span.GetTotalSeconds()>=CONST_TERMINATION_WAIT_SECONDS)
+			{
+				break;
+			}
+
+			Sleep(100);
 
 			CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
 
@@ -2905,7 +2977,12 @@ UINT __cdecl stop_waiting_thread(LPVOID parameter)
 
 				local_lock.Unlock();
 
-				DWORD local_result = WaitForSingleObject(local_thread->m_hThread,INFINITE);
+				DWORD local_result = WaitForSingleObject(local_thread->m_hThread,100);
+			}
+			else
+			{
+				Sleep(10);
+				break;
 			}
 			/*/
 			{
@@ -3263,7 +3340,7 @@ UINT __cdecl datagram_listen_answer_connection_thread_ip_4(LPVOID parameter)
 							break;
 						}
 						{
-							list_chat_AddString(local_main_dialog,local_chat);
+							list_chat_AddString(local_main_dialog,local_chat,false);
 						}
 
 						if(local_main_dialog->get_command_terminate_application())
@@ -3273,7 +3350,7 @@ UINT __cdecl datagram_listen_answer_connection_thread_ip_4(LPVOID parameter)
 						{
 							local_chat = CString(L"Сообщение \"") + local_message + CString(L"\"\r\n");
 
-							list_chat_AddString(local_main_dialog,local_chat);
+							list_chat_AddString(local_main_dialog,local_chat,false);
 						}
 					}
 					else
@@ -5455,15 +5532,15 @@ void Cstl_network_ip_4_ip_6_udp_engineDialog::PrepareVideo(CString parameter_str
 						UINT frame_size = 0;
 
 						for(
-								std::list<FRAME_PART>::iterator local_frame_parts_iterator = current_video_frame->frame_parts.begin()
-								;
-							local_frame_parts_iterator!=current_video_frame->frame_parts.end()
-								;
-							local_frame_parts_iterator++
-								)
-							{
-								frame_size += local_frame_parts_iterator->frame_part_data_size;
-							}
+							std::list<FRAME_PART>::iterator local_frame_parts_iterator = current_video_frame->frame_parts.begin()
+							;
+						local_frame_parts_iterator!=current_video_frame->frame_parts.end()
+							;
+						local_frame_parts_iterator++
+							)
+						{
+							frame_size += local_frame_parts_iterator->frame_part_data_size;
+						}
 
 						BYTE *local_frame_buffer = new BYTE[frame_size];
 
@@ -5697,41 +5774,41 @@ void Cstl_network_ip_4_ip_6_udp_engineDialog::PrepareVideo(CString parameter_str
 						CTime local_current_time_to_check_if_expired_frame = CTime::GetCurrentTime();
 
 						for(
-								std::list<FRAME_PART>::iterator local_frame_parts_iterator = current_video_frame->frame_parts.begin()
-								;
-							local_frame_parts_iterator!=current_video_frame->frame_parts.end()
-								;
-							local_frame_parts_iterator++
-								)
+							std::list<FRAME_PART>::iterator local_frame_parts_iterator = current_video_frame->frame_parts.begin()
+							;
+						local_frame_parts_iterator!=current_video_frame->frame_parts.end()
+							;
+						local_frame_parts_iterator++
+							)
+						{
+							CTime local_current_time = CTime::GetCurrentTime();
+
+							CTime local_arrival_time = local_frame_parts_iterator->arrival_time;
+
+							CTimeSpan local_time_difference = local_current_time - local_arrival_time;
+
+							if(local_time_difference.GetTotalSeconds()>=CONST_EXPIRATION_DATA_LIMIT_SECONDS)
 							{
-								CTime local_current_time = CTime::GetCurrentTime();
+								local_data_has_expired = true;
 
-								CTime local_arrival_time = local_frame_parts_iterator->arrival_time;
+								delete []local_frame_parts_iterator->frame_part_data;
 
-								CTimeSpan local_time_difference = local_current_time - local_arrival_time;
+								local_frame_parts_iterator->frame_part_data = NULL;
+								local_frame_parts_iterator->frame_part_data_size = 0;
 
-								if(local_time_difference.GetTotalSeconds()>=CONST_EXPIRATION_DATA_LIMIT_SECONDS)
-								{
-									local_data_has_expired = true;
-
-									delete []local_frame_parts_iterator->frame_part_data;
-
-									local_frame_parts_iterator->frame_part_data = NULL;
-									local_frame_parts_iterator->frame_part_data_size = 0;
-
-									//local_frame_parts_iterator = current_video_frame->frame_parts.erase(local_frame_parts_iterator);
-								}
+								//local_frame_parts_iterator = current_video_frame->frame_parts.erase(local_frame_parts_iterator);
 							}
+						}
 
-							if(local_data_has_expired)
-							{
-								current_video_frame = current_video_frame_stream->frames.erase(current_video_frame);
-								continue;
-							}
-							else
-							{
-								current_video_frame++;
-							}
+						if(local_data_has_expired)
+						{
+							current_video_frame = current_video_frame_stream->frames.erase(current_video_frame);
+							continue;
+						}
+						else
+						{
+							current_video_frame++;
+						}
 					}
 				}
 			}
@@ -6770,6 +6847,30 @@ UINT __cdecl datagram_send_video_connection_thread_ip_4(LPVOID parameter)
 			{
 				if(local_main_dialog->get_command_terminate_application())
 				{
+					{
+						CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
+
+						local_lock.Lock();
+
+						CWinThread *local_current_thread = AfxGetThread();
+
+						for
+							(
+							std::list<THREADS_INFORMATION>::iterator local_threads_iterator=local_main_dialog->threads_list.begin();
+						local_threads_iterator!=local_main_dialog->threads_list.end();
+						local_threads_iterator++
+							)
+						{		
+							CWinThread *local_thread = local_threads_iterator->WinThread;
+
+							if(local_thread->m_hThread==local_current_thread->m_hThread)
+							{
+								local_threads_iterator = local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
+								break;
+							}
+						}
+					}
+
 					delete[] send_buffer;
 					delete local_send_video_thread_parameters_structure;
 					return 0;
@@ -7590,6 +7691,30 @@ UINT __cdecl datagram_send_video_connection_thread_ip_6(LPVOID parameter)
 			{
 				if(local_main_dialog->get_command_terminate_application())
 				{
+					{
+						CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
+
+						local_lock.Lock();
+
+						CWinThread *local_current_thread = AfxGetThread();
+
+						for
+							(
+							std::list<THREADS_INFORMATION>::iterator local_threads_iterator=local_main_dialog->threads_list.begin();
+						local_threads_iterator!=local_main_dialog->threads_list.end();
+						local_threads_iterator++
+							)
+						{		
+							CWinThread *local_thread = local_threads_iterator->WinThread;
+
+							if(local_thread->m_hThread==local_current_thread->m_hThread)
+							{
+								local_threads_iterator = local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
+								break;
+							}
+						}
+					}
+
 					delete[] send_buffer;
 					delete local_send_video_thread_parameters_structure;
 					return 0;
@@ -8590,6 +8715,30 @@ UINT __cdecl datagram_send_web_camera_video_connection_thread_ip_4(LPVOID parame
 			{
 				if(local_main_dialog->get_command_terminate_application())
 				{
+					{
+						CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
+
+						local_lock.Lock();
+
+						CWinThread *local_current_thread = AfxGetThread();
+
+						for
+							(
+							std::list<THREADS_INFORMATION>::iterator local_threads_iterator=local_main_dialog->threads_list.begin();
+						local_threads_iterator!=local_main_dialog->threads_list.end();
+						local_threads_iterator++
+							)
+						{		
+							CWinThread *local_thread = local_threads_iterator->WinThread;
+
+							if(local_thread->m_hThread==local_current_thread->m_hThread)
+							{
+								local_threads_iterator = local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
+								break;
+							}
+						}
+					}
+
 					delete[] send_buffer;
 					delete local_send_web_camera_video_thread_parameters_structure;
 					return 0;
@@ -9475,6 +9624,30 @@ UINT __cdecl datagram_send_web_camera_video_connection_thread_ip_6(LPVOID parame
 			{
 				if(local_main_dialog->get_command_terminate_application())
 				{
+					{
+						CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
+
+						local_lock.Lock();
+
+						CWinThread *local_current_thread = AfxGetThread();
+
+						for
+							(
+							std::list<THREADS_INFORMATION>::iterator local_threads_iterator=local_main_dialog->threads_list.begin();
+						local_threads_iterator!=local_main_dialog->threads_list.end();
+						local_threads_iterator++
+							)
+						{		
+							CWinThread *local_thread = local_threads_iterator->WinThread;
+
+							if(local_thread->m_hThread==local_current_thread->m_hThread)
+							{
+								local_threads_iterator = local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
+								break;
+							}
+						}
+					}
+
 					delete[] send_buffer;
 					delete local_send_web_camera_video_thread_parameters_structure;
 					return 0;
@@ -10938,6 +11111,30 @@ UINT __cdecl datagram_send_audio_connection_thread_ip_4(LPVOID parameter)
 			{
 				if(local_main_dialog->get_command_terminate_application())
 				{
+					{
+						CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
+
+						local_lock.Lock();
+
+						CWinThread *local_current_thread = AfxGetThread();
+
+						for
+							(
+							std::list<THREADS_INFORMATION>::iterator local_threads_iterator=local_main_dialog->threads_list.begin();
+						local_threads_iterator!=local_main_dialog->threads_list.end();
+						local_threads_iterator++
+							)
+						{		
+							CWinThread *local_thread = local_threads_iterator->WinThread;
+
+							if(local_thread->m_hThread==local_current_thread->m_hThread)
+							{
+								local_threads_iterator = local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
+								break;
+							}
+						}
+					}
+
 					delete[] send_buffer;
 					delete local_send_audio_thread_parameters_structure;
 					return 0;
@@ -11872,6 +12069,30 @@ UINT __cdecl datagram_send_audio_connection_thread_ip_6(LPVOID parameter)
 			{
 				if(local_main_dialog->get_command_terminate_application())
 				{
+					{
+						CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
+
+						local_lock.Lock();
+
+						CWinThread *local_current_thread = AfxGetThread();
+
+						for
+							(
+							std::list<THREADS_INFORMATION>::iterator local_threads_iterator=local_main_dialog->threads_list.begin();
+						local_threads_iterator!=local_main_dialog->threads_list.end();
+						local_threads_iterator++
+							)
+						{		
+							CWinThread *local_thread = local_threads_iterator->WinThread;
+
+							if(local_thread->m_hThread==local_current_thread->m_hThread)
+							{
+								local_threads_iterator = local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
+								break;
+							}
+						}
+					}
+
 					delete[] send_buffer;
 					delete local_send_audio_thread_parameters_structure;
 					return 0;
@@ -12823,6 +13044,30 @@ UINT __cdecl datagram_play_audio_connection_thread(LPVOID parameter)
 		{
 			if(local_main_dialog->get_command_terminate_application())
 			{
+				{
+					CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
+
+					local_lock.Lock();
+
+					CWinThread *local_current_thread = AfxGetThread();
+
+					for
+						(
+						std::list<THREADS_INFORMATION>::iterator local_threads_iterator=local_main_dialog->threads_list.begin();
+					local_threads_iterator!=local_main_dialog->threads_list.end();
+					local_threads_iterator++
+						)
+					{		
+						CWinThread *local_thread = local_threads_iterator->WinThread;
+
+						if(local_thread->m_hThread==local_current_thread->m_hThread)
+						{
+							local_threads_iterator = local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
+							break;
+						}
+					}
+				}
+
 				if(local_wave!=NULL)
 				{
 					delete local_wave;
@@ -13424,1657 +13669,6 @@ void Cstl_network_ip_4_ip_6_udp_engineDialog::OnBnClickedCheckRetranslateMicroph
 
 //	retranslate
 
-/*/
-
-UINT __cdecl datagram_retranslate_thread(LPVOID parameter)
-{
-thread_retranslate_parameters_structure_type *local_retranslate_thread_parameters_structure_source = (thread_retranslate_parameters_structure_type *)parameter;
-
-if(local_retranslate_thread_parameters_structure_source==NULL)
-{
-return 0;
-}
-
-if(local_retranslate_thread_parameters_structure_source->parameter_thread_data_to_retranslate==NULL)
-{
-delete parameter;
-
-return 0;
-}
-
-Cstl_network_ip_4_ip_6_udp_engineDialog *local_main_dialog = local_retranslate_thread_parameters_structure_source->parameter_main_dialog;
-
-if(local_main_dialog==NULL)
-{
-delete[] local_retranslate_thread_parameters_structure_source->parameter_thread_data_to_retranslate;
-
-delete parameter;
-
-return 0;
-}
-
-{
-void *local_retranslate_thread_parameters_structure = new thread_retranslate_parameters_structure_type;
-
-BYTE *source_data = ((thread_retranslate_parameters_structure_type*)local_retranslate_thread_parameters_structure_source)->parameter_thread_data_to_retranslate;
-BYTE *thread_data_to_retranslate_ip_4 = new BYTE[local_retranslate_thread_parameters_structure_source->parameter_thread_data_to_retranslate_size];
-memcpy(thread_data_to_retranslate_ip_4, source_data, local_retranslate_thread_parameters_structure_source->parameter_thread_data_to_retranslate_size);
-
-((thread_retranslate_parameters_structure_type*)local_retranslate_thread_parameters_structure)->parameter_main_dialog = ((thread_retranslate_parameters_structure_type*)local_retranslate_thread_parameters_structure_source)->parameter_main_dialog;
-((thread_retranslate_parameters_structure_type*)local_retranslate_thread_parameters_structure)->parameter_thread_data_to_retranslate = thread_data_to_retranslate_ip_4;
-((thread_retranslate_parameters_structure_type*)local_retranslate_thread_parameters_structure)->parameter_data_source = ((thread_retranslate_parameters_structure_type*)local_retranslate_thread_parameters_structure_source)->parameter_data_source;
-((thread_retranslate_parameters_structure_type*)local_retranslate_thread_parameters_structure)->parameter_thread_data_to_retranslate_size = local_retranslate_thread_parameters_structure_source->parameter_thread_data_to_retranslate_size;
-
-//CWinThread *local_thread = AfxBeginThread(datagram_retranslate_connection_thread_ip_4,local_retranslate_thread_parameters_structure);
-
-//THREADS_INFORMATION local_thread_information;
-//local_thread_information.thread_name = CString(L"datagram_retranslate_connection_thread_ip_4");
-//local_thread_information.WinThread = local_thread;
-
-//local_main_dialog->threads_list.push_back(local_thread_information);
-
-datagram_retranslate_connection_thread_ip_4(local_retranslate_thread_parameters_structure);
-}
-
-{
-void *local_retranslate_thread_parameters_structure = new thread_retranslate_parameters_structure_type;
-
-BYTE *source_data = ((thread_retranslate_parameters_structure_type*)local_retranslate_thread_parameters_structure_source)->parameter_thread_data_to_retranslate;
-BYTE *thread_data_to_retranslate_ip_6 = new BYTE[local_retranslate_thread_parameters_structure_source->parameter_thread_data_to_retranslate_size];
-memcpy(thread_data_to_retranslate_ip_6, source_data, local_retranslate_thread_parameters_structure_source->parameter_thread_data_to_retranslate_size);
-
-((thread_send_parameters_structure_type*)local_retranslate_thread_parameters_structure)->parameter_main_dialog = ((thread_retranslate_parameters_structure_type*)local_retranslate_thread_parameters_structure_source)->parameter_main_dialog;
-((thread_retranslate_parameters_structure_type*)local_retranslate_thread_parameters_structure)->parameter_thread_data_to_retranslate = thread_data_to_retranslate_ip_6;
-((thread_retranslate_parameters_structure_type*)local_retranslate_thread_parameters_structure)->parameter_data_source = ((thread_retranslate_parameters_structure_type*)local_retranslate_thread_parameters_structure_source)->parameter_data_source;
-((thread_retranslate_parameters_structure_type*)local_retranslate_thread_parameters_structure)->parameter_thread_data_to_retranslate_size = local_retranslate_thread_parameters_structure_source->parameter_thread_data_to_retranslate_size;
-
-//CWinThread *local_thread = AfxBeginThread(datagram_retranslate_connection_thread_ip_6,local_retranslate_thread_parameters_structure);
-
-//THREADS_INFORMATION local_thread_information;
-//local_thread_information.thread_name = CString(L"datagram_retranslate_connection_thread_ip_6");
-//local_thread_information.WinThread = local_thread;
-
-//local_main_dialog->threads_list.push_back(local_thread_information);
-
-datagram_retranslate_connection_thread_ip_4(local_retranslate_thread_parameters_structure);
-}
-
-{
-CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
-
-local_lock.Lock();
-
-CWinThread *local_current_thread = AfxGetThread();
-
-for
-(
-std::list<THREADS_INFORMATION>::iterator local_threads_iterator=local_main_dialog->threads_list.begin();
-local_threads_iterator!=local_main_dialog->threads_list.end();
-local_threads_iterator++
-)
-{		
-CWinThread *local_thread = local_threads_iterator->WinThread;
-
-if(local_thread->m_hThread==local_current_thread->m_hThread)
-{
-local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
-break;
-}
-}
-}
-
-delete []local_retranslate_thread_parameters_structure_source->parameter_thread_data_to_retranslate;
-
-delete parameter;
-
-return 1;
-}
-
-UINT __cdecl datagram_retranslate_connection_thread_ip_4(LPVOID parameter)
-{
-thread_retranslate_parameters_structure_type *local_retranslate_thread_parameters_structure = (thread_retranslate_parameters_structure_type *)parameter;
-
-if(local_retranslate_thread_parameters_structure==NULL)
-{
-return 0;
-}
-
-DWORD sequence_number = *(DWORD*)(local_retranslate_thread_parameters_structure->parameter_thread_data_to_retranslate);
-CString command_retranslate = local_retranslate_thread_parameters_structure->parameter_data_source;
-BYTE *data_to_retranslate = local_retranslate_thread_parameters_structure->parameter_thread_data_to_retranslate;
-size_t data_to_retranslate_size = local_retranslate_thread_parameters_structure->parameter_thread_data_to_retranslate_size;
-
-if(data_to_retranslate==NULL)
-{
-delete local_retranslate_thread_parameters_structure;
-return 0;
-}
-
-Cstl_network_ip_4_ip_6_udp_engineDialog *local_main_dialog = (local_retranslate_thread_parameters_structure)->parameter_main_dialog;
-
-if(local_main_dialog==NULL)
-{
-delete[] data_to_retranslate;
-delete local_retranslate_thread_parameters_structure;
-return 0;
-}
-
-char *send_buffer = new char[CONST_MESSAGE_LENGTH_IMAGE];
-
-if(send_buffer==NULL)
-{
-{
-CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
-
-local_lock.Lock();
-
-CWinThread *local_current_thread = AfxGetThread();
-
-for
-(
-std::list<THREADS_INFORMATION>::iterator local_threads_iterator=local_main_dialog->threads_list.begin();
-local_threads_iterator!=local_main_dialog->threads_list.end();
-local_threads_iterator++
-)
-{		
-CWinThread *local_thread = local_threads_iterator->WinThread;
-
-if(local_thread->m_hThread==local_current_thread->m_hThread)
-{
-local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
-break;
-}
-}
-}
-
-delete[] data_to_retranslate;
-delete[] send_buffer;
-delete local_retranslate_thread_parameters_structure;
-return 0;
-}
-
-char *send_buffer_this_time = new char[CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME];
-
-if(send_buffer_this_time==NULL)
-{
-{
-CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
-
-local_lock.Lock();
-
-CWinThread *local_current_thread = AfxGetThread();
-
-for
-(
-std::list<THREADS_INFORMATION>::iterator local_threads_iterator=local_main_dialog->threads_list.begin();
-local_threads_iterator!=local_main_dialog->threads_list.end();
-local_threads_iterator++
-)
-{		
-CWinThread *local_thread = local_threads_iterator->WinThread;
-
-if(local_thread->m_hThread==local_current_thread->m_hThread)
-{
-local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
-break;
-}
-}
-}
-
-delete[] data_to_retranslate;
-delete[] send_buffer;
-delete local_retranslate_thread_parameters_structure;
-return 0;
-}
-
-for(;;)
-{
-ULONGLONG local_start_time = GetTickCount64();
-
-if(local_main_dialog->get_command_threads_retranslate_stop())
-{
-break;
-}
-
-CString local_address(localhost_definition);
-
-CStringA local_address_internet_address;
-
-if(local_main_dialog->get_command_terminate_application())
-{
-break;
-}
-
-int peers_to_send_count = 0;
-{
-DWORD dwWaitResult;
-
-dwWaitResult = WaitForSingleObject( 
-local_main_dialog->do_not_terminate_application_event, // event handle
-0);    // zero wait
-
-if(dwWaitResult==WAIT_OBJECT_0)
-{
-// Event object was signaled		
-
-if(local_main_dialog->get_command_terminate_application())
-{
-{
-CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
-
-local_lock.Lock();
-
-CWinThread *local_current_thread = AfxGetThread();
-
-for
-(
-std::list<THREADS_INFORMATION>::iterator local_threads_iterator=local_main_dialog->threads_list.begin();
-local_threads_iterator!=local_main_dialog->threads_list.end();
-local_threads_iterator++
-)
-{		
-CWinThread *local_thread = local_threads_iterator->WinThread;
-
-if(local_thread->m_hThread==local_current_thread->m_hThread)
-{
-local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
-break;
-}
-}
-}
-
-delete[] send_buffer_this_time;
-delete[] data_to_retranslate;
-delete[] send_buffer;
-delete local_retranslate_thread_parameters_structure;
-return 0;
-}
-
-for(
-std::list<GUI_LIST_CONTROL>::iterator current_item_iterator=local_main_dialog->GUI_CONTROLS_STATE_data.IDC_LIST_NODES_state.begin();
-current_item_iterator!=local_main_dialog->GUI_CONTROLS_STATE_data.IDC_LIST_NODES_state.end();
-current_item_iterator++
-)
-{
-if(current_item_iterator->is_checked>0)
-{
-peers_to_send_count++;
-}
-}
-}
-else
-{
-if(local_main_dialog->get_command_terminate_application())
-{
-delete[] send_buffer_this_time;
-delete[] data_to_retranslate;
-delete[] send_buffer;
-delete local_retranslate_thread_parameters_structure;
-return 0;
-}
-}
-}
-
-double local_data_size_send = 0.0;
-
-for(int peers_to_send_count_counter=0;peers_to_send_count_counter<peers_to_send_count;peers_to_send_count_counter++)
-{
-//double local_data_size_send = 0.0;
-
-if(local_main_dialog->get_command_terminate_application())
-{
-break;
-}
-
-CString peer_to_send;
-
-int loop_counter=0;
-for(
-std::list<GUI_LIST_CONTROL>::iterator current_item_iterator=local_main_dialog->GUI_CONTROLS_STATE_data.IDC_LIST_NODES_state.begin();
-current_item_iterator!=local_main_dialog->GUI_CONTROLS_STATE_data.IDC_LIST_NODES_state.end();
-current_item_iterator++
-)
-{
-Sleep(1);
-if(local_main_dialog->get_command_terminate_application())
-{
-break;
-}
-if(current_item_iterator->is_checked>0)
-{
-if(peers_to_send_count_counter==loop_counter)
-{
-peer_to_send = current_item_iterator->label;
-break;
-}
-loop_counter++;
-}
-
-if(local_main_dialog->get_command_terminate_application())
-{
-break;
-}
-}
-
-if(local_main_dialog->get_command_terminate_application())
-{
-break;
-}
-
-local_address = peer_to_send;
-
-
-if(network::ip_4::domain_name_to_internet_4_name(local_address,local_address_internet_address)==false)
-{
-const int local_error_message_size = 10000;
-wchar_t local_error_message[local_error_message_size];
-
-const int local_system_error_message_size = local_error_message_size-1000;
-wchar_t local_system_error_message[local_system_error_message_size];
-
-wcscpy_s(local_system_error_message,local_system_error_message_size,L"domain_name_to_internet_6_name завершилась неудачей");
-
-CString local_time_string = CTime::GetCurrentTime().FormatGmt("%d/%m/%y %H:%M:%S GMT");
-
-wsprintf((wchar_t*)local_error_message, L"Сетевая ошибка -- %s -- %s\r\n", local_system_error_message, local_time_string.GetBuffer());
-
-//			galaxy::MessageBox(local_error_message,CString(L"Ошибка"));
-
-//{
-
-//	CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
-
-//	local_lock.Lock();
-
-//	CWinThread *local_current_thread = AfxGetThread();
-
-//	for
-//		(
-//		std::list<THREADS_INFORMATION>::iterator local_threads_iterator=local_main_dialog->threads_list.begin();
-//	local_threads_iterator!=local_main_dialog->threads_list.end();
-//	local_threads_iterator++
-//		)
-//	{		
-//		CWinThread *local_thread = local_threads_iterator->WinThread;
-
-//		if(local_thread->m_hThread==local_current_thread->m_hThread)
-//		{
-//			local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
-//			break;
-//		}
-//	}
-//}
-
-//delete[] data_to_retranslate;
-//delete[] send_buffer;
-//delete[] send_buffer_this_time;
-//delete local_retranslate_thread_parameters_structure;
-
-//return 0;
-continue;
-}
-
-//ULONGLONG local_start_time = GetTickCount64();
-
-for(UINT local_parameter_port_number=port_number_start_const;local_parameter_port_number<=port_number_end_const;local_parameter_port_number++)
-{
-network::ip_4::CBlockingSocket_ip_4 local_blocking_socket;
-
-if(network::ip_4::domain_name_to_internet_4_name(local_address,local_address_internet_address)==false)
-{
-const int local_error_message_size = 10000;
-wchar_t local_error_message[local_error_message_size];
-
-const int local_system_error_message_size = local_error_message_size-1000;
-wchar_t local_system_error_message[local_system_error_message_size];
-
-wcscpy_s(local_system_error_message,local_system_error_message_size,L"domain_name_to_internet_6_name завершилась неудачей");
-
-CString local_time_string = CTime::GetCurrentTime().FormatGmt("%d/%m/%y %H:%M:%S GMT");
-
-wsprintf((wchar_t*)local_error_message, L"Сетевая ошибка -- %s -- %s\r\n", local_system_error_message, local_time_string.GetBuffer());
-
-//			galaxy::MessageBox(local_error_message,CString(L"Ошибка"));
-
-//{
-
-//	CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
-
-//	local_lock.Lock();
-
-//	CWinThread *local_current_thread = AfxGetThread();
-
-//	for
-//		(
-//		std::list<THREADS_INFORMATION>::iterator local_threads_iterator=local_main_dialog->threads_list.begin();
-//	local_threads_iterator!=local_main_dialog->threads_list.end();
-//	local_threads_iterator++
-//		)
-//	{		
-//		CWinThread *local_thread = local_threads_iterator->WinThread;
-
-//		if(local_thread->m_hThread==local_current_thread->m_hThread)
-//		{
-//			local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
-//			break;
-//		}
-//	}
-//}
-
-//delete[] data_to_retranslate;
-//delete[] send_buffer;
-//delete[] send_buffer_this_time;
-//delete local_retranslate_thread_parameters_structure;
-
-//return 0;
-break;
-}
-
-network::ip_4::CSockAddr_ip_4 local_socket_address(local_address_internet_address,local_parameter_port_number);
-
-try
-{
-local_blocking_socket.Create(SOCK_DGRAM);
-}
-catch(network::ip_4::CBlockingSocketException_ip_4 *local_blocking_socket_exception)
-{
-const int local_error_message_size = 10000;
-wchar_t local_error_message[local_error_message_size];
-
-const int local_system_error_message_size = local_error_message_size-1000;
-wchar_t local_system_error_message[local_system_error_message_size];
-
-CString local_time_string = CTime::GetCurrentTime().FormatGmt("%d/%m/%y %H:%M:%S GMT");
-
-local_blocking_socket_exception->GetErrorMessage(local_system_error_message,local_system_error_message_size);
-
-wsprintf((wchar_t*)local_error_message, L"Сетевая ошибка -- %s -- %s\r\n", local_system_error_message, local_time_string.GetBuffer());
-
-local_blocking_socket_exception->Delete();
-
-//			galaxy::MessageBox(local_error_message,CString(L"Ошибка"));
-
-{
-CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
-
-local_lock.Lock();
-
-CWinThread *local_current_thread = AfxGetThread();
-
-for
-(
-std::list<THREADS_INFORMATION>::iterator local_threads_iterator=local_main_dialog->threads_list.begin();
-local_threads_iterator!=local_main_dialog->threads_list.end();
-local_threads_iterator++
-)
-{		
-CWinThread *local_thread = local_threads_iterator->WinThread;
-
-if(local_thread->m_hThread==local_current_thread->m_hThread)
-{
-local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
-break;
-}
-}
-}
-
-delete[] send_buffer_this_time;
-delete[] data_to_retranslate;
-delete[] send_buffer;
-delete local_retranslate_thread_parameters_structure;
-
-return 0;
-}
-
-int local_bytes_sent = 0;
-int local_error_number = 0;
-
-
-int send_buffer_data_length = service_signature_definition_length;
-
-ZeroMemory(send_buffer,CONST_MESSAGE_LENGTH_IMAGE);
-
-memcpy(send_buffer,service_signature,service_signature_definition_length);
-
-
-
-CString send_data_string = command_retranslate;
-
-int send_data_string_length = send_data_string.GetLength();
-
-memcpy(send_buffer+send_buffer_data_length,send_data_string.GetBuffer(),send_data_string_length*sizeof(wchar_t));
-
-send_buffer_data_length += send_data_string_length*sizeof(wchar_t);
-
-wchar_t zero_word = L'\0';
-memcpy(send_buffer+send_buffer_data_length,&zero_word,sizeof(wchar_t));
-send_buffer_data_length += sizeof(wchar_t);
-send_data_string_length++;
-
-
-memcpy(send_buffer+send_buffer_data_length,&sequence_number,sizeof(DWORD));
-send_buffer_data_length += sizeof(DWORD);
-send_data_string_length += sizeof(DWORD)/sizeof(wchar_t);
-
-
-
-memcpy(send_buffer+send_buffer_data_length, data_to_retranslate, data_to_retranslate_size);
-
-send_buffer_data_length += data_to_retranslate_size;
-
-
-
-
-CString xor_code_string;
-
-if(local_main_dialog->get_command_terminate_application())
-{
-break;
-}
-{
-xor_code_string = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_XOR_CODE_state;
-}
-
-char xor_code = _wtoi(xor_code_string);
-
-encrypt::encrypt_xor(send_buffer+service_signature_definition_length,send_buffer_data_length-service_signature_definition_length,xor_code);
-
-int local_header_length = service_signature_definition_length+send_data_string_length*sizeof(wchar_t);
-
-int local_part_counter = 0;
-int local_parts_count = data_to_retranslate_size/(CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t));
-int local_last_part_size = data_to_retranslate_size % (CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t));
-
-if(local_last_part_size!=0)
-{
-local_parts_count++;
-}
-
-for(;local_part_counter<local_parts_count;local_part_counter++)
-{
-int send_buffer_this_time_data_length = CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME;
-
-if(local_part_counter==local_parts_count-1)
-{
-if(local_last_part_size!=0)
-{
-send_buffer_this_time_data_length = local_last_part_size+service_signature_definition_length+send_data_string_length*sizeof(wchar_t);
-}
-}
-
-ZeroMemory(send_buffer_this_time,CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME);
-
-memcpy(send_buffer_this_time,send_buffer,service_signature_definition_length+send_data_string_length*sizeof(wchar_t));
-
-int local_this_time_data_offset = local_part_counter*(CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t));
-
-memcpy
-(
-send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t),
-send_buffer+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+local_this_time_data_offset,
-send_buffer_this_time_data_length-(service_signature_definition_length+send_data_string_length*sizeof(wchar_t))
-);
-
-try
-{
-local_bytes_sent = local_blocking_socket.SendDatagram(send_buffer_this_time,send_buffer_this_time_data_length,local_socket_address,CONST_WAIT_TIME_SEND);
-
-local_data_size_send += local_bytes_sent;
-}
-catch(network::ip_4::CBlockingSocketException_ip_4 *local_blocking_socket_exception)
-{
-const int local_error_message_size = 10000;
-wchar_t local_error_message[local_error_message_size];
-
-const int local_system_error_message_size = local_error_message_size;
-wchar_t local_system_error_message[local_system_error_message_size];
-
-CString local_time_string = CTime::GetCurrentTime().FormatGmt("%d/%m/%y %H:%M:%S GMT");
-
-local_blocking_socket_exception->GetErrorMessage(local_system_error_message,local_system_error_message_size);
-
-wsprintf((wchar_t*)local_error_message, L"Сетевая ошибка -- %s -- %s\r\n", local_system_error_message, local_time_string.GetBuffer());
-
-local_error_number = local_blocking_socket_exception->GetErrorNumber();
-
-local_blocking_socket_exception->Delete();
-
-if(local_error_number!=0)
-{
-//				galaxy::MessageBox(local_error_message,CString(L"Ошибка"));
-}
-break;
-}
-
-if(local_main_dialog->get_command_threads_retranslate_stop())
-{
-break;
-}
-else
-{
-Sleep(10);
-}
-
-}
-
-{
-int local_bytes_sent = 0;
-int local_error_number = 0;
-
-char send_buffer[CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME];
-
-int send_buffer_data_length = service_signature_definition_length;
-
-ZeroMemory(send_buffer,CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME);
-
-memcpy(send_buffer,service_signature,service_signature_definition_length);
-
-CString send_data_string;
-
-int send_data_string_length = 0;
-
-send_data_string = command_retranslate;
-
-send_data_string_length = send_data_string.GetLength();
-
-memcpy(send_buffer+send_buffer_data_length,send_data_string.GetBuffer(),send_data_string_length*sizeof(wchar_t));
-
-send_buffer_data_length += send_data_string_length*sizeof(wchar_t);
-
-
-wchar_t zero_word = L'\0';
-memcpy(send_buffer+send_buffer_data_length,&zero_word,sizeof(wchar_t));
-send_buffer_data_length += sizeof(wchar_t);
-send_data_string_length++;
-
-
-memcpy(send_buffer+send_buffer_data_length,&sequence_number,sizeof(DWORD));
-send_buffer_data_length += sizeof(DWORD);
-send_data_string_length += sizeof(DWORD)/sizeof(wchar_t);
-
-
-
-if(
-command_retranslate!=command_video_end
-&&
-command_retranslate!=command_audio_end
-&&
-command_retranslate!=command_web_camera_video_end
-)
-{
-memcpy(send_buffer+send_buffer_data_length, data_to_retranslate+data_to_retranslate_size-local_last_part_size, local_last_part_size);
-
-send_buffer_data_length += local_last_part_size;
-}
-
-
-
-CString xor_code_string;
-
-if(local_main_dialog->get_command_terminate_application())
-{
-break;
-}
-{
-xor_code_string = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_XOR_CODE_state;
-}
-
-char xor_code = _wtoi(xor_code_string);
-
-encrypt::encrypt_xor(send_buffer+service_signature_definition_length,send_buffer_data_length-service_signature_definition_length,xor_code);
-
-try
-{
-local_bytes_sent = local_blocking_socket.SendDatagram(send_buffer,send_buffer_data_length,local_socket_address,CONST_WAIT_TIME_SEND);
-
-local_data_size_send += local_bytes_sent;
-}
-catch(network::ip_4::CBlockingSocketException_ip_4 *local_blocking_socket_exception)
-{
-const int local_error_message_size = 10000;
-wchar_t local_error_message[local_error_message_size];
-
-const int local_system_error_message_size = local_error_message_size;
-wchar_t local_system_error_message[local_system_error_message_size];
-
-CString local_time_string = CTime::GetCurrentTime().FormatGmt("%d/%m/%y %H:%M:%S GMT");
-
-local_blocking_socket_exception->GetErrorMessage(local_system_error_message,local_system_error_message_size);
-
-wsprintf((wchar_t*)local_error_message, L"Сетевая ошибка -- %s -- %s\r\n", local_system_error_message, local_time_string.GetBuffer());
-
-local_error_number = local_blocking_socket_exception->GetErrorNumber();
-
-local_blocking_socket_exception->Delete();
-
-if(local_error_number!=0)
-{
-//				galaxy::MessageBox(local_error_message,CString(L"Ошибка"));
-}
-}
-}
-
-
-
-local_blocking_socket.Close();
-
-if(local_bytes_sent<=0 && local_error_number==0)
-{
-//			galaxy::MessageBox(CString(L"local_bytes_sent<=0"),CString(L"Ошибка"));
-}
-
-if(local_main_dialog->get_command_threads_retranslate_stop())
-{
-break;
-}
-else
-{
-Sleep(1);
-}
-}
-
-//ULONGLONG local_end_time = GetTickCount64();
-
-//ULONGLONG local_work_time = local_end_time - local_start_time;
-
-//if(local_main_dialog->get_command_threads_retranslate_stop())
-//{
-//	break;
-//}
-//else
-//{
-//	CString local_string_speed;
-
-//	if(local_main_dialog->get_command_terminate_application())
-//	{
-//		break;
-//	}
-//	{
-//		local_string_speed = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_SPEED_state;
-//	}
-//	double local_double_speed = _wtof(local_string_speed);
-//	if(local_data_size_send!=0.0)
-//	{
-//		DWORD time_to_work = 1000;
-//		double local_current_time_in_seconds = double(local_work_time)/1000.0;
-//		double local_current_bits_send = (local_data_size_send*8.0);
-//		double local_current_speed = local_current_bits_send/local_current_time_in_seconds;
-//		double local_current_frame_rate = 1.0/local_current_time_in_seconds;
-//		double local_speed_factor = local_double_speed/local_current_speed;
-//		double local_common_factor = min(local_speed_factor,local_current_frame_rate);
-
-//		time_to_work = DWORD(local_common_factor*local_work_time);
-
-//		DWORD time_to_sleep = 1000 - time_to_work;
-
-//		Sleep(time_to_sleep);
-//	}
-//}
-}
-
-ULONGLONG local_end_time = GetTickCount64();
-
-ULONGLONG local_work_time = local_end_time - local_start_time;
-
-if(local_main_dialog->get_command_threads_retranslate_stop())
-{
-break;
-}
-else
-{
-CString local_string_speed;
-
-if(local_main_dialog->get_command_terminate_application())
-{
-break;
-}
-{
-local_string_speed = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_SPEED_state;
-}
-double local_double_speed = _wtof(local_string_speed);
-if(local_data_size_send!=0.0)
-{
-DWORD time_to_work = 1000;
-double local_current_time_in_seconds = double(local_work_time)/1000.0;
-double local_current_bits_send = (local_data_size_send*8.0);
-double local_current_speed = local_current_bits_send/local_current_time_in_seconds;
-double local_current_frame_rate = 1.0/local_current_time_in_seconds;
-double local_speed_factor = local_double_speed/local_current_speed;
-double local_common_factor = min(local_speed_factor,local_current_frame_rate);
-
-time_to_work = DWORD(local_common_factor*local_work_time);
-
-DWORD time_to_sleep = 1000 - time_to_work;
-
-Sleep(time_to_sleep);
-}
-}
-
-if(local_main_dialog->get_command_threads_retranslate_stop())
-{
-break;
-}
-else
-{
-Sleep(1);
-}
-
-break;	//	Передаём данные один раз
-}
-
-{
-{
-CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
-
-local_lock.Lock();
-
-CWinThread *local_current_thread = AfxGetThread();
-
-for
-(
-std::list<THREADS_INFORMATION>::iterator local_threads_iterator=local_main_dialog->threads_list.begin();
-local_threads_iterator!=local_main_dialog->threads_list.end();
-local_threads_iterator++
-)
-{		
-CWinThread *local_thread = local_threads_iterator->WinThread;
-
-if(local_thread->m_hThread==local_current_thread->m_hThread)
-{
-local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
-break;
-}
-}
-}
-
-delete[] data_to_retranslate;
-delete[] send_buffer;
-delete[] send_buffer_this_time;
-
-delete local_retranslate_thread_parameters_structure;
-return 1;
-}
-}
-
-UINT __cdecl datagram_retranslate_connection_thread_ip_6(LPVOID parameter)
-{
-thread_retranslate_parameters_structure_type *local_retranslate_thread_parameters_structure = (thread_retranslate_parameters_structure_type *)parameter;
-
-if(local_retranslate_thread_parameters_structure==NULL)
-{
-return 0;
-}
-
-DWORD sequence_number = *(DWORD*)(local_retranslate_thread_parameters_structure->parameter_thread_data_to_retranslate);
-CString command_retranslate = local_retranslate_thread_parameters_structure->parameter_data_source;
-BYTE *data_to_retranslate = local_retranslate_thread_parameters_structure->parameter_thread_data_to_retranslate;
-size_t data_to_retranslate_size = local_retranslate_thread_parameters_structure->parameter_thread_data_to_retranslate_size;
-
-if(data_to_retranslate==NULL)
-{
-delete local_retranslate_thread_parameters_structure;
-return 0;
-}
-
-Cstl_network_ip_4_ip_6_udp_engineDialog *local_main_dialog = (local_retranslate_thread_parameters_structure)->parameter_main_dialog;
-
-if(local_main_dialog==NULL)
-{
-delete[] data_to_retranslate;
-delete local_retranslate_thread_parameters_structure;
-return 0;
-}
-
-char *send_buffer = new char[CONST_MESSAGE_LENGTH_IMAGE];
-
-if(send_buffer==NULL)
-{
-{
-CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
-
-local_lock.Lock();
-
-CWinThread *local_current_thread = AfxGetThread();
-
-for
-(
-std::list<THREADS_INFORMATION>::iterator local_threads_iterator=local_main_dialog->threads_list.begin();
-local_threads_iterator!=local_main_dialog->threads_list.end();
-local_threads_iterator++
-)
-{		
-CWinThread *local_thread = local_threads_iterator->WinThread;
-
-if(local_thread->m_hThread==local_current_thread->m_hThread)
-{
-local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
-break;
-}
-}
-}
-
-delete[] data_to_retranslate;
-delete local_retranslate_thread_parameters_structure;
-return 0;
-}
-
-char *send_buffer_this_time = new char[CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME];
-
-if(send_buffer_this_time==NULL)
-{
-{
-CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
-
-local_lock.Lock();
-
-CWinThread *local_current_thread = AfxGetThread();
-
-for
-(
-std::list<THREADS_INFORMATION>::iterator local_threads_iterator=local_main_dialog->threads_list.begin();
-local_threads_iterator!=local_main_dialog->threads_list.end();
-local_threads_iterator++
-)
-{		
-CWinThread *local_thread = local_threads_iterator->WinThread;
-
-if(local_thread->m_hThread==local_current_thread->m_hThread)
-{
-local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
-break;
-}
-}
-}
-
-delete[] data_to_retranslate;
-delete[] send_buffer;
-delete local_retranslate_thread_parameters_structure;
-return 0;
-}
-
-for(;;)
-{
-ULONGLONG local_start_time = GetTickCount64();
-
-if(local_main_dialog->get_command_threads_retranslate_stop())
-{
-break;
-}
-
-CString local_address(localhost_definition);
-
-CStringA local_address_internet_address;
-
-if(local_main_dialog->get_command_terminate_application())
-{
-break;
-}
-
-int peers_to_send_count = 0;
-{
-DWORD dwWaitResult;
-
-dwWaitResult = WaitForSingleObject( 
-local_main_dialog->do_not_terminate_application_event, // event handle
-0);    // zero wait
-
-if(dwWaitResult==WAIT_OBJECT_0)
-{
-// Event object was signaled		
-
-if(local_main_dialog->get_command_terminate_application())
-{
-{
-CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
-
-local_lock.Lock();
-
-CWinThread *local_current_thread = AfxGetThread();
-
-for
-(
-std::list<THREADS_INFORMATION>::iterator local_threads_iterator=local_main_dialog->threads_list.begin();
-local_threads_iterator!=local_main_dialog->threads_list.end();
-local_threads_iterator++
-)
-{		
-CWinThread *local_thread = local_threads_iterator->WinThread;
-
-if(local_thread->m_hThread==local_current_thread->m_hThread)
-{
-local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
-break;
-}
-}
-}
-
-delete[] send_buffer_this_time;
-delete[] data_to_retranslate;
-delete[] send_buffer;
-delete local_retranslate_thread_parameters_structure;
-return 0;
-}
-
-for(
-std::list<GUI_LIST_CONTROL>::iterator current_item_iterator=local_main_dialog->GUI_CONTROLS_STATE_data.IDC_LIST_NODES_state.begin();
-current_item_iterator!=local_main_dialog->GUI_CONTROLS_STATE_data.IDC_LIST_NODES_state.end();
-current_item_iterator++
-)
-{
-if(current_item_iterator->is_checked>0)
-{
-peers_to_send_count++;
-}
-}
-}
-else
-{
-if(local_main_dialog->get_command_terminate_application())
-{
-delete[] send_buffer_this_time;
-delete[] data_to_retranslate;
-delete[] send_buffer;
-delete local_retranslate_thread_parameters_structure;
-return 0;
-}
-}
-
-}
-
-double local_data_size_send = 0.0;
-
-for(int peers_to_send_count_counter=0;peers_to_send_count_counter<peers_to_send_count;peers_to_send_count_counter++)
-{
-//double local_data_size_send = 0.0;
-
-if(local_main_dialog->get_command_terminate_application())
-{
-break;
-}
-
-#ifdef use_istream_DEFINITION
-CImage local_image;
-#endif
-
-CString peer_to_send;
-
-int loop_counter=0;
-for(
-std::list<GUI_LIST_CONTROL>::iterator current_item_iterator=local_main_dialog->GUI_CONTROLS_STATE_data.IDC_LIST_NODES_state.begin();
-current_item_iterator!=local_main_dialog->GUI_CONTROLS_STATE_data.IDC_LIST_NODES_state.end();
-current_item_iterator++
-)
-{
-Sleep(1);
-if(local_main_dialog->get_command_terminate_application())
-{
-break;
-}
-if(current_item_iterator->is_checked>0)
-{
-if(peers_to_send_count_counter==loop_counter)
-{
-peer_to_send = current_item_iterator->label;
-break;
-}
-loop_counter++;
-}
-
-if(local_main_dialog->get_command_terminate_application())
-{
-break;
-}
-}
-
-if(local_main_dialog->get_command_terminate_application())
-{
-break;
-}
-
-local_address = peer_to_send;
-
-
-
-if(network::ip_6::domain_name_to_internet_6_name(local_address,local_address_internet_address)==false)
-{
-const int local_error_message_size = 10000;
-wchar_t local_error_message[local_error_message_size];
-
-const int local_system_error_message_size = local_error_message_size-1000;
-wchar_t local_system_error_message[local_system_error_message_size];
-
-wcscpy_s(local_system_error_message,local_system_error_message_size,L"domain_name_to_internet_6_name завершилась неудачей");
-
-CString local_time_string = CTime::GetCurrentTime().FormatGmt("%d/%m/%y %H:%M:%S GMT");
-
-wsprintf((wchar_t*)local_error_message, L"Сетевая ошибка -- %s -- %s\r\n", local_system_error_message, local_time_string.GetBuffer());
-
-//			galaxy::MessageBox(local_error_message,CString(L"Ошибка"));
-
-//{
-
-//	CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
-
-//	local_lock.Lock();
-
-//	CWinThread *local_current_thread = AfxGetThread();
-
-//	for
-//		(
-//		std::list<THREADS_INFORMATION>::iterator local_threads_iterator=local_main_dialog->threads_list.begin();
-//	local_threads_iterator!=local_main_dialog->threads_list.end();
-//	local_threads_iterator++
-//		)
-//	{		
-//		CWinThread *local_thread = local_threads_iterator->WinThread;
-
-//		if(local_thread->m_hThread==local_current_thread->m_hThread)
-//		{
-//			local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
-//			break;
-//		}
-//	}
-//}
-
-//delete[] data_to_retranslate;
-//delete[] send_buffer;
-//delete[] send_buffer_this_time;
-//delete local_retranslate_thread_parameters_structure;
-
-//return 0;
-continue;
-}
-
-//ULONGLONG local_start_time = GetTickCount64();
-
-
-
-
-
-
-for(UINT local_parameter_port_number=port_number_start_const;local_parameter_port_number<=port_number_end_const;local_parameter_port_number++)
-{
-network::ip_6::CBlockingSocket_ip_6 local_blocking_socket;
-
-if(network::ip_6::domain_name_to_internet_6_name(local_address,local_address_internet_address)==false)
-{
-const int local_error_message_size = 10000;
-wchar_t local_error_message[local_error_message_size];
-
-const int local_system_error_message_size = local_error_message_size-1000;
-wchar_t local_system_error_message[local_system_error_message_size];
-
-wcscpy_s(local_system_error_message,local_system_error_message_size,L"domain_name_to_internet_6_name завершилась неудачей");
-
-CString local_time_string = CTime::GetCurrentTime().FormatGmt("%d/%m/%y %H:%M:%S GMT");
-
-wsprintf((wchar_t*)local_error_message, L"Сетевая ошибка -- %s -- %s\r\n", local_system_error_message, local_time_string.GetBuffer());
-
-//			galaxy::MessageBox(local_error_message,CString(L"Ошибка"));
-
-//{
-
-//	CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
-
-//	local_lock.Lock();
-
-//	CWinThread *local_current_thread = AfxGetThread();
-
-//	for
-//		(
-//		std::list<THREADS_INFORMATION>::iterator local_threads_iterator=local_main_dialog->threads_list.begin();
-//	local_threads_iterator!=local_main_dialog->threads_list.end();
-//	local_threads_iterator++
-//		)
-//	{		
-//		CWinThread *local_thread = local_threads_iterator->WinThread;
-
-//		if(local_thread->m_hThread==local_current_thread->m_hThread)
-//		{
-//			local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
-//			break;
-//		}
-//	}
-//}
-
-//delete[] data_to_retranslate;
-//delete[] send_buffer;
-//delete[] send_buffer_this_time;
-//delete local_retranslate_thread_parameters_structure;
-
-//return 0;
-break;
-}
-
-network::ip_6::CSockAddr_ip_6 local_socket_address(local_address_internet_address,local_parameter_port_number);
-
-try
-{
-local_blocking_socket.Create(SOCK_DGRAM);
-}
-catch(network::ip_6::CBlockingSocketException_ip_6 *local_blocking_socket_exception)
-{
-const int local_error_message_size = 10000;
-wchar_t local_error_message[local_error_message_size];
-
-const int local_system_error_message_size = local_error_message_size-1000;
-wchar_t local_system_error_message[local_system_error_message_size];
-
-CString local_time_string = CTime::GetCurrentTime().FormatGmt("%d/%m/%y %H:%M:%S GMT");
-
-local_blocking_socket_exception->GetErrorMessage(local_system_error_message,local_system_error_message_size);
-
-wsprintf((wchar_t*)local_error_message, L"Сетевая ошибка -- %s -- %s\r\n", local_system_error_message, local_time_string.GetBuffer());
-
-local_blocking_socket_exception->Delete();
-
-//			galaxy::MessageBox(local_error_message,CString(L"Ошибка"));
-
-{
-CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
-
-local_lock.Lock();
-
-CWinThread *local_current_thread = AfxGetThread();
-
-for
-(
-std::list<THREADS_INFORMATION>::iterator local_threads_iterator=local_main_dialog->threads_list.begin();
-local_threads_iterator!=local_main_dialog->threads_list.end();
-local_threads_iterator++
-)
-{		
-CWinThread *local_thread = local_threads_iterator->WinThread;
-
-if(local_thread->m_hThread==local_current_thread->m_hThread)
-{
-local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
-break;
-}
-}
-}
-
-delete[] send_buffer_this_time;
-delete[] data_to_retranslate;
-delete[] send_buffer;
-delete local_retranslate_thread_parameters_structure;
-
-return 0;
-}
-
-int local_bytes_sent = 0;
-int local_error_number = 0;
-
-
-int send_buffer_data_length = service_signature_definition_length;
-
-ZeroMemory(send_buffer,CONST_MESSAGE_LENGTH_IMAGE);
-
-memcpy(send_buffer,service_signature,service_signature_definition_length);
-
-
-
-CString send_data_string = command_retranslate;
-
-int send_data_string_length = send_data_string.GetLength();
-
-memcpy(send_buffer+send_buffer_data_length,send_data_string.GetBuffer(),send_data_string_length*sizeof(wchar_t));
-
-send_buffer_data_length += send_data_string_length*sizeof(wchar_t);
-
-wchar_t zero_word = L'\0';
-memcpy(send_buffer+send_buffer_data_length,&zero_word,sizeof(wchar_t));
-send_buffer_data_length += sizeof(wchar_t);
-send_data_string_length++;
-
-
-memcpy(send_buffer+send_buffer_data_length,&sequence_number,sizeof(DWORD));
-send_buffer_data_length += sizeof(DWORD);
-send_data_string_length += sizeof(DWORD)/sizeof(wchar_t);
-
-
-
-
-
-memcpy(send_buffer+send_buffer_data_length, data_to_retranslate, data_to_retranslate_size);
-send_buffer_data_length += data_to_retranslate_size;
-
-
-
-
-CString xor_code_string;
-
-if(local_main_dialog->get_command_terminate_application())
-{
-break;
-}
-{
-xor_code_string = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_XOR_CODE_state;					
-}
-
-char xor_code = _wtoi(xor_code_string);
-
-encrypt::encrypt_xor(send_buffer+service_signature_definition_length,send_buffer_data_length-service_signature_definition_length,xor_code);
-
-int local_header_length = service_signature_definition_length+send_data_string_length*sizeof(wchar_t);
-
-int local_part_counter = 0;
-int local_parts_count = data_to_retranslate_size/(CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t));
-int local_last_part_size = data_to_retranslate_size % (CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t));
-
-if(local_last_part_size!=0)
-{
-local_parts_count++;
-}
-
-for(;local_part_counter<local_parts_count;local_part_counter++)
-{
-int send_buffer_this_time_data_length = CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME;
-
-if(local_part_counter==local_parts_count-1)
-{
-if(local_last_part_size!=0)
-{
-send_buffer_this_time_data_length = local_last_part_size+service_signature_definition_length+send_data_string_length*sizeof(wchar_t);
-}
-}
-
-ZeroMemory(send_buffer_this_time,CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME);
-
-memcpy(send_buffer_this_time,send_buffer,service_signature_definition_length+send_data_string_length*sizeof(wchar_t));
-
-int local_this_time_data_offset = local_part_counter*(CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME-service_signature_definition_length-send_data_string_length*sizeof(wchar_t));
-
-memcpy
-(
-send_buffer_this_time+service_signature_definition_length+send_data_string_length*sizeof(wchar_t),
-send_buffer+service_signature_definition_length+send_data_string_length*sizeof(wchar_t)+local_this_time_data_offset,
-send_buffer_this_time_data_length-(service_signature_definition_length+send_data_string_length*sizeof(wchar_t))
-);
-
-try
-{
-local_bytes_sent = local_blocking_socket.SendDatagram(send_buffer_this_time,send_buffer_this_time_data_length,local_socket_address,CONST_WAIT_TIME_SEND);
-
-local_data_size_send += local_bytes_sent;
-}
-catch(network::ip_6::CBlockingSocketException_ip_6 *local_blocking_socket_exception)
-{
-const int local_error_message_size = 10000;
-wchar_t local_error_message[local_error_message_size];
-
-const int local_system_error_message_size = local_error_message_size;
-wchar_t local_system_error_message[local_system_error_message_size];
-
-CString local_time_string = CTime::GetCurrentTime().FormatGmt("%d/%m/%y %H:%M:%S GMT");
-
-local_blocking_socket_exception->GetErrorMessage(local_system_error_message,local_system_error_message_size);
-
-wsprintf((wchar_t*)local_error_message, L"Сетевая ошибка -- %s -- %s\r\n", local_system_error_message, local_time_string.GetBuffer());
-
-local_error_number = local_blocking_socket_exception->GetErrorNumber();
-
-local_blocking_socket_exception->Delete();
-
-if(local_error_number!=0)
-{
-//				galaxy::MessageBox(local_error_message,CString(L"Ошибка"));
-}
-break;
-}
-
-if(local_main_dialog->get_command_threads_retranslate_stop())
-{
-break;
-}
-else
-{
-Sleep(10);
-}
-
-}
-
-{
-int local_bytes_sent = 0;
-int local_error_number = 0;
-
-char send_buffer[CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME];
-
-int send_buffer_data_length = service_signature_definition_length;
-
-ZeroMemory(send_buffer,CONST_MESSAGE_LENGTH_IMAGE_EVERY_TIME);
-
-memcpy(send_buffer,service_signature,service_signature_definition_length);
-
-CString send_data_string;
-
-int send_data_string_length = 0;
-
-send_data_string = command_retranslate;
-
-send_data_string_length = send_data_string.GetLength();
-
-memcpy(send_buffer+send_buffer_data_length,send_data_string.GetBuffer(),send_data_string_length*sizeof(wchar_t));
-
-send_buffer_data_length += send_data_string_length*sizeof(wchar_t);
-
-
-wchar_t zero_word = L'\0';
-memcpy(send_buffer+send_buffer_data_length,&zero_word,sizeof(wchar_t));
-send_buffer_data_length += sizeof(wchar_t);
-send_data_string_length++;
-
-
-memcpy(send_buffer+send_buffer_data_length,&sequence_number,sizeof(DWORD));
-send_buffer_data_length += sizeof(DWORD);
-send_data_string_length += sizeof(DWORD)/sizeof(wchar_t);
-
-
-if(
-command_retranslate!=command_video_end
-&&
-command_retranslate!=command_audio_end
-&&
-command_retranslate!=command_web_camera_video_end
-)
-{
-memcpy(send_buffer+send_buffer_data_length, data_to_retranslate + data_to_retranslate_size - local_last_part_size, local_last_part_size);
-
-send_buffer_data_length += local_last_part_size;
-}
-
-
-CString xor_code_string;
-
-if(local_main_dialog->get_command_terminate_application())
-{
-break;
-}
-{
-xor_code_string = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_XOR_CODE_state;						
-}
-
-char xor_code = _wtoi(xor_code_string);
-
-encrypt::encrypt_xor(send_buffer+service_signature_definition_length,send_buffer_data_length-service_signature_definition_length,xor_code);
-
-try
-{
-local_bytes_sent = local_blocking_socket.SendDatagram(send_buffer,send_buffer_data_length,local_socket_address,CONST_WAIT_TIME_SEND);
-
-local_data_size_send += local_bytes_sent;
-}
-catch(network::ip_6::CBlockingSocketException_ip_6 *local_blocking_socket_exception)
-{
-const int local_error_message_size = 10000;
-wchar_t local_error_message[local_error_message_size];
-
-const int local_system_error_message_size = local_error_message_size;
-wchar_t local_system_error_message[local_system_error_message_size];
-
-CString local_time_string = CTime::GetCurrentTime().FormatGmt("%d/%m/%y %H:%M:%S GMT");
-
-local_blocking_socket_exception->GetErrorMessage(local_system_error_message,local_system_error_message_size);
-
-wsprintf((wchar_t*)local_error_message, L"Сетевая ошибка -- %s -- %s\r\n", local_system_error_message, local_time_string.GetBuffer());
-
-local_error_number = local_blocking_socket_exception->GetErrorNumber();
-
-local_blocking_socket_exception->Delete();
-
-if(local_error_number!=0)
-{
-//				galaxy::MessageBox(local_error_message,CString(L"Ошибка"));
-}
-}
-}
-
-
-
-local_blocking_socket.Close();
-
-if(local_bytes_sent<=0 && local_error_number==0)
-{
-//			galaxy::MessageBox(CString(L"local_bytes_sent<=0"),CString(L"Ошибка"));
-}
-
-if(local_main_dialog->get_command_threads_retranslate_stop())
-{
-break;
-}
-else
-{
-Sleep(1);
-}
-}
-
-//ULONGLONG local_end_time = GetTickCount64();
-
-//ULONGLONG local_work_time = local_end_time - local_start_time;
-
-//if(local_main_dialog->get_command_threads_retranslate_stop())
-//{
-//	break;
-//}
-//else
-//{
-//	CString local_string_speed;
-
-//	if(local_main_dialog->get_command_terminate_application())
-//	{
-//		break;
-//	}
-//	{
-//		local_string_speed = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_SPEED_state;					
-//	}
-//	double local_double_speed = _wtof(local_string_speed);
-//	if(local_data_size_send!=0.0)
-//	{
-//		DWORD time_to_work = 1000;
-//		double local_current_time_in_seconds = double(local_work_time)/1000.0;
-//		double local_current_bits_send = (local_data_size_send*8.0);
-//		double local_current_speed = local_current_bits_send/local_current_time_in_seconds;
-//		double local_current_frame_rate = 1.0/local_current_time_in_seconds;
-//		double local_speed_factor = local_double_speed/local_current_speed;
-//		double local_common_factor = min(local_speed_factor,local_current_frame_rate);
-
-//		time_to_work = DWORD(local_common_factor*local_work_time);
-
-//		DWORD time_to_sleep = 1000 - time_to_work;
-
-//		Sleep(time_to_sleep);
-//	}
-//}
-}
-
-ULONGLONG local_end_time = GetTickCount64();
-
-ULONGLONG local_work_time = local_end_time - local_start_time;
-
-if(local_main_dialog->get_command_threads_retranslate_stop())
-{
-break;
-}
-else
-{
-CString local_string_speed;
-
-if(local_main_dialog->get_command_terminate_application())
-{
-break;
-}
-{
-local_string_speed = local_main_dialog->GUI_CONTROLS_STATE_data.IDC_EDIT_SPEED_state;					
-}
-double local_double_speed = _wtof(local_string_speed);
-if(local_data_size_send!=0.0)
-{
-DWORD time_to_work = 1000;
-double local_current_time_in_seconds = double(local_work_time)/1000.0;
-double local_current_bits_send = (local_data_size_send*8.0);
-double local_current_speed = local_current_bits_send/local_current_time_in_seconds;
-double local_current_frame_rate = 1.0/local_current_time_in_seconds;
-double local_speed_factor = local_double_speed/local_current_speed;
-double local_common_factor = min(local_speed_factor,local_current_frame_rate);
-
-time_to_work = DWORD(local_common_factor*local_work_time);
-
-DWORD time_to_sleep = 1000 - time_to_work;
-
-Sleep(time_to_sleep);
-}
-}
-
-if(local_main_dialog->get_command_threads_retranslate_stop())
-{
-break;
-}
-else
-{
-Sleep(1);
-}
-
-break;	//	Передаём данные один раз
-}
-
-{
-{
-CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
-
-local_lock.Lock();
-
-CWinThread *local_current_thread = AfxGetThread();
-
-for
-(
-std::list<THREADS_INFORMATION>::iterator local_threads_iterator=local_main_dialog->threads_list.begin();
-local_threads_iterator!=local_main_dialog->threads_list.end();
-local_threads_iterator++
-)
-{		
-CWinThread *local_thread = local_threads_iterator->WinThread;
-
-if(local_thread->m_hThread==local_current_thread->m_hThread)
-{
-local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
-break;
-}
-}
-}
-
-delete[] data_to_retranslate;
-delete[] send_buffer;
-delete[] send_buffer_this_time;
-
-delete local_retranslate_thread_parameters_structure;
-return 1;
-}
-}
-
-///*/
-
-//	retranslate
-
 UINT __cdecl datagram_retranslate_video_connection_thread(LPVOID parameter)
 {
 	thread_send_video_parameters_structure_type *local_send_video_thread_parameters_structure_source = (thread_send_video_parameters_structure_type *)parameter;
@@ -15314,6 +13908,30 @@ UINT __cdecl datagram_retranslate_video_connection_thread_ip_4(LPVOID parameter)
 			{
 				if(local_main_dialog->get_command_terminate_application())
 				{
+					{
+						CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
+
+						local_lock.Lock();
+
+						CWinThread *local_current_thread = AfxGetThread();
+
+						for
+							(
+							std::list<THREADS_INFORMATION>::iterator local_threads_iterator=local_main_dialog->threads_list.begin();
+						local_threads_iterator!=local_main_dialog->threads_list.end();
+						local_threads_iterator++
+							)
+						{		
+							CWinThread *local_thread = local_threads_iterator->WinThread;
+
+							if(local_thread->m_hThread==local_current_thread->m_hThread)
+							{
+								local_threads_iterator = local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
+								break;
+							}
+						}
+					}
+
 					delete[] send_buffer;
 					delete local_send_video_thread_parameters_structure;
 					return 0;
@@ -16158,6 +14776,30 @@ UINT __cdecl datagram_retranslate_video_connection_thread_ip_6(LPVOID parameter)
 			{
 				if(local_main_dialog->get_command_terminate_application())
 				{
+					{
+						CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
+
+						local_lock.Lock();
+
+						CWinThread *local_current_thread = AfxGetThread();
+
+						for
+							(
+							std::list<THREADS_INFORMATION>::iterator local_threads_iterator=local_main_dialog->threads_list.begin();
+						local_threads_iterator!=local_main_dialog->threads_list.end();
+						local_threads_iterator++
+							)
+						{		
+							CWinThread *local_thread = local_threads_iterator->WinThread;
+
+							if(local_thread->m_hThread==local_current_thread->m_hThread)
+							{
+								local_threads_iterator = local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
+								break;
+							}
+						}
+					}
+
 					delete[] send_buffer;
 					delete local_send_video_thread_parameters_structure;
 					return 0;
@@ -17066,6 +15708,30 @@ UINT __cdecl datagram_retranslate_web_camera_video_connection_thread_ip_4(LPVOID
 			{
 				if(local_main_dialog->get_command_terminate_application())
 				{
+					{
+						CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
+
+						local_lock.Lock();
+
+						CWinThread *local_current_thread = AfxGetThread();
+
+						for
+							(
+							std::list<THREADS_INFORMATION>::iterator local_threads_iterator=local_main_dialog->threads_list.begin();
+						local_threads_iterator!=local_main_dialog->threads_list.end();
+						local_threads_iterator++
+							)
+						{		
+							CWinThread *local_thread = local_threads_iterator->WinThread;
+
+							if(local_thread->m_hThread==local_current_thread->m_hThread)
+							{
+								local_threads_iterator = local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
+								break;
+							}
+						}
+					}
+
 					delete[] send_buffer;
 					delete local_send_web_camera_video_thread_parameters_structure;
 					return 0;
@@ -17948,6 +16614,30 @@ UINT __cdecl datagram_retranslate_web_camera_video_connection_thread_ip_6(LPVOID
 			{
 				if(local_main_dialog->get_command_terminate_application())
 				{
+					{
+						CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
+
+						local_lock.Lock();
+
+						CWinThread *local_current_thread = AfxGetThread();
+
+						for
+							(
+							std::list<THREADS_INFORMATION>::iterator local_threads_iterator=local_main_dialog->threads_list.begin();
+						local_threads_iterator!=local_main_dialog->threads_list.end();
+						local_threads_iterator++
+							)
+						{		
+							CWinThread *local_thread = local_threads_iterator->WinThread;
+
+							if(local_thread->m_hThread==local_current_thread->m_hThread)
+							{
+								local_threads_iterator = local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
+								break;
+							}
+						}
+					}
+
 					delete[] send_buffer;
 					delete local_send_web_camera_video_thread_parameters_structure;
 					return 0;
@@ -18913,6 +17603,30 @@ UINT __cdecl datagram_retranslate_audio_connection_thread_ip_4(LPVOID parameter)
 			{
 				if(local_main_dialog->get_command_terminate_application())
 				{
+					{
+						CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
+
+						local_lock.Lock();
+
+						CWinThread *local_current_thread = AfxGetThread();
+
+						for
+							(
+							std::list<THREADS_INFORMATION>::iterator local_threads_iterator=local_main_dialog->threads_list.begin();
+						local_threads_iterator!=local_main_dialog->threads_list.end();
+						local_threads_iterator++
+							)
+						{		
+							CWinThread *local_thread = local_threads_iterator->WinThread;
+
+							if(local_thread->m_hThread==local_current_thread->m_hThread)
+							{
+								local_threads_iterator = local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
+								break;
+							}
+						}
+					}
+
 					delete[] send_buffer;
 					delete local_send_audio_thread_parameters_structure;
 					return 0;
@@ -19861,6 +18575,30 @@ UINT __cdecl datagram_retranslate_audio_connection_thread_ip_6(LPVOID parameter)
 			{
 				if(local_main_dialog->get_command_terminate_application())
 				{
+					{
+						CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
+
+						local_lock.Lock();
+
+						CWinThread *local_current_thread = AfxGetThread();
+
+						for
+							(
+							std::list<THREADS_INFORMATION>::iterator local_threads_iterator=local_main_dialog->threads_list.begin();
+						local_threads_iterator!=local_main_dialog->threads_list.end();
+						local_threads_iterator++
+							)
+						{		
+							CWinThread *local_thread = local_threads_iterator->WinThread;
+
+							if(local_thread->m_hThread==local_current_thread->m_hThread)
+							{
+								local_threads_iterator = local_threads_iterator = local_main_dialog->threads_list.erase(local_threads_iterator);
+								break;
+							}
+						}
+					}
+
 					delete[] send_buffer;
 					delete local_send_audio_thread_parameters_structure;
 					return 0;
@@ -20614,3 +19352,12 @@ UINT __cdecl datagram_retranslate_audio_connection_thread_ip_6(LPVOID parameter)
 	}
 }
 
+
+
+void Cstl_network_ip_4_ip_6_udp_engineDialog::OnBnClickedCheckEnableChatServiceInformation()
+{
+	CSingleLock lock(&GUI_update_critical_section);
+	lock.Lock();
+
+	GUI_CONTROLS_STATE_data.IDC_CHECK_ENABLE_CHAT_SERVICE_INFORMATION_state = button_enable_showing_service_information_in_chat.GetCheck();
+}

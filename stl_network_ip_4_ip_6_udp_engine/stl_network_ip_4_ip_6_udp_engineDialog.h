@@ -69,6 +69,7 @@ struct GUI_CONTROLS_STATE
 	int IDC_CHECK_RETRANSLATE_VIDEO_state;						//DDX_Control(pDX, IDC_CHECK_RETRANSLATE_VIDEO, button_retranslate_video);
 	int IDC_CHECK_RETRANSLATE_WEB_CAMERA_state;					//DDX_Control(pDX, IDC_CHECK_RETRANSLATE_WEB_CAMERA, button_retranslate_web_camera);
 	int IDC_CHECK_RETRANSLATE_MICROPHONE_state;					//DDX_Control(pDX, IDC_CHECK_RETRANSLATE_MICROPHONE, button_retranslate_microphone);
+	int IDC_CHECK_ENABLE_CHAT_SERVICE_INFORMATION_state;		//DDX_Control(pDX, IDC_CHECK_ENABLE_CHAT_SERVICE_INFORMATION, button_enable_showing_service_information_in_chat);
 };
 
 // диалоговое окно Cstl_network_ip_4_ip_6_udp_engineDialog
@@ -379,5 +380,7 @@ public:
 	{
 		return m_hIcon;
 	}
+	CButton button_enable_showing_service_information_in_chat;
+	afx_msg void OnBnClickedCheckEnableChatServiceInformation();
 };
 

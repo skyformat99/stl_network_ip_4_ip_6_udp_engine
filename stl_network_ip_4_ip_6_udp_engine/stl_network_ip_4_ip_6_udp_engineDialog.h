@@ -10,7 +10,8 @@
 
 struct THREADS_INFORMATION
 {
-	CWinThread *WinThread;
+//	CWinThread *WinThread;
+	HANDLE WinThread;
 	CString thread_name;
 };
 

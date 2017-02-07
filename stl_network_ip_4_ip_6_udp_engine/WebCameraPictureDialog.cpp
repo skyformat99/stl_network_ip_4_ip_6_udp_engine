@@ -266,7 +266,7 @@ void CWebCameraPictureDialog::init_capture(HWND parameter_hwnd)
 													AM_MEDIA_TYPE mt;
 													ZeroMemory(&mt, sizeof(mt));
 													mt.majortype = MEDIATYPE_Video;
-													mt.subtype = MEDIASUBTYPE_RGB24;
+													mt.subtype = MEDIASUBTYPE_RGB32;
 
 													hr = pVideoGrabber->SetMediaType(&mt);
 

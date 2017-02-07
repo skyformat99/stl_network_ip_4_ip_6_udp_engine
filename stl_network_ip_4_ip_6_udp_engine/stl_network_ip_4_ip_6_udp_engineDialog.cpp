@@ -2591,7 +2591,7 @@ UINT __cdecl stop_waiting_thread(LPVOID parameter)
 
 			std::list<THREADS_INFORMATION>::iterator local_threads_iterator = local_main_dialog->threads_list.begin();
 
-			if(local_threads_iterator!=local_main_dialog->threads_list.end())
+			for(;local_threads_iterator!=local_main_dialog->threads_list.end();local_threads_iterator++)
 			{
 				local_threads += local_threads_iterator->thread_name;
 				local_threads += CString(L"\r\n");
@@ -8492,13 +8492,6 @@ void Cstl_network_ip_4_ip_6_udp_engineDialog::DrawWebCameraVideo(CString paramet
 		return;
 	}
 
-	DWORD dwWaitResult;
-
-	dwWaitResult = WaitForSingleObject( 
-		do_not_terminate_application_event, // event handle
-		0);    // zero wait
-
-	if(dwWaitResult==WAIT_OBJECT_0)
 	{
 		// Event object was signaled		
 
@@ -8536,19 +8529,6 @@ void Cstl_network_ip_4_ip_6_udp_engineDialog::DrawWebCameraVideo(CString paramet
 			HRESULT local_stat_result = current_received_web_camera_stream->stream->Stat(&local_istream_statstg,STATFLAG::STATFLAG_DEFAULT);
 
 			HRESULT local_load_result = received_web_camera_image.Load(current_received_web_camera_stream->stream);
-
-			//if(FAILED(local_load_result))
-			//{
-			//	CComPtr<IStream> stream_bmp;
-
-			//	convert_yuy2_stream_to_bmp_stream(current_received_web_camera_stream->stream,&stream_bmp);
-
-			//	stream_bmp->Seek(liBeggining, STREAM_SEEK_SET, NULL);
-
-			//	HRESULT local_stat_result = stream_bmp->Stat(&local_istream_statstg,STATFLAG::STATFLAG_DEFAULT);
-
-			//	HRESULT local_load_result = received_web_camera_image.Load(stream_bmp);
-			//}
 
 			CRect local_window_rectangle;
 
@@ -8712,18 +8692,6 @@ void Cstl_network_ip_4_ip_6_udp_engineDialog::DrawWebCameraVideo(CString paramet
 
 				current_received_web_camera_stream->stream->Seek(liBeggining, STREAM_SEEK_SET, NULL);
 			}
-		}
-	}
-	else
-	{
-		if(get_command_terminate_application())
-		{
-			if(parameter_data!=NULL)
-			{
-				delete []parameter_data;
-			}
-
-			return;
 		}
 	}
 

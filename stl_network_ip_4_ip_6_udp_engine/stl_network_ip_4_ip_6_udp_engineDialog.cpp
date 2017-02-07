@@ -2571,11 +2571,33 @@ UINT __cdecl stop_waiting_thread(LPVOID parameter)
 		}
 	}
 
+	CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
+
+	local_lock.Lock();
+
 	INT local_threads_number_are_running = local_main_dialog->threads_list.size();
+
+	local_lock.Unlock();
+
 	if(local_threads_number_are_running!=0)
 	{
+		CString local_threads;
+		{
+			CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
+
+			local_lock.Lock();
+
+			std::list<THREADS_INFORMATION>::iterator local_threads_iterator = local_main_dialog->threads_list.begin();
+
+			if(local_threads_iterator!=local_main_dialog->threads_list.end())
+			{
+				local_threads += local_threads_iterator->thread_name;
+				local_threads += CString(L"\r\n");
+			}
+		}
+
 		CString local_error_message;
-		local_error_message.Format(L"%d рабочих потоков не завершено корректно!",local_threads_number_are_running);
+		local_error_message.Format(L"%d рабочих потоков не завершено корректно!\r\nСписок имён незавершившихся вовремя потоков:\r\n%s",local_threads_number_are_running,local_threads.GetBuffer(local_threads.GetLength()));
 		::MessageBoxW(NULL, local_error_message, L"Ошибка", MB_ICONSTOP);
 	}
 

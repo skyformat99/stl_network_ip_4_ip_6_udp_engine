@@ -52,7 +52,7 @@ const CString command_web_camera_video_end(L"/web_camera_video_end");
 
 #define use_istream_DEFINITION
 
-const LONGLONG CONST_TERMINATION_WAIT_SECONDS = 10;
+const LONGLONG CONST_TERMINATION_WAIT_SECONDS = 20;
 
 const LONGLONG CONST_EXPIRATION_DATA_LIMIT_SECONDS = CONST_TERMINATION_WAIT_SECONDS/2;
 
@@ -98,8 +98,8 @@ UINT __cdecl stop_waiting_thread(LPVOID parameter);
 UINT __cdecl datagram_listen_connection_thread_ip_4(LPVOID parameter);
 UINT __cdecl datagram_listen_connection_thread_ip_6(LPVOID parameter);
 
-UINT __cdecl datagram_listen_answer_connection_thread_ip_4(LPVOID parameter);
-UINT __cdecl datagram_listen_answer_connection_thread_ip_6(LPVOID parameter);
+UINT __cdecl datagram_act_on_request_connection_thread_ip_4(LPVOID parameter);
+UINT __cdecl datagram_act_on_request_connection_thread_ip_6(LPVOID parameter);
 
 
 UINT __cdecl datagram_connect_connection_thread_ip_4(LPVOID parameter);
@@ -180,7 +180,7 @@ struct thread_upnp_external_ipv4_detection_thread_parameters_structure_type
 	Cstl_network_ip_4_ip_6_udp_engineDialog *parameter_main_dialog;
 };
 
-struct thread_listen_answer_parameters_structure_type
+struct thread_act_on_request_parameters_structure_type
 {
 	Cstl_network_ip_4_ip_6_udp_engineDialog *parameter_main_dialog;
 	char *parameter_buffer;
@@ -1280,23 +1280,23 @@ looking_udp_port:
 				{
 					local_receive_counter++;
 
-					void *local_listen_answer_thread_parameters_structure = new thread_listen_answer_parameters_structure_type;
+					void *local_act_on_request_thread_parameters_structure = new thread_act_on_request_parameters_structure_type;
 
-					((thread_listen_answer_parameters_structure_type*)local_listen_answer_thread_parameters_structure)->parameter_main_dialog = ((thread_listen_parameters_structure_type*)local_listen_thread_parameters_structure)->parameter_main_dialog;
-					((thread_listen_answer_parameters_structure_type*)local_listen_answer_thread_parameters_structure)->parameter_buffer = new char[local_bytes_received+sizeof(wchar_t)];
-					((thread_listen_answer_parameters_structure_type*)local_listen_answer_thread_parameters_structure)->parameter_buffer_size = local_bytes_received;
+					((thread_act_on_request_parameters_structure_type*)local_act_on_request_thread_parameters_structure)->parameter_main_dialog = ((thread_listen_parameters_structure_type*)local_listen_thread_parameters_structure)->parameter_main_dialog;
+					((thread_act_on_request_parameters_structure_type*)local_act_on_request_thread_parameters_structure)->parameter_buffer = new char[local_bytes_received+sizeof(wchar_t)];
+					((thread_act_on_request_parameters_structure_type*)local_act_on_request_thread_parameters_structure)->parameter_buffer_size = local_bytes_received;
 
-					memcpy(((thread_listen_answer_parameters_structure_type*)local_listen_answer_thread_parameters_structure)->parameter_buffer,local_message_to_receive,local_bytes_received);
+					memcpy(((thread_act_on_request_parameters_structure_type*)local_act_on_request_thread_parameters_structure)->parameter_buffer,local_message_to_receive,local_bytes_received);
 					wchar_t zero_word = L'\0';
-					memcpy(((thread_listen_answer_parameters_structure_type*)local_listen_answer_thread_parameters_structure)->parameter_buffer+local_bytes_received,&zero_word,sizeof(wchar_t));
+					memcpy(((thread_act_on_request_parameters_structure_type*)local_act_on_request_thread_parameters_structure)->parameter_buffer+local_bytes_received,&zero_word,sizeof(wchar_t));
 
-					((thread_listen_answer_parameters_structure_type*)local_listen_answer_thread_parameters_structure)->parameter_socket_address_peer_ip_4 = new network::ip_4::CSockAddr_ip_4(local_socket_address_peer);
-					((thread_listen_answer_parameters_structure_type*)local_listen_answer_thread_parameters_structure)->parameter_socket_address_peer_ip_6 = NULL;
+					((thread_act_on_request_parameters_structure_type*)local_act_on_request_thread_parameters_structure)->parameter_socket_address_peer_ip_4 = new network::ip_4::CSockAddr_ip_4(local_socket_address_peer);
+					((thread_act_on_request_parameters_structure_type*)local_act_on_request_thread_parameters_structure)->parameter_socket_address_peer_ip_6 = NULL;
 
-					CWinThread *local_thread = AfxBeginThread(datagram_listen_answer_connection_thread_ip_4,local_listen_answer_thread_parameters_structure);
+					CWinThread *local_thread = AfxBeginThread(datagram_act_on_request_connection_thread_ip_4,local_act_on_request_thread_parameters_structure);
 
 					THREADS_INFORMATION local_thread_information;
-					local_thread_information.thread_name = CString(L"datagram_listen_answer_connection_thread_ip_4");
+					local_thread_information.thread_name = CString(L"datagram_act_on_request_connection_thread_ip_4");
 					local_thread_information.WinThread = local_thread->m_hThread;
 
 					CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
@@ -1304,7 +1304,7 @@ looking_udp_port:
 
 					local_main_dialog->threads_list.push_back(local_thread_information);
 
-					//datagram_listen_answer_connection_thread_ip_4(local_listen_answer_thread_parameters_structure);
+					//datagram_act_on_request_connection_thread_ip_4(local_act_on_request_thread_parameters_structure);
 				}
 			}
 		}
@@ -1508,23 +1508,23 @@ UINT __cdecl datagram_listen_connection_thread_ip_6(LPVOID parameter)
 				{
 					local_receive_counter++;
 
-					void *local_listen_answer_thread_parameters_structure = new thread_listen_answer_parameters_structure_type;
+					void *local_act_on_request_thread_parameters_structure = new thread_act_on_request_parameters_structure_type;
 
-					((thread_listen_answer_parameters_structure_type*)local_listen_answer_thread_parameters_structure)->parameter_main_dialog = ((thread_listen_parameters_structure_type*)local_listen_thread_parameters_structure)->parameter_main_dialog;
-					((thread_listen_answer_parameters_structure_type*)local_listen_answer_thread_parameters_structure)->parameter_buffer = new char[local_bytes_received+sizeof(wchar_t)];
-					((thread_listen_answer_parameters_structure_type*)local_listen_answer_thread_parameters_structure)->parameter_buffer_size = local_bytes_received;
+					((thread_act_on_request_parameters_structure_type*)local_act_on_request_thread_parameters_structure)->parameter_main_dialog = ((thread_listen_parameters_structure_type*)local_listen_thread_parameters_structure)->parameter_main_dialog;
+					((thread_act_on_request_parameters_structure_type*)local_act_on_request_thread_parameters_structure)->parameter_buffer = new char[local_bytes_received+sizeof(wchar_t)];
+					((thread_act_on_request_parameters_structure_type*)local_act_on_request_thread_parameters_structure)->parameter_buffer_size = local_bytes_received;
 
-					memcpy(((thread_listen_answer_parameters_structure_type*)local_listen_answer_thread_parameters_structure)->parameter_buffer,local_message_to_receive,local_bytes_received);
+					memcpy(((thread_act_on_request_parameters_structure_type*)local_act_on_request_thread_parameters_structure)->parameter_buffer,local_message_to_receive,local_bytes_received);
 					wchar_t zero_word = L'\0';
-					memcpy(((thread_listen_answer_parameters_structure_type*)local_listen_answer_thread_parameters_structure)->parameter_buffer+local_bytes_received,&zero_word,sizeof(wchar_t));
+					memcpy(((thread_act_on_request_parameters_structure_type*)local_act_on_request_thread_parameters_structure)->parameter_buffer+local_bytes_received,&zero_word,sizeof(wchar_t));
 
-					((thread_listen_answer_parameters_structure_type*)local_listen_answer_thread_parameters_structure)->parameter_socket_address_peer_ip_4 = NULL;
-					((thread_listen_answer_parameters_structure_type*)local_listen_answer_thread_parameters_structure)->parameter_socket_address_peer_ip_6 = new network::ip_6::CSockAddr_ip_6(local_socket_address_peer);;
+					((thread_act_on_request_parameters_structure_type*)local_act_on_request_thread_parameters_structure)->parameter_socket_address_peer_ip_4 = NULL;
+					((thread_act_on_request_parameters_structure_type*)local_act_on_request_thread_parameters_structure)->parameter_socket_address_peer_ip_6 = new network::ip_6::CSockAddr_ip_6(local_socket_address_peer);;
 
-					CWinThread *local_thread = AfxBeginThread(datagram_listen_answer_connection_thread_ip_6,local_listen_answer_thread_parameters_structure);
+					CWinThread *local_thread = AfxBeginThread(datagram_act_on_request_connection_thread_ip_6,local_act_on_request_thread_parameters_structure);
 
 					THREADS_INFORMATION local_thread_information;
-					local_thread_information.thread_name = CString(L"datagram_listen_answer_connection_thread_ip_6");
+					local_thread_information.thread_name = CString(L"datagram_act_on_request_connection_thread_ip_6");
 					local_thread_information.WinThread = local_thread->m_hThread;
 
 					CSingleLock local_lock(&local_main_dialog->threads_list_critical_section);
@@ -1532,7 +1532,7 @@ UINT __cdecl datagram_listen_connection_thread_ip_6(LPVOID parameter)
 
 					local_main_dialog->threads_list.push_back(local_thread_information);
 
-					//datagram_listen_answer_connection_thread_ip_6(local_listen_answer_thread_parameters_structure);
+					//datagram_act_on_request_connection_thread_ip_6(local_act_on_request_thread_parameters_structure);
 				}
 			}
 		}
@@ -2421,6 +2421,7 @@ UINT __cdecl stop_waiting_thread(LPVOID parameter)
 
 	if(local_stop_thread_parameters_structure==NULL)
 	{
+		ExitProcess(0);
 		return 0;
 	}
 
@@ -2429,6 +2430,7 @@ UINT __cdecl stop_waiting_thread(LPVOID parameter)
 	if(local_main_dialog==NULL)
 	{
 		delete local_stop_thread_parameters_structure;
+		ExitProcess(0);
 		return 0;
 	}
 
@@ -2600,12 +2602,31 @@ UINT __cdecl stop_waiting_thread(LPVOID parameter)
 		local_error_message.Format(L"%d рабочих потоков не завершено корректно!\r\nСписок имён незавершившихся вовремя потоков:\r\n%s",local_threads_number_are_running,local_threads.GetBuffer(local_threads.GetLength()));
 		::MessageBoxW(NULL, local_error_message, L"Ошибка", MB_ICONSTOP);
 	}
-
-
+	
 	{
 		delete local_stop_thread_parameters_structure;
 
 		WSACleanup();
+	}
+
+	if(local_main_dialog!=NULL)
+	{
+		{
+			if(local_main_dialog->received_video_dialog!=NULL)
+			{
+				local_main_dialog->received_video_dialog->PostMessage(WM_CLOSE);
+			}
+
+			if(local_main_dialog->web_camera_dialog!=NULL)
+			{
+				local_main_dialog->web_camera_dialog->StopMedia();
+				local_main_dialog->web_camera_dialog->PostMessage(WM_CLOSE);
+			}
+		}
+
+		CloseHandle(local_main_dialog->do_not_terminate_application_event);
+
+		local_main_dialog->EndDialog(IDOK);
 	}
 
 	return 1;
@@ -2803,30 +2824,30 @@ UINT __cdecl datagram_send_connection_thread(LPVOID parameter)
 	return 1;
 }
 
-UINT __cdecl datagram_listen_answer_connection_thread_ip_4(LPVOID parameter)
+UINT __cdecl datagram_act_on_request_connection_thread_ip_4(LPVOID parameter)
 {
-	thread_listen_answer_parameters_structure_type *local_listen_answer_thread_parameters_structure = (thread_listen_answer_parameters_structure_type *)parameter;
+	thread_act_on_request_parameters_structure_type *local_act_on_request_thread_parameters_structure = (thread_act_on_request_parameters_structure_type *)parameter;
 
-	if(local_listen_answer_thread_parameters_structure==NULL)
+	if(local_act_on_request_thread_parameters_structure==NULL)
 	{
 		return 0;
 	}
 
-	char *parameter_buffer = ((thread_listen_answer_parameters_structure_type*)local_listen_answer_thread_parameters_structure)->parameter_buffer;
-	int parameter_buffer_size = ((thread_listen_answer_parameters_structure_type*)local_listen_answer_thread_parameters_structure)->parameter_buffer_size;
+	char *parameter_buffer = ((thread_act_on_request_parameters_structure_type*)local_act_on_request_thread_parameters_structure)->parameter_buffer;
+	int parameter_buffer_size = ((thread_act_on_request_parameters_structure_type*)local_act_on_request_thread_parameters_structure)->parameter_buffer_size;
 
 	if(parameter_buffer==NULL || parameter_buffer_size<=0)
 	{
-		delete local_listen_answer_thread_parameters_structure;
+		delete local_act_on_request_thread_parameters_structure;
 		return 0;
 	}
 
-	Cstl_network_ip_4_ip_6_udp_engineDialog *local_main_dialog = (local_listen_answer_thread_parameters_structure)->parameter_main_dialog;
+	Cstl_network_ip_4_ip_6_udp_engineDialog *local_main_dialog = (local_act_on_request_thread_parameters_structure)->parameter_main_dialog;
 
 	if(local_main_dialog==NULL)
 	{
 		delete[] parameter_buffer;
-		delete local_listen_answer_thread_parameters_structure;
+		delete local_act_on_request_thread_parameters_structure;
 		return 0;
 	}
 
@@ -2838,12 +2859,12 @@ UINT __cdecl datagram_listen_answer_connection_thread_ip_4(LPVOID parameter)
 		{
 			//galaxy::MessageBox(NULL,L"Data from client received",L"Incomming connection");
 
-			if(((thread_listen_answer_parameters_structure_type*)local_listen_answer_thread_parameters_structure)->parameter_socket_address_peer_ip_4==NULL)
+			if(((thread_act_on_request_parameters_structure_type*)local_act_on_request_thread_parameters_structure)->parameter_socket_address_peer_ip_4==NULL)
 			{
 				break;
 			}
 
-			network::ip_4::CSockAddr_ip_4 parameter_socket_address_peer_ip_4(*((thread_listen_answer_parameters_structure_type*)local_listen_answer_thread_parameters_structure)->parameter_socket_address_peer_ip_4);
+			network::ip_4::CSockAddr_ip_4 parameter_socket_address_peer_ip_4(*((thread_act_on_request_parameters_structure_type*)local_act_on_request_thread_parameters_structure)->parameter_socket_address_peer_ip_4);
 
 			CString local_port_string;
 
@@ -3245,17 +3266,17 @@ UINT __cdecl datagram_listen_answer_connection_thread_ip_4(LPVOID parameter)
 				}
 			}
 
-			delete ((thread_listen_answer_parameters_structure_type*)local_listen_answer_thread_parameters_structure)->parameter_socket_address_peer_ip_4;
-			((thread_listen_answer_parameters_structure_type*)local_listen_answer_thread_parameters_structure)->parameter_socket_address_peer_ip_4 = NULL;
+			delete ((thread_act_on_request_parameters_structure_type*)local_act_on_request_thread_parameters_structure)->parameter_socket_address_peer_ip_4;
+			((thread_act_on_request_parameters_structure_type*)local_act_on_request_thread_parameters_structure)->parameter_socket_address_peer_ip_4 = NULL;
 		}
 		break;
 	}
 
 	{
-		if(((thread_listen_answer_parameters_structure_type*)local_listen_answer_thread_parameters_structure)->parameter_socket_address_peer_ip_4!=NULL)
+		if(((thread_act_on_request_parameters_structure_type*)local_act_on_request_thread_parameters_structure)->parameter_socket_address_peer_ip_4!=NULL)
 		{
-			delete ((thread_listen_answer_parameters_structure_type*)local_listen_answer_thread_parameters_structure)->parameter_socket_address_peer_ip_4;
-			((thread_listen_answer_parameters_structure_type*)local_listen_answer_thread_parameters_structure)->parameter_socket_address_peer_ip_4 = NULL;
+			delete ((thread_act_on_request_parameters_structure_type*)local_act_on_request_thread_parameters_structure)->parameter_socket_address_peer_ip_4;
+			((thread_act_on_request_parameters_structure_type*)local_act_on_request_thread_parameters_structure)->parameter_socket_address_peer_ip_4 = NULL;
 		}
 
 		{
@@ -3263,35 +3284,35 @@ UINT __cdecl datagram_listen_answer_connection_thread_ip_4(LPVOID parameter)
 		}
 
 		delete []parameter_buffer;
-		delete local_listen_answer_thread_parameters_structure;
+		delete local_act_on_request_thread_parameters_structure;
 		return 1;
 	}
 }
 
-UINT __cdecl datagram_listen_answer_connection_thread_ip_6(LPVOID parameter)
+UINT __cdecl datagram_act_on_request_connection_thread_ip_6(LPVOID parameter)
 {
-	thread_listen_answer_parameters_structure_type *local_listen_answer_thread_parameters_structure = (thread_listen_answer_parameters_structure_type *)parameter;
+	thread_act_on_request_parameters_structure_type *local_act_on_request_thread_parameters_structure = (thread_act_on_request_parameters_structure_type *)parameter;
 
-	if(local_listen_answer_thread_parameters_structure==NULL)
+	if(local_act_on_request_thread_parameters_structure==NULL)
 	{
 		return 0;
 	}
 
-	char *parameter_buffer = ((thread_listen_answer_parameters_structure_type*)local_listen_answer_thread_parameters_structure)->parameter_buffer;
-	int parameter_buffer_size = ((thread_listen_answer_parameters_structure_type*)local_listen_answer_thread_parameters_structure)->parameter_buffer_size;
+	char *parameter_buffer = ((thread_act_on_request_parameters_structure_type*)local_act_on_request_thread_parameters_structure)->parameter_buffer;
+	int parameter_buffer_size = ((thread_act_on_request_parameters_structure_type*)local_act_on_request_thread_parameters_structure)->parameter_buffer_size;
 
 	if(parameter_buffer==NULL || parameter_buffer_size<=0)
 	{
-		delete local_listen_answer_thread_parameters_structure;
+		delete local_act_on_request_thread_parameters_structure;
 		return 0;
 	}
 
-	Cstl_network_ip_4_ip_6_udp_engineDialog *local_main_dialog = (local_listen_answer_thread_parameters_structure)->parameter_main_dialog;
+	Cstl_network_ip_4_ip_6_udp_engineDialog *local_main_dialog = (local_act_on_request_thread_parameters_structure)->parameter_main_dialog;
 
 	if(local_main_dialog==NULL)
 	{
 		delete[] parameter_buffer;
-		delete local_listen_answer_thread_parameters_structure;
+		delete local_act_on_request_thread_parameters_structure;
 		return 0;
 	}
 
@@ -3303,12 +3324,12 @@ UINT __cdecl datagram_listen_answer_connection_thread_ip_6(LPVOID parameter)
 		{
 			//galaxy::MessageBox(NULL,L"Data from client received",L"Incomming connection");
 
-			if(((thread_listen_answer_parameters_structure_type*)local_listen_answer_thread_parameters_structure)->parameter_socket_address_peer_ip_6==NULL)
+			if(((thread_act_on_request_parameters_structure_type*)local_act_on_request_thread_parameters_structure)->parameter_socket_address_peer_ip_6==NULL)
 			{
 				break;
 			}
 
-			network::ip_6::CSockAddr_ip_6 parameter_socket_address_peer_ip_6(*((thread_listen_answer_parameters_structure_type*)local_listen_answer_thread_parameters_structure)->parameter_socket_address_peer_ip_6);
+			network::ip_6::CSockAddr_ip_6 parameter_socket_address_peer_ip_6(*((thread_act_on_request_parameters_structure_type*)local_act_on_request_thread_parameters_structure)->parameter_socket_address_peer_ip_6);
 
 			CString local_port_string;
 
@@ -3709,18 +3730,18 @@ UINT __cdecl datagram_listen_answer_connection_thread_ip_6(LPVOID parameter)
 				}
 			}
 
-			delete ((thread_listen_answer_parameters_structure_type*)local_listen_answer_thread_parameters_structure)->parameter_socket_address_peer_ip_6;
-			((thread_listen_answer_parameters_structure_type*)local_listen_answer_thread_parameters_structure)->parameter_socket_address_peer_ip_6 = NULL;
+			delete ((thread_act_on_request_parameters_structure_type*)local_act_on_request_thread_parameters_structure)->parameter_socket_address_peer_ip_6;
+			((thread_act_on_request_parameters_structure_type*)local_act_on_request_thread_parameters_structure)->parameter_socket_address_peer_ip_6 = NULL;
 		}
 
 		break;
 	}
 
 	{
-		if(((thread_listen_answer_parameters_structure_type*)local_listen_answer_thread_parameters_structure)->parameter_socket_address_peer_ip_6!=NULL)
+		if(((thread_act_on_request_parameters_structure_type*)local_act_on_request_thread_parameters_structure)->parameter_socket_address_peer_ip_6!=NULL)
 		{
-			delete ((thread_listen_answer_parameters_structure_type*)local_listen_answer_thread_parameters_structure)->parameter_socket_address_peer_ip_6;
-			((thread_listen_answer_parameters_structure_type*)local_listen_answer_thread_parameters_structure)->parameter_socket_address_peer_ip_6 = NULL;
+			delete ((thread_act_on_request_parameters_structure_type*)local_act_on_request_thread_parameters_structure)->parameter_socket_address_peer_ip_6;
+			((thread_act_on_request_parameters_structure_type*)local_act_on_request_thread_parameters_structure)->parameter_socket_address_peer_ip_6 = NULL;
 		}
 
 		{
@@ -3728,7 +3749,7 @@ UINT __cdecl datagram_listen_answer_connection_thread_ip_6(LPVOID parameter)
 		}
 
 		delete []parameter_buffer;
-		delete local_listen_answer_thread_parameters_structure;
+		delete local_act_on_request_thread_parameters_structure;
 		return 1;
 	}
 }
@@ -4053,28 +4074,28 @@ void Cstl_network_ip_4_ip_6_udp_engineDialog::OnClose()
 
 		CWinThread *local_thread = AfxBeginThread(stop_waiting_thread,local_stop_thread_parameters_structure);
 
-		{
-			DWORD local_result = WaitForSingleObject(local_thread->m_hThread,INFINITE);
-		}
+		//{
+		//	DWORD local_result = WaitForSingleObject(local_thread->m_hThread,INFINITE);
+		//}
 	}
 
 
-	{
-		if(received_video_dialog!=NULL)
-		{
-			received_video_dialog->PostMessage(WM_CLOSE);
-		}
+	//{
+	//	if(received_video_dialog!=NULL)
+	//	{
+	//		received_video_dialog->PostMessage(WM_CLOSE);
+	//	}
 
-		if(web_camera_dialog!=NULL)
-		{
-			web_camera_dialog->StopMedia();
-			web_camera_dialog->PostMessage(WM_CLOSE);
-		}
-	}
+	//	if(web_camera_dialog!=NULL)
+	//	{
+	//		web_camera_dialog->StopMedia();
+	//		web_camera_dialog->PostMessage(WM_CLOSE);
+	//	}
+	//}
 
-	CloseHandle(do_not_terminate_application_event);
+	//CloseHandle(do_not_terminate_application_event);
 
-	EndDialog(IDOK);
+	//EndDialog(IDOK);
 }
 
 //	register

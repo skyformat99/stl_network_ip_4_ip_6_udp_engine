@@ -2609,6 +2609,49 @@ UINT __cdecl stop_waiting_thread(LPVOID parameter)
 		WSACleanup();
 	}
 
+	/*//*/
+	{
+//	Очистка памяти: удаление данных за последние CONST_EXPIRATION_DATA_LIMIT_SECONDS секунд при завершении программы
+		std::list<STREAM_FRAME_INFORMATION>::iterator current_video_frame_stream = local_main_dialog->received_video_frame_stream.begin();
+
+		for(;current_video_frame_stream!=local_main_dialog->received_video_frame_stream.end();current_video_frame_stream++)
+		{
+			if(local_main_dialog->received_video_frame_stream.size()!=0)
+			{
+				if(current_video_frame_stream->frames.size()!=0)
+				{
+					for
+						(
+						std::list<FRAME>::iterator current_video_frame = current_video_frame_stream->frames.begin()
+						;
+					current_video_frame!=current_video_frame_stream->frames.end()
+						;
+					)
+					{
+						for(
+							std::list<FRAME_PART>::iterator local_frame_parts_iterator = current_video_frame->frame_parts.begin()
+							;
+						local_frame_parts_iterator!=current_video_frame->frame_parts.end()
+							;
+						local_frame_parts_iterator++
+							)
+						{
+							delete []local_frame_parts_iterator->frame_part_data;
+
+							local_frame_parts_iterator->frame_part_data = NULL;
+							local_frame_parts_iterator->frame_part_data_size = 0;
+
+							//local_frame_parts_iterator = current_video_frame->frame_parts.erase(local_frame_parts_iterator);
+						}
+
+						current_video_frame = current_video_frame_stream->frames.erase(current_video_frame);
+					}
+				}
+			}
+		}
+	}
+	/*//*/
+
 	if(local_main_dialog!=NULL)
 	{
 		{
@@ -8493,8 +8536,6 @@ void Cstl_network_ip_4_ip_6_udp_engineDialog::DrawWebCameraVideo(CString paramet
 	}
 
 	{
-		// Event object was signaled		
-
 		CSingleLock local_lock(&draw_video_critical_section);
 
 		local_lock.Lock();

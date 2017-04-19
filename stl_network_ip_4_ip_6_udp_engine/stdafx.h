@@ -39,9 +39,9 @@
 
 #include <atlbase.h>
 
-#undef _WTL_USE_CSTRING
-#undef __ATLSTR_H__
-#include <atlapp.h>
+//#undef _WTL_USE_CSTRING
+//#undef __ATLSTR_H__
+//#include <atlapp.h>
 
 #include <comutil.h>
 

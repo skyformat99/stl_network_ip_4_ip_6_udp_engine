@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
@@ -19,6 +19,7 @@
     <SccAuxPath>SAK</SccAuxPath>
     <SccLocalPath>SAK</SccLocalPath>
     <SccProvider>SAK</SccProvider>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -26,7 +27,7 @@
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>Unicode</CharacterSet>
     <UseOfMfc>Dynamic</UseOfMfc>
-    <PlatformToolset>v110</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -34,7 +35,7 @@
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
     <UseOfMfc>Dynamic</UseOfMfc>
-    <PlatformToolset>v110</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -48,20 +49,20 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSDK_IncludePath);C:\Galaxy\STL Galaxy\Projects\WTL90_4140_Final\Include;C:\Galaxy\STL Galaxy\Projects\boost_1_59_0;C:\Galaxy\STL Galaxy\Projects\xerces-c-3.1.2\src;</IncludePath>
-    <LibraryPath>$(VCInstallDir)lib;$(VCInstallDir)atlmfc\lib;$(WindowsSDK_LibraryPath_x86);C:\Galaxy\STL Galaxy\Projects\xerces-c-3.1.2\Build\Win32\VC11\Debug;C:\Galaxy\STL Galaxy\Projects\boost_1_59_0\stage\lib;</LibraryPath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);C:\Galaxy\STL Galaxy\Projects\WTL90_4140_Final\Include;C:\Galaxy\STL Galaxy\Projects\boost_1_59_0;C:\Galaxy\STL Galaxy\Projects\xerces-c-3.1.2\src;</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86;</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSDK_IncludePath);C:\Galaxy\STL Galaxy\Projects\WTL90_4140_Final\Include;C:\Galaxy\STL Galaxy\Projects\boost_1_59_0;C:\Galaxy\STL Galaxy\Projects\xerces-c-3.1.2\src;</IncludePath>
-    <LibraryPath>$(VCInstallDir)lib;$(VCInstallDir)atlmfc\lib;$(WindowsSDK_LibraryPath_x86);C:\Galaxy\STL Galaxy\Projects\xerces-c-3.1.2\Build\Win32\VC11\Release;C:\Galaxy\STL Galaxy\Projects\boost_1_59_0\stage\lib;</LibraryPath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);C:\Galaxy\STL Galaxy\Projects\WTL90_4140_Final\Include;C:\Galaxy\STL Galaxy\Projects\boost_1_59_0;C:\Galaxy\STL Galaxy\Projects\xerces-c-3.1.2\src;</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86;</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;%(PreprocessorDefinitions);_WINSOCK_DEPRECATED_NO_WARNINGS</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <AdditionalOptions>-Zm200 %(AdditionalOptions)</AdditionalOptions>
       <AdditionalIncludeDirectories>C:\Galaxy\Решения\xerces-c-3.1.2\src;C:\Galaxy\Решения\boost_1_59_0;C:\Galaxy\Решения\WTL90_4140_Final\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -90,7 +91,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;%(PreprocessorDefinitions);_WINSOCK_DEPRECATED_NO_WARNINGS</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <AdditionalOptions>-Zm200 %(AdditionalOptions)</AdditionalOptions>
       <AdditionalIncludeDirectories>C:\Galaxy\Решения\xerces-c-3.1.2\src;C:\Galaxy\Решения\boost_1_59_0;C:\Galaxy\Решения\WTL90_4140_Final\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -181,6 +182,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="res\stl_network_ip_4_ip_6_udp_engine.rc2" />
+    <None Include="Stl Network Engine (Windows 10).reg" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\stl_network_ip_4_ip_6_udp_engine.ico" />

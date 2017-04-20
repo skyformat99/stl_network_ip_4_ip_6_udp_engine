@@ -56,22 +56,25 @@
 #include <algorithm>
 
 
+#define BOOST_THREAD_USES_DATETIME
 
-#include <boost/ref.hpp>
-#include <boost/bind.hpp>
-#include <boost/thread.hpp>
-#include <boost/date_time/posix_time/posix_time.hpp>
+#include "boost/ref.hpp"
+#include "boost/bind.hpp"
+#include "boost/thread.hpp"
+#include "boost/date_time/posix_time/posix_time.hpp"
 
-#include <boost/shared_ptr.hpp>
-#include <boost/enable_shared_from_this.hpp>
+#include "boost/shared_ptr.hpp"
+#include "boost/enable_shared_from_this.hpp"
 #include "util/boost-shared_ptr.hpp"
 
-#include <boost/scoped_array.hpp>
+#include "boost/scoped_array.hpp"
 
-#include <boost/foreach.hpp>
+#include "boost/foreach.hpp"
 #define boost_foreach BOOST_FOREACH
 
-#include <boost/format.hpp>
+#include "boost/format.hpp"
+
+#include "boost/thread.hpp"
 
 #include "util/debug_report.h"
 

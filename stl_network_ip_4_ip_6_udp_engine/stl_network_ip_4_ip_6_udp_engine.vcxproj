@@ -49,13 +49,9 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);C:\Galaxy\STL Galaxy\Projects\WTL90_4140_Final\Include;C:\Galaxy\STL Galaxy\Projects\boost_1_59_0;C:\Galaxy\STL Galaxy\Projects\xerces-c-3.1.2\src;</IncludePath>
-    <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86;</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);C:\Galaxy\STL Galaxy\Projects\WTL90_4140_Final\Include;C:\Galaxy\STL Galaxy\Projects\boost_1_59_0;C:\Galaxy\STL Galaxy\Projects\xerces-c-3.1.2\src;</IncludePath>
-    <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86;</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -65,13 +61,13 @@
       <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;%(PreprocessorDefinitions);_WINSOCK_DEPRECATED_NO_WARNINGS</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <AdditionalOptions>-Zm200 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalIncludeDirectories>C:\Galaxy\Решения\xerces-c-3.1.2\src;C:\Galaxy\Решения\boost_1_59_0;C:\Galaxy\Решения\WTL90_4140_Final\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Galaxy\Решения\boost_1_64_0;C:\Galaxy\Решения\xerces-c-3.1.2\src;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>odbc32.lib;odbccp32.lib;Ws2_32.lib;Wininet.lib;comsuppwd.lib;xerces-c_3d.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:\Galaxy\Решения\boost_1_59_0\stage\lib;C:\Galaxy\Решения\boost_1_59_0\bin.v2\libs\thread\build\msvc-11.0\debug\link-static\threading-multi;C:\Galaxy\Решения\xerces-c-3.1.2\Build\Win32\VC11\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Galaxy\Решения\boost_1_64_0\stage\lib;C:\Galaxy\Решения\boost_1_64_0\bin.v2\libs\thread\build\msvc-14.1\debug\link-static\threading-multi;C:\Galaxy\Решения\xerces-c-3.1.2\Build\Win32\VC11\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <Midl>
       <MkTypLibCompatible>false</MkTypLibCompatible>
@@ -94,7 +90,7 @@
       <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;%(PreprocessorDefinitions);_WINSOCK_DEPRECATED_NO_WARNINGS</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <AdditionalOptions>-Zm200 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalIncludeDirectories>C:\Galaxy\Решения\xerces-c-3.1.2\src;C:\Galaxy\Решения\boost_1_59_0;C:\Galaxy\Решения\WTL90_4140_Final\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Galaxy\Решения\boost_1_64_0;C:\Galaxy\Решения\xerces-c-3.1.2\src;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -102,7 +98,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalDependencies>odbc32.lib;odbccp32.lib;Ws2_32.lib;Wininet.lib;comsuppwd.lib;xerces-c_3.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:\Galaxy\Решения\boost_1_59_0\stage\lib;C:\Galaxy\Решения\boost_1_59_0\bin.v2\libs\thread\build\msvc-11.0\release\link-static\threading-multi;C:\Galaxy\Решения\xerces-c-3.1.2\Build\Win32\VC11\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Galaxy\Решения\boost_1_64_0\stage\lib;C:\Galaxy\Решения\boost_1_64_0\bin.v2\libs\thread\build\msvc-14.1\release\link-static\threading-multi;C:\Galaxy\Решения\xerces-c-3.1.2\Build\Win32\VC11\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <Midl>
       <MkTypLibCompatible>false</MkTypLibCompatible>

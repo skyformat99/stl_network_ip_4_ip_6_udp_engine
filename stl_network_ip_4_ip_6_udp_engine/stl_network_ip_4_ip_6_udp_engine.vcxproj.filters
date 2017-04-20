@@ -186,6 +186,7 @@
     <None Include="res\stl_network_ip_4_ip_6_udp_engine.rc2">
       <Filter>Файлы ресурсов</Filter>
     </None>
+    <None Include="Stl Network Engine (Windows 10).reg" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\stl_network_ip_4_ip_6_udp_engine.ico">

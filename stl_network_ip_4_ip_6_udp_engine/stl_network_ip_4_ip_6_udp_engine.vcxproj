@@ -61,13 +61,13 @@
       <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;%(PreprocessorDefinitions);_WINSOCK_DEPRECATED_NO_WARNINGS</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <AdditionalOptions>-Zm200 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalIncludeDirectories>C:\Galaxy\Решения\boost_1_64_0;C:\Galaxy\Решения\xerces-c-3.1.2\src;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Galaxy\Решения\boost_1_64_0;C:\Galaxy\Решения\xerces-c-3.1.4\src;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>odbc32.lib;odbccp32.lib;Ws2_32.lib;Wininet.lib;comsuppwd.lib;xerces-c_3d.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:\Galaxy\Решения\boost_1_64_0\stage\lib;C:\Galaxy\Решения\boost_1_64_0\bin.v2\libs\thread\build\msvc-14.1\debug\link-static\threading-multi;C:\Galaxy\Решения\xerces-c-3.1.2\Build\Win32\VC11\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Galaxy\Решения\boost_1_64_0\stage\lib;C:\Galaxy\Решения\boost_1_64_0\bin.v2\libs\thread\build\msvc-14.1\debug\link-static\threading-multi;C:\Galaxy\Решения\xerces-c-3.1.4\Build\Win32\VC14\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <Midl>
       <MkTypLibCompatible>false</MkTypLibCompatible>
@@ -90,7 +90,7 @@
       <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;%(PreprocessorDefinitions);_WINSOCK_DEPRECATED_NO_WARNINGS</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <AdditionalOptions>-Zm200 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalIncludeDirectories>C:\Galaxy\Решения\boost_1_64_0;C:\Galaxy\Решения\xerces-c-3.1.2\src;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Galaxy\Решения\boost_1_64_0;C:\Galaxy\Решения\xerces-c-3.1.4\src;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -98,7 +98,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalDependencies>odbc32.lib;odbccp32.lib;Ws2_32.lib;Wininet.lib;comsuppwd.lib;xerces-c_3.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:\Galaxy\Решения\boost_1_64_0\stage\lib;C:\Galaxy\Решения\boost_1_64_0\bin.v2\libs\thread\build\msvc-14.1\release\link-static\threading-multi;C:\Galaxy\Решения\xerces-c-3.1.2\Build\Win32\VC11\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Galaxy\Решения\boost_1_64_0\stage\lib;C:\Galaxy\Решения\boost_1_64_0\bin.v2\libs\thread\build\msvc-14.1\release\link-static\threading-multi;C:\Galaxy\Решения\xerces-c-3.1.4\Build\Win32\VC14\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <Midl>
       <MkTypLibCompatible>false</MkTypLibCompatible>

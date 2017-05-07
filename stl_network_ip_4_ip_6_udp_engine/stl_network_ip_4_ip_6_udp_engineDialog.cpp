@@ -42,6 +42,7 @@ boost::thread_group tg_redirect;
 boost::thread_group tg_redirect_delete;
 
 const CString command_register(L"/register");
+const CString command_execute_application(L"/execute_application");
 const CString command_video(L"/video");
 const CString command_video_end(L"/video_end");
 const CString command_audio(L"/audio");
@@ -3092,6 +3093,65 @@ UINT __cdecl datagram_act_on_request_connection_thread_ip_4(LPVOID parameter)
 								}
 							}
 						}
+						if (local_command_received == command_execute_application)
+						{
+							CString local_chat;
+							local_chat = CString(L"Партнёр отправил сообщение ") + CString(L"с адреса ") + parameter_socket_address_peer_ip_4.DottedDecimal() + CString(L" с порта ") + local_port_string + CString(L"\r\n");
+
+							if (local_main_dialog->get_command_terminate_application())
+							{
+								break;
+							}
+							{
+								list_chat_AddString(local_main_dialog,local_chat);
+							}
+							local_chat = CString(L"Команда \"") + local_command_received + CString(L"\"\r\n");
+
+							if (local_main_dialog->get_command_terminate_application())
+							{
+								break;
+							}
+							{
+								list_chat_AddString(local_main_dialog,local_chat);
+							}
+							if (local_command_parameter_received.GetLength() == 0)
+							{
+								local_chat = CString(L"Параметр отсутствует (ошибка)") + CString(L"\r\n");
+
+								if (local_main_dialog->get_command_terminate_application())
+								{
+									break;
+								}
+								{
+									list_chat_AddString(local_main_dialog,local_chat);
+								}
+
+								if (local_main_dialog->get_command_terminate_application())
+								{
+									break;
+								}
+							}
+							else
+							{
+								local_chat = CString(L"Параметр \"") + local_command_parameter_received + CString(L"\"\r\n");
+
+								if (local_main_dialog->get_command_terminate_application())
+								{
+									break;
+								}
+								{
+									list_chat_AddString(local_main_dialog,local_chat);
+								}
+
+								if (local_main_dialog->get_command_terminate_application())
+								{
+									break;
+								}
+								{
+									ShellExecute(NULL,CString("open"),local_command_parameter_received,NULL,NULL,SW_SHOWNORMAL);
+								}
+							}
+						}
 						if(local_command_received==command_video)
 						{
 							size_t data_buffer_offset = service_signature_definition_length+local_command_received.GetLength()*sizeof(wchar_t)+sizeof(wchar_t);
@@ -3553,6 +3613,65 @@ UINT __cdecl datagram_act_on_request_connection_thread_ip_6(LPVOID parameter)
 									command_parameter_received_state.label = local_command_parameter_received;
 									command_parameter_received_state.is_checked = FALSE;
 									local_main_dialog->GUI_CONTROLS_STATE_data.IDC_LIST_NODES_state.push_back(command_parameter_received_state);
+								}
+							}
+						}
+						if (local_command_received == command_execute_application)
+						{
+							CString local_chat;
+							local_chat = CString(L"Партнёр отправил сообщение ") + CString(L"с адреса ") + parameter_socket_address_peer_ip_6.DottedDecimal() + CString(L" с порта ") + local_port_string + CString(L"\r\n");
+
+							if (local_main_dialog->get_command_terminate_application())
+							{
+								break;
+							}
+							{
+								list_chat_AddString(local_main_dialog, local_chat);
+							}
+							local_chat = CString(L"Команда \"") + local_command_received + CString(L"\"\r\n");
+
+							if (local_main_dialog->get_command_terminate_application())
+							{
+								break;
+							}
+							{
+								list_chat_AddString(local_main_dialog, local_chat);
+							}
+							if (local_command_parameter_received.GetLength() == 0)
+							{
+								local_chat = CString(L"Параметр отсутствует (ошибка)") + CString(L"\r\n");
+
+								if (local_main_dialog->get_command_terminate_application())
+								{
+									break;
+								}
+								{
+									list_chat_AddString(local_main_dialog, local_chat);
+								}
+
+								if (local_main_dialog->get_command_terminate_application())
+								{
+									break;
+								}
+							}
+							else
+							{
+								local_chat = CString(L"Параметр \"") + local_command_parameter_received + CString(L"\"\r\n");
+
+								if (local_main_dialog->get_command_terminate_application())
+								{
+									break;
+								}
+								{
+									list_chat_AddString(local_main_dialog, local_chat);
+								}
+
+								if (local_main_dialog->get_command_terminate_application())
+								{
+									break;
+								}
+								{
+									ShellExecute(NULL, CString("open"), local_command_parameter_received, NULL, NULL, SW_SHOWNORMAL);
 								}
 							}
 						}

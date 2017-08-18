@@ -40,6 +40,21 @@ struct STREAM_FRAME_INFORMATION
 {
 	std::list<FRAME> frames;
 	DWORD sequence_source_number;
+	CString source_address_string;	//	заполняется при подготовке кадра (перенести в frames, потому что характеризует frame)
+};
+
+struct WEB_CAMERA_FRAME
+{
+	BYTE *frame_data;
+	UINT frame_data_size;
+	CTime arrival_time;
+};
+
+struct STREAM_WEB_CAMERA_FRAME_INFORMATION
+{
+	std::list<WEB_CAMERA_FRAME> frames;
+	DWORD sequence_source_number;
+	CString source_address_string;	//	заполняется при подготовке кадра (перенести в frames, потому что характеризует frame)
 };
 
 struct STREAM_INFORMATION
@@ -283,6 +298,7 @@ public:
 	void PlayAudio(CString parameter_string, BYTE* parameter_data, size_t parameter_data_length);
 
 	CCriticalSection draw_video_critical_section;
+	CCriticalSection draw_web_camera_video_critical_section;
 	CCriticalSection play_audio_critical_section;
 
 	CButton button_enable_chat;
@@ -308,12 +324,12 @@ public:
 	CButton button_send_web_camera_video;
 	
 	std::list<STREAM_INFORMATION> received_video_stream;
-	CImage received_video_image;
 
-	std::list<STREAM_FRAME_INFORMATION> received_video_frame_stream;
+	std::list<STREAM_FRAME_INFORMATION> received_video_frame_stream;	//	Добавить синхронизацию ввода-вывода
 
-	std::list<STREAM_INFORMATION> received_web_camera_stream;
-	CImage received_web_camera_image;
+	std::list<STREAM_INFORMATION> received_web_camera_video_stream;
+
+	std::list<STREAM_WEB_CAMERA_FRAME_INFORMATION> received_web_camera_video_frame_stream;	//	Добавить синхронизацию ввода-вывода
 
 	std::list<STREAM_INFORMATION> received_microphone_stream;
 
@@ -346,6 +362,9 @@ public:
 	afx_msg void OnTimer(UINT_PTR nIDEvent);
 
 	static const UINT_PTR Cstl_network_ip_4_ip_6_udp_engineDialog_timer_nIDEvent = 10000;
+	static const UINT_PTR Cstl_network_ip_4_ip_6_udp_engineDialog_draw_video_timer_nIDEvent = 10001;
+	static const UINT_PTR Cstl_network_ip_4_ip_6_udp_engineDialog_draw_web_camera_timer_nIDEvent = 10002;
+	static const UINT_PTR Cstl_network_ip_4_ip_6_udp_engineDialog_play_sound_timer_nIDEvent = 10003;
 
 	afx_msg void OnClickedCheckEnableChat();
 
